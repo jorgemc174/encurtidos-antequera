@@ -5,14 +5,7 @@ import teldeImg from "./assets/telde.jpg";
 import heroImg from "./assets/hero.jpg";
 
 export default function App() {
-  const productos = [
-    "Aceitunas variadas",
-    "Encurtidos",
-    "Banderillas",
-    "Tapas tradicionales",
-    "Especialidades de la casa",
-    "Raciones para compartir",
-  ];
+  
 
   const carta = {
     aceitunas: [
@@ -75,9 +68,6 @@ export default function App() {
             </a>
             <a href="#nosotros" className="hover:text-[#7A5530] transition">
               Nosotros
-            </a>
-            <a href="#productos" className="hover:text-[#7A5530] transition">
-              Productos
             </a>
             <a href="#carta" className="hover:text-[#7A5530] transition">
               Carta
@@ -155,26 +145,6 @@ export default function App() {
         </div>
       </section>
 
-      <section id="productos" className="px-6 py-20">
-        <div className="max-w-6xl mx-auto">
-          <h3 className="text-4xl font-bold mb-4">Nuestros productos</h3>
-          <p className="text-[#4E3B2A]/70 mb-10">
-            Una propuesta pensada para compartir, picar algo y disfrutar del
-            sabor tradicional.
-          </p>
-
-          <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6">
-            {productos.map((producto, index) => (
-              <div
-                key={index}
-                className="bg-white rounded-3xl p-6 shadow-sm border border-[#B78B5A]/20"
-              >
-                <h4 className="text-xl font-semibold">{producto}</h4>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
       <section id="carta" className="px-6 py-20 bg-[#EEF5DE]">
         <div className="max-w-6xl mx-auto">
