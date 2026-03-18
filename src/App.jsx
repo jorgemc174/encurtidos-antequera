@@ -2,6 +2,7 @@ import logoImg from "./assets/logo.png";
 import lasPalmasImg from "./assets/laspalmas.jpg";
 import galdarImg from "./assets/galdar.jpg";
 import teldeImg from "./assets/telde.jpg";
+import heroImg from "./assets/hero.jpg";
 
 export default function App() {
   const productos = [
@@ -133,13 +134,12 @@ export default function App() {
           </div>
 
           <div>
-            <div className="w-full h-[420px] rounded-3xl bg-[#B78B5A]/25 flex items-center justify-center shadow-lg">
-              <span className="text-[#4E3B2A]/60 text-lg text-center px-4">
-                Aquí irá una foto principal del negocio
-              </span>
-            </div>
+            <img
+              src={heroImg}
+              alt="Encurtidos Antequera"
+              className="w-full h-[420px] rounded-3xl object-cover shadow-lg"
+            />
           </div>
-        </div>
       </section>
 
       <section id="nosotros" className="px-6 py-20 bg-white">
