@@ -134,12 +134,13 @@ export default function App() {
           </div>
 
           <div>
-            <img
-              src={heroImg}
-              alt="Encurtidos Antequera"
-              className="w-full h-[420px] rounded-3xl object-cover shadow-lg"
-            />
-          </div>
+  <img
+    src={heroImg}
+    alt="Encurtidos Antequera"
+    className="w-full h-[420px] rounded-3xl object-cover shadow-lg"
+  />
+</div>
+        </div>
       </section>
 
       <section id="nosotros" className="px-6 py-20 bg-white">
