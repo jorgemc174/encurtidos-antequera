@@ -114,12 +114,7 @@ export default function App() {
                 Ver puestos
               </a>
 
-              <a
-                href="#contacto"
-                className="px-6 py-3 rounded-2xl border border-[#B78B5A] text-[#4E3B2A] font-semibold hover:bg-[#B78B5A] hover:text-white transition"
-              >
-                Contactar
-              </a>
+              
             </div>
           </div>
 
