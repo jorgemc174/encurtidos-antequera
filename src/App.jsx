@@ -292,12 +292,8 @@ export default function App() {
             >
               Teléfono: 617 883 822
             </a>
-
             <div className="p-4 rounded-2xl bg-[#F7F3EA] border border-[#B78B5A]/20">
-              WhatsApp: pendiente
-            </div>
-            <div className="p-4 rounded-2xl bg-[#F7F3EA] border border-[#B78B5A]/20">
-              Instagram: pendiente
+              Correo: pendiente
             </div>
           </div>
         </div>
