@@ -176,23 +176,23 @@ export default function Home() {
 
                   <p className="text-[#4E3B2A]/75 mb-5">{puesto.descripcion}</p>
 
-                  <div className="flex gap-3">
+                  <div className="flex justify-between items-center">
                     <a
-                      href={puesto.mapa}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="flex-1 text-center px-5 py-3 rounded-2xl bg-[#B78B5A] text-white font-semibold hover:opacity-90 transition"
+                        href={puesto.mapa}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-block px-5 py-3 rounded-2xl bg-[#B78B5A] text-white font-semibold hover:opacity-90 transition"
                     >
-                      Ver ubicación
+                        Ver ubicación
                     </a>
 
                     <Link
-                      to={puesto.rutaCarta}
-                      className="flex-1 text-center px-5 py-3 rounded-2xl bg-[#A8C66C] text-white font-semibold hover:opacity-90 transition"
+                        to={puesto.rutaCarta}
+                        className="inline-block px-5 py-3 rounded-2xl bg-[#A8C66C] text-white font-semibold hover:opacity-90 transition"
                     >
-                      Ver carta
+                        Ver carta
                     </Link>
-                  </div>
+                    </div>
                 </div>
               </div>
             ))}
