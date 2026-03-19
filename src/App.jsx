@@ -2,28 +2,17 @@ import logoImg from "./assets/logo.png";
 import lasPalmasImg from "./assets/laspalmas.jpg";
 import galdarImg from "./assets/galdar.jpg";
 import teldeImg from "./assets/telde.jpg";
-import heroImg from "./assets/hero.jpg";
+
 
 export default function App() {
-  
-
-  const carta = {
-    aceitunas: [
-      { nombre: "Aceitunas aliñadas", precio: "3,50€" },
-      { nombre: "Aceitunas partidas", precio: "3,80€" },
-      { nombre: "Aceitunas rellenas", precio: "4,20€" },
-    ],
-    encurtidos: [
-      { nombre: "Pepinillos", precio: "3,00€" },
-      { nombre: "Cebolletas", precio: "3,20€" },
-      { nombre: "Banderillas", precio: "4,50€" },
-    ],
-    tapas: [
-      { nombre: "Papas arrugadas", precio: "5,50€" },
-      { nombre: "Ensaladilla", precio: "4,80€" },
-      { nombre: "Tabla variada", precio: "8,50€" },
-    ],
-  };
+  const productos = [
+    "Aceitunas variadas",
+    "Encurtidos",
+    "Banderillas",
+    "Tapas tradicionales",
+    "Especialidades de la casa",
+    "Raciones para compartir",
+  ];
 
   const puestos = [
     {
@@ -31,6 +20,7 @@ export default function App() {
       descripcion:
         "Puesto con nuestra selección de aceitunas, encurtidos y tapas tradicionales.",
       mapa: "https://maps.app.goo.gl/R18Khz2ULXaL5vcc7",
+      carta: "AQUI_ENLACE_CARTA_LAS_PALMAS",
       imagen: lasPalmasImg,
     },
     {
@@ -38,6 +28,7 @@ export default function App() {
       descripcion:
         "Un espacio donde disfrutar del sabor de siempre con producto cercano y cuidado.",
       mapa: "https://maps.app.goo.gl/ACi1i4GrA85HnbZAA",
+      carta: "AQUI_ENLACE_CARTA_GALDAR",
       imagen: galdarImg,
     },
     {
@@ -45,6 +36,7 @@ export default function App() {
       descripcion:
         "Nuestra propuesta con el sabor de siempre, ideal para probar nuestras especialidades.",
       mapa: "https://maps.app.goo.gl/iRxEPQPSHbNWSf5L6",
+      carta: "AQUI_ENLACE_CARTA_TELDE",
       imagen: teldeImg,
     },
   ];
@@ -69,8 +61,8 @@ export default function App() {
             <a href="#nosotros" className="hover:text-[#7A5530] transition">
               Nosotros
             </a>
-            <a href="#carta" className="hover:text-[#7A5530] transition">
-              Carta
+            <a href="#productos" className="hover:text-[#7A5530] transition">
+              Productos
             </a>
             <a href="#puestos" className="hover:text-[#7A5530] transition">
               Puestos
@@ -101,30 +93,28 @@ export default function App() {
 
             <div className="flex flex-wrap gap-4">
               <a
-                href="#carta"
-                className="px-6 py-3 rounded-2xl bg-[#A8C66C] text-white font-semibold hover:opacity-90 transition"
-              >
-                Ver carta
-              </a>
-
-              <a
                 href="#puestos"
                 className="px-6 py-3 rounded-2xl bg-[#B78B5A] text-white font-semibold hover:opacity-90 transition"
               >
                 Ver puestos
               </a>
 
-              
+              <a
+                href="#contacto"
+                className="px-6 py-3 rounded-2xl border border-[#B78B5A] text-[#4E3B2A] font-semibold hover:bg-[#B78B5A] hover:text-white transition"
+              >
+                Contactar
+              </a>
             </div>
           </div>
 
           <div>
-  <img
-    src={heroImg}
-    alt="Encurtidos Antequera"
-    className="w-full h-[420px] rounded-3xl object-cover shadow-lg"
-  />
-</div>
+            <div className="w-full h-[420px] rounded-3xl bg-[#B78B5A]/25 flex items-center justify-center shadow-lg">
+              <span className="text-[#4E3B2A]/60 text-lg text-center px-4">
+                Aquí irá una foto principal del negocio
+              </span>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -140,64 +130,23 @@ export default function App() {
         </div>
       </section>
 
-
-      <section id="carta" className="px-6 py-20 bg-[#EEF5DE]">
+      <section id="productos" className="px-6 py-20">
         <div className="max-w-6xl mx-auto">
-          <h3 className="text-4xl font-bold mb-4">Carta</h3>
+          <h3 className="text-4xl font-bold mb-4">Nuestros productos</h3>
           <p className="text-[#4E3B2A]/70 mb-10">
-            Una selección de aceitunas, encurtidos y tapas para disfrutar del
+            Una propuesta pensada para compartir, picar algo y disfrutar del
             sabor tradicional.
           </p>
 
-          <div className="grid md:grid-cols-3 gap-6">
-            <div className="bg-white rounded-3xl p-6 shadow-sm border border-[#B78B5A]/20">
-              <h4 className="text-2xl font-bold mb-4 text-[#A8C66C]">
-                Aceitunas
-              </h4>
-              <div className="space-y-3">
-                {carta.aceitunas.map((item, index) => (
-                  <div
-                    key={index}
-                    className="flex justify-between gap-4 border-b border-[#B78B5A]/10 pb-2"
-                  >
-                    <span>{item.nombre}</span>
-                    <span className="font-semibold">{item.precio}</span>
-                  </div>
-                ))}
+          <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6">
+            {productos.map((producto, index) => (
+              <div
+                key={index}
+                className="bg-white rounded-3xl p-6 shadow-sm border border-[#B78B5A]/20"
+              >
+                <h4 className="text-xl font-semibold">{producto}</h4>
               </div>
-            </div>
-
-            <div className="bg-white rounded-3xl p-6 shadow-sm border border-[#B78B5A]/20">
-              <h4 className="text-2xl font-bold mb-4 text-[#A8C66C]">
-                Encurtidos
-              </h4>
-              <div className="space-y-3">
-                {carta.encurtidos.map((item, index) => (
-                  <div
-                    key={index}
-                    className="flex justify-between gap-4 border-b border-[#B78B5A]/10 pb-2"
-                  >
-                    <span>{item.nombre}</span>
-                    <span className="font-semibold">{item.precio}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="bg-white rounded-3xl p-6 shadow-sm border border-[#B78B5A]/20">
-              <h4 className="text-2xl font-bold mb-4 text-[#A8C66C]">Tapas</h4>
-              <div className="space-y-3">
-                {carta.tapas.map((item, index) => (
-                  <div
-                    key={index}
-                    className="flex justify-between gap-4 border-b border-[#B78B5A]/10 pb-2"
-                  >
-                    <span>{item.nombre}</span>
-                    <span className="font-semibold">{item.precio}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </section>
@@ -228,14 +177,25 @@ export default function App() {
 
                   <p className="text-[#4E3B2A]/75 mb-5">{puesto.descripcion}</p>
 
-                  <a
-                    href={puesto.mapa}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-block px-5 py-3 rounded-2xl bg-[#B78B5A] text-white font-semibold hover:opacity-90 transition"
-                  >
-                    Ver ubicación
-                  </a>
+                  <div className="flex flex-wrap gap-3">
+                    <a
+                      href={puesto.mapa}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-block px-5 py-3 rounded-2xl bg-[#B78B5A] text-white font-semibold hover:opacity-90 transition"
+                    >
+                      Ver ubicación
+                    </a>
+
+                    <a
+                      href={puesto.carta}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-block px-5 py-3 rounded-2xl bg-[#A8C66C] text-white font-semibold hover:opacity-90 transition"
+                    >
+                      Ver carta
+                    </a>
+                  </div>
                 </div>
               </div>
             ))}
@@ -257,9 +217,13 @@ export default function App() {
             >
               Teléfono: 617 883 822
             </a>
-            <div className="p-4 rounded-2xl bg-[#F7F3EA] border border-[#B78B5A]/20">
+
+            <a
+              href="mailto:correo@encurtidosantequera.com"
+              className="p-4 rounded-2xl bg-[#F7F3EA] border border-[#B78B5A]/20 block hover:opacity-90 transition"
+            >
               Correo: pendiente
-            </div>
+            </a>
           </div>
         </div>
       </section>
