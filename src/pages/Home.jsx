@@ -135,13 +135,13 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-[#F7F3EA] text-[#4E3B2A]">
-      <header className="sticky top-0 z-50 bg-[#D9C3A3]/95 backdrop-blur border-b border-[#B78B5A]/30">
-        <nav className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+      <header className="sticky top-0 z-50 bg-[#D9C3A3]/98 backdrop-blur border-b border-[#B78B5A]/25 shadow-sm">
+        <nav className="max-w-6xl mx-auto px-4 md:px-6 h-24 md:h-28 flex items-center justify-between">
+          <div className="flex items-center">
             <img
               src={logoImg}
               alt="Logo Encurtidos Antequera"
-              className="h-20 w-auto object-contain"
+              className="h-14 md:h-20 w-auto object-contain"
             />
           </div>
 
@@ -199,12 +199,14 @@ export default function Home() {
 
           <button
             onClick={() => setMenuOpen(true)}
-            className="md:hidden flex flex-col justify-center gap-1.5 p-2 rounded-xl border border-[#7A5530]/20 bg-[#A8C66C] shadow-sm hover:opacity-90 transition"
+            className="md:hidden flex items-center justify-center w-12 h-12 rounded-2xl border border-[#7A5530]/15 bg-[#A8C66C] shadow-sm hover:opacity-90 transition"
             aria-label="Abrir menú"
           >
-            <span className="block w-6 h-0.5 bg-white"></span>
-            <span className="block w-6 h-0.5 bg-white"></span>
-            <span className="block w-6 h-0.5 bg-white"></span>
+            <div className="flex flex-col justify-center gap-1.5">
+              <span className="block w-5 h-0.5 bg-white rounded"></span>
+              <span className="block w-5 h-0.5 bg-white rounded"></span>
+              <span className="block w-5 h-0.5 bg-white rounded"></span>
+            </div>
           </button>
         </nav>
       </header>
