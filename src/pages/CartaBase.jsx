@@ -104,7 +104,7 @@ export default function CartaBase({ titulo, categorias }) {
             <p className="text-xs uppercase tracking-[0.2em] text-[#4E3B2A]/50 mb-1">
               {lang === "es" ? "Sección actual" : "Current section"}
             </p>
-            <p className="text-lg font-semibold text-[#A8C66C] truncate">
+            <p className="text-lg font-semibold text-[#7E9f00] truncate">
               {categoriaActual?.nombre[lang]}
             </p>
           </div>
@@ -114,7 +114,7 @@ export default function CartaBase({ titulo, categorias }) {
               onClick={() => setLang("es")}
               className={`p-1 rounded-xl border transition ${
                 lang === "es"
-                  ? "bg-[#A8C66C] border-[#A8C66C]"
+                  ? "bg-[#7E9f00] border-[#7E9f00]"
                   : "bg-white border-[#B78B5A]/30"
               }`}
             >
@@ -129,7 +129,7 @@ export default function CartaBase({ titulo, categorias }) {
               onClick={() => setLang("en")}
               className={`p-1 rounded-xl border transition ${
                 lang === "en"
-                  ? "bg-[#A8C66C] border-[#A8C66C]"
+                  ? "bg-[#7E9f00] border-[#7E9f00]"
                   : "bg-white border-[#B78B5A]/30"
               }`}
             >
@@ -159,7 +159,7 @@ export default function CartaBase({ titulo, categorias }) {
                   onClick={() => toggleSection(categoria.id)}
                   className="w-full flex items-center justify-between gap-4 p-6 text-left"
                 >
-                  <h2 className="text-2xl font-bold text-[#A8C66C]">
+                  <h2 className="text-2xl font-bold text-[#7E9f00]">
                     {categoria.nombre[lang]}
                   </h2>
 

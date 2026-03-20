@@ -169,7 +169,7 @@ export default function Home() {
                 onClick={() => setLang("es")}
                 className={`p-1 rounded-xl border transition ${
                   lang === "es"
-                    ? "bg-[#A8C66C] border-[#A8C66C]"
+                    ? "bg-[#7E9f00] border-[#7E9f00]"
                     : "bg-white border-[#B78B5A]/30"
                 }`}
               >
@@ -184,7 +184,7 @@ export default function Home() {
                 onClick={() => setLang("en")}
                 className={`p-1 rounded-xl border transition ${
                   lang === "en"
-                    ? "bg-[#A8C66C] border-[#A8C66C]"
+                    ? "bg-[#7E9f00] border-[#7E9f00]"
                     : "bg-white border-[#B78B5A]/30"
                 }`}
               >
@@ -199,7 +199,7 @@ export default function Home() {
 
           <button
             onClick={() => setMenuOpen(true)}
-            className="md:hidden flex items-center justify-center w-12 h-12 rounded-2xl border border-[#7A5530]/15 bg-[#A8C66C] shadow-sm hover:opacity-90 transition"
+            className="md:hidden flex items-center justify-center w-12 h-12 rounded-2xl border border-[#7A5530]/15 bg-[#7E9f00] shadow-sm hover:opacity-90 transition"
             aria-label="Abrir menú"
           >
             <div className="flex flex-col justify-center gap-1.5">
@@ -289,7 +289,7 @@ export default function Home() {
                   onClick={() => setLang("es")}
                   className={`p-1 rounded-xl border transition ${
                     lang === "es"
-                      ? "bg-[#A8C66C] border-[#A8C66C]"
+                      ? "bg-[#7E9f00] border-[#7E9f00]"
                       : "bg-white border-[#B78B5A]/30"
                   }`}
                 >
@@ -304,7 +304,7 @@ export default function Home() {
                   onClick={() => setLang("en")}
                   className={`p-1 rounded-xl border transition ${
                     lang === "en"
-                      ? "bg-[#A8C66C] border-[#A8C66C]"
+                      ? "bg-[#7E9f00] border-[#7E9f00]"
                       : "bg-white border-[#B78B5A]/30"
                   }`}
                 >
@@ -323,7 +323,7 @@ export default function Home() {
       <section id="inicio" className="px-6 py-20 md:py-28">
         <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-10 items-center">
           <div>
-            <p className="uppercase tracking-[0.25em] text-sm text-[#A8C66C] mb-4 font-semibold">
+            <p className="uppercase tracking-[0.25em] text-sm text-[#7E9f00] mb-4 font-semibold">
               {t.subtitulo}
             </p>
 
@@ -405,7 +405,7 @@ export default function Home() {
                 />
 
                 <div className="p-6">
-                  <h4 className="text-2xl font-bold mb-3 text-[#A8C66C]">
+                  <h4 className="text-2xl font-bold mb-3 text-[#7E9f00]">
                     {puesto.nombre[lang]}
                   </h4>
 
@@ -425,7 +425,7 @@ export default function Home() {
 
                     <Link
                       to={puesto.rutaCarta}
-                      className="inline-block px-5 py-3 rounded-2xl bg-[#A8C66C] text-white font-semibold hover:opacity-90 transition"
+                      className="inline-block px-5 py-3 rounded-2xl bg-[#7E9f00] text-white font-semibold hover:opacity-90 transition"
                     >
                       {t.verCarta}
                     </Link>
