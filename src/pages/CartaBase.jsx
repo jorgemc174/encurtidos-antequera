@@ -23,18 +23,27 @@ export default function CartaBase({ titulo, categorias }) {
 
     const observer = new IntersectionObserver(
       (entries) => {
-        const visibles = entries
-          .filter((entry) => entry.isIntersecting)
-          .sort((a, b) => b.intersectionRatio - a.intersectionRatio);
+        let bestEntry = null;
 
-        if (visibles.length > 0) {
-          setActiveSection(visibles[0].target.id);
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+
+          if (
+            !bestEntry ||
+            entry.boundingClientRect.top < bestEntry.boundingClientRect.top
+          ) {
+            bestEntry = entry;
+          }
+        }
+
+        if (bestEntry) {
+          setActiveSection(bestEntry.target.id);
         }
       },
       {
         root: null,
-        rootMargin: "-140px 0px -55% 0px",
-        threshold: [0.1, 0.25, 0.4, 0.6],
+        rootMargin: "-90px 0px -70% 0px",
+        threshold: 0,
       }
     );
 
@@ -48,7 +57,7 @@ export default function CartaBase({ titulo, categorias }) {
     }
 
     return () => observer.disconnect();
-  }, [categoriasConId, activeSection]);
+  }, [categoriasConId]);
 
   const categoriaActual =
     categoriasConId.find((categoria) => categoria.id === activeSection) ||
@@ -64,8 +73,6 @@ export default function CartaBase({ titulo, categorias }) {
           >
             {lang === "es" ? "Volver" : "Back"}
           </Link>
-
-          
         </div>
 
         <h1 className="text-4xl md:text-5xl font-bold mb-6">
@@ -124,7 +131,7 @@ export default function CartaBase({ titulo, categorias }) {
             <section
               key={categoria.id}
               id={categoria.id}
-              className="scroll-mt-32 bg-white rounded-3xl p-6 border border-[#B78B5A]/20 shadow-sm"
+              className="scroll-mt-24 bg-white rounded-3xl p-6 border border-[#B78B5A]/20 shadow-sm"
             >
               <h2 className="text-2xl font-bold text-[#A8C66C] mb-6">
                 {categoria.nombre[lang]}
