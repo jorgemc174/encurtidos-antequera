@@ -134,9 +134,9 @@ export default function Home() {
             <img
               src={logoImg}
               alt="Logo Encurtidos Antequera"
-              className="h-12 w-auto object-contain"
+              className="h-20 w-auto object-contain"
             />
-            <span className="text-2xl font-bold">Encurtidos Antequera</span>
+
           </div>
 
           <div className="flex items-center gap-4">
