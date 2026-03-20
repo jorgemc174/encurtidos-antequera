@@ -430,7 +430,7 @@ export default function Home() {
               href="mailto:correo@encurtidosantequera.com"
               className="p-4 rounded-2xl bg-[#F7F3EA] border border-[#B78B5A]/20 block hover:opacity-90 transition text-base md:text-lg"
             >
-              {t.correo}: correo@encurtidosantequera.com
+              {t.correo}: pendiente
             </a>
           </div>
         </div>
