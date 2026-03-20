@@ -320,7 +320,7 @@ export default function Home() {
         </aside>
       </div>
 
-      <section id="inicio" className="px-6 py-20 md:py-28">
+      <section id="inicio" className="scroll-mt-24 px-6 py-20 md:py-28">
         <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-10 items-center">
           <div>
             <p className="uppercase tracking-[0.25em] text-sm text-[#A8C66C] mb-4 font-semibold">
@@ -360,7 +360,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section id="nosotros" className="px-6 py-20 bg-white">
+      <section id="nosotros" className="scroll-mt-24 px-6 py-20 bg-white">
         <div className="max-w-4xl mx-auto text-center">
           <h3 className="text-4xl font-bold mb-6">{t.quienesSomos}</h3>
           <p className="text-lg text-[#4E3B2A]/75 leading-8">
@@ -369,7 +369,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section id="productos" className="px-6 py-20">
+      <section id="productos" className="scroll-mt-24 px-6 py-20">
         <div className="max-w-6xl mx-auto">
           <h3 className="text-4xl font-bold mb-4">{t.nuestrosProductos}</h3>
           <p className="text-[#4E3B2A]/70 mb-10">{t.productosTexto}</p>
@@ -387,7 +387,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section id="puestos" className="px-6 py-20 bg-white">
+      <section id="puestos" className="scroll-mt-24 px-6 py-20 bg-white">
         <div className="max-w-6xl mx-auto">
           <h3 className="text-4xl font-bold mb-4">{t.nuestrosPuestos}</h3>
           <p className="text-[#4E3B2A]/70 mb-10">{t.puestosTexto}</p>
