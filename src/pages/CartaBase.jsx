@@ -1,19 +1,63 @@
 import { Link } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import espanaImg from "../assets/españa.jpg";
 import inglaterraImg from "../assets/inglaterra.jpg";
 
 export default function CartaBase({ titulo, categorias }) {
   const [lang, setLang] = useState(() => localStorage.getItem("lang") || "es");
+  const [activeSection, setActiveSection] = useState("");
 
   useEffect(() => {
     localStorage.setItem("lang", lang);
   }, [lang]);
 
+  const categoriasConId = useMemo(() => {
+    return categorias.map((categoria, index) => ({
+      ...categoria,
+      id: `categoria-${index}`,
+    }));
+  }, [categorias]);
+
+  useEffect(() => {
+    if (!categoriasConId.length) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visibles = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio);
+
+        if (visibles.length > 0) {
+          setActiveSection(visibles[0].target.id);
+        }
+      },
+      {
+        root: null,
+        rootMargin: "-140px 0px -55% 0px",
+        threshold: [0.1, 0.25, 0.4, 0.6],
+      }
+    );
+
+    categoriasConId.forEach((categoria) => {
+      const el = document.getElementById(categoria.id);
+      if (el) observer.observe(el);
+    });
+
+    if (!activeSection && categoriasConId.length > 0) {
+      setActiveSection(categoriasConId[0].id);
+    }
+
+    return () => observer.disconnect();
+  }, [categoriasConId, activeSection]);
+
+  const categoriaActual =
+    categoriasConId.find((categoria) => categoria.id === activeSection) ||
+    categoriasConId[0];
+
   return (
-    <div className="min-h-screen bg-[#F7F3EA] text-[#4E3B2A] px-6 py-12">
-      <div className="max-w-5xl mx-auto">
-        <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
+    <div className="min-h-screen bg-[#F7F3EA] text-[#4E3B2A]">
+      <div className="max-w-5xl mx-auto px-6 py-8">
+        <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
           <Link
             to="/"
             className="inline-block px-5 py-3 rounded-2xl bg-[#B78B5A] text-white font-semibold hover:opacity-90 transition"
@@ -54,15 +98,63 @@ export default function CartaBase({ titulo, categorias }) {
           </div>
         </div>
 
-        <h1 className="text-4xl md:text-5xl font-bold mb-10">
+        <h1 className="text-4xl md:text-5xl font-bold mb-6">
           {titulo[lang]}
         </h1>
+      </div>
 
+      <div className="sticky top-0 z-40 bg-[#F7F3EA]/95 backdrop-blur border-y border-[#B78B5A]/20">
+        <div className="max-w-5xl mx-auto px-6 py-3 flex items-center justify-between gap-4">
+          <div className="min-w-0">
+            <p className="text-xs uppercase tracking-[0.2em] text-[#4E3B2A]/50 mb-1">
+              {lang === "es" ? "Sección actual" : "Current section"}
+            </p>
+            <p className="text-lg font-semibold text-[#A8C66C] truncate">
+              {categoriaActual?.nombre[lang]}
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              onClick={() => setLang("es")}
+              className={`p-1 rounded-xl border transition ${
+                lang === "es"
+                  ? "bg-[#A8C66C] border-[#A8C66C]"
+                  : "bg-white border-[#B78B5A]/30"
+              }`}
+            >
+              <img
+                src={espanaImg}
+                alt="Español"
+                className="w-8 h-5 object-cover rounded-sm"
+              />
+            </button>
+
+            <button
+              onClick={() => setLang("en")}
+              className={`p-1 rounded-xl border transition ${
+                lang === "en"
+                  ? "bg-[#A8C66C] border-[#A8C66C]"
+                  : "bg-white border-[#B78B5A]/30"
+              }`}
+            >
+              <img
+                src={inglaterraImg}
+                alt="English"
+                className="w-8 h-5 object-cover rounded-sm"
+              />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-5xl mx-auto px-6 py-8">
         <div className="grid gap-8">
-          {categorias.map((categoria, index) => (
-            <div
-              key={index}
-              className="bg-white rounded-3xl p-6 border border-[#B78B5A]/20 shadow-sm"
+          {categoriasConId.map((categoria) => (
+            <section
+              key={categoria.id}
+              id={categoria.id}
+              className="scroll-mt-32 bg-white rounded-3xl p-6 border border-[#B78B5A]/20 shadow-sm"
             >
               <h2 className="text-2xl font-bold text-[#A8C66C] mb-6">
                 {categoria.nombre[lang]}
@@ -98,7 +190,7 @@ export default function CartaBase({ titulo, categorias }) {
                   </div>
                 ))}
               </div>
-            </div>
+            </section>
           ))}
         </div>
       </div>
