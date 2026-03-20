@@ -5,7 +5,7 @@ import inglaterraImg from "../assets/inglaterra.jpg";
 
 export default function CartaBase({ titulo, categorias }) {
   const [lang, setLang] = useState(() => localStorage.getItem("lang") || "es");
-  const [activeSection, setActiveSection] = useState("");
+  const [activeLabel, setActiveLabel] = useState("");
   const [openSections, setOpenSections] = useState({});
 
   useEffect(() => {
@@ -16,6 +16,12 @@ export default function CartaBase({ titulo, categorias }) {
     return categorias.map((categoria, index) => ({
       ...categoria,
       id: `categoria-${index}`,
+      subcategorias: categoria.subcategorias
+        ? categoria.subcategorias.map((subcategoria, subIndex) => ({
+            ...subcategoria,
+            id: `categoria-${index}-sub-${subIndex}`,
+          }))
+        : undefined,
     }));
   }, [categorias]);
 
@@ -31,6 +37,24 @@ export default function CartaBase({ titulo, categorias }) {
 
   useEffect(() => {
     if (!categoriasConId.length) return;
+
+    const elementsToObserve = [];
+
+    categoriasConId.forEach((categoria) => {
+      if (categoria.subcategorias?.length) {
+        categoria.subcategorias.forEach((subcategoria) => {
+          elementsToObserve.push({
+            id: subcategoria.id,
+            label: subcategoria.nombre,
+          });
+        });
+      } else {
+        elementsToObserve.push({
+          id: categoria.id,
+          label: categoria.nombre,
+        });
+      }
+    });
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -48,7 +72,10 @@ export default function CartaBase({ titulo, categorias }) {
         }
 
         if (bestEntry) {
-          setActiveSection(bestEntry.target.id);
+          const found = elementsToObserve.find((el) => el.id === bestEntry.target.id);
+          if (found) {
+            setActiveLabel(found.label[lang]);
+          }
         }
       },
       {
@@ -58,21 +85,17 @@ export default function CartaBase({ titulo, categorias }) {
       }
     );
 
-    categoriasConId.forEach((categoria) => {
-      const el = document.getElementById(categoria.id);
+    elementsToObserve.forEach((element) => {
+      const el = document.getElementById(element.id);
       if (el) observer.observe(el);
     });
 
-    if (!activeSection && categoriasConId.length > 0) {
-      setActiveSection(categoriasConId[0].id);
+    if (!activeLabel && elementsToObserve.length > 0) {
+      setActiveLabel(elementsToObserve[0].label[lang]);
     }
 
     return () => observer.disconnect();
-  }, [categoriasConId]);
-
-  const categoriaActual =
-    categoriasConId.find((categoria) => categoria.id === activeSection) ||
-    categoriasConId[0];
+  }, [categoriasConId, lang, activeLabel]);
 
   const toggleSection = (id) => {
     setOpenSections((prev) => ({
@@ -104,8 +127,8 @@ export default function CartaBase({ titulo, categorias }) {
             <p className="text-xs uppercase tracking-[0.2em] text-[#4E3B2A]/50 mb-1">
               {lang === "es" ? "Sección actual" : "Current section"}
             </p>
-            <p className="text-lg font-semibold text-[#7E9f00] truncate">
-              {categoriaActual?.nombre[lang]}
+            <p className="text-lg font-semibold text-[#7E9F00] truncate">
+              {activeLabel || titulo[lang]}
             </p>
           </div>
 
@@ -114,7 +137,7 @@ export default function CartaBase({ titulo, categorias }) {
               onClick={() => setLang("es")}
               className={`p-1 rounded-xl border transition ${
                 lang === "es"
-                  ? "bg-[#7E9f00] border-[#7E9f00]"
+                  ? "bg-[#7E9F00] border-[#7E9F00]"
                   : "bg-white border-[#B78B5A]/30"
               }`}
             >
@@ -129,7 +152,7 @@ export default function CartaBase({ titulo, categorias }) {
               onClick={() => setLang("en")}
               className={`p-1 rounded-xl border transition ${
                 lang === "en"
-                  ? "bg-[#7E9f00] border-[#7E9f00]"
+                  ? "bg-[#7E9F00] border-[#7E9F00]"
                   : "bg-white border-[#B78B5A]/30"
               }`}
             >
@@ -151,7 +174,7 @@ export default function CartaBase({ titulo, categorias }) {
             return (
               <section
                 key={categoria.id}
-                id={categoria.id}
+                id={!categoria.subcategorias ? categoria.id : undefined}
                 className="scroll-mt-24 bg-white rounded-3xl border border-[#B78B5A]/20 shadow-sm overflow-hidden"
               >
                 <button
@@ -159,7 +182,7 @@ export default function CartaBase({ titulo, categorias }) {
                   onClick={() => toggleSection(categoria.id)}
                   className="w-full flex items-center justify-between gap-4 p-6 text-left"
                 >
-                  <h2 className="text-2xl font-bold text-[#7E9f00]">
+                  <h2 className="text-2xl font-bold text-[#7E9F00]">
                     {categoria.nombre[lang]}
                   </h2>
 
@@ -188,36 +211,81 @@ export default function CartaBase({ titulo, categorias }) {
 
                 {isOpen && (
                   <div className="px-6 pb-6">
-                    <div className="space-y-4">
-                      {categoria.items.map((item, i) => (
-                        <div
-                          key={i}
-                          className="flex items-center justify-between gap-4 border-b border-[#B78B5A]/10 pb-3"
-                        >
-                          <div className="flex items-center gap-4 min-w-0">
-                            <div className="w-16 h-16 rounded-xl border border-[#B78B5A]/20 bg-[#F7F3EA] shrink-0 overflow-hidden flex items-center justify-center text-[10px] text-[#4E3B2A]/40 text-center px-1">
-                              {item.imagen ? (
-                                <img
-                                  src={item.imagen}
-                                  alt={item.nombre[lang]}
-                                  className="w-full h-full object-cover"
-                                />
-                              ) : lang === "es" ? (
-                                "Sin foto"
-                              ) : (
-                                "No image"
-                              )}
+                    {categoria.subcategorias ? (
+                      <div className="space-y-8">
+                        {categoria.subcategorias.map((subcategoria, subIndex) => (
+                          <div key={subIndex} id={subcategoria.id} className="scroll-mt-24">
+                            <h3 className="text-xl md:text-2xl font-bold text-[#7E9F00] mb-4">
+                              {subcategoria.nombre[lang]}
+                            </h3>
+
+                            <div className="space-y-4">
+                              {subcategoria.items.map((item, i) => (
+                                <div
+                                  key={i}
+                                  className="flex items-center justify-between gap-4 border-b border-[#B78B5A]/10 pb-3"
+                                >
+                                  <div className="flex items-center gap-4 min-w-0">
+                                    <div className="w-16 h-16 rounded-xl border border-[#B78B5A]/20 bg-[#F7F3EA] shrink-0 overflow-hidden flex items-center justify-center text-[10px] text-[#4E3B2A]/40 text-center px-1">
+                                      {item.imagen ? (
+                                        <img
+                                          src={item.imagen}
+                                          alt={item.nombre[lang]}
+                                          className="w-full h-full object-cover"
+                                        />
+                                      ) : lang === "es" ? (
+                                        "Sin foto"
+                                      ) : (
+                                        "No image"
+                                      )}
+                                    </div>
+
+                                    <span className="break-words">
+                                      {item.nombre[lang]}
+                                    </span>
+                                  </div>
+
+                                  <span className="font-semibold whitespace-nowrap">
+                                    {item.precio}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {categoria.items.map((item, i) => (
+                          <div
+                            key={i}
+                            className="flex items-center justify-between gap-4 border-b border-[#B78B5A]/10 pb-3"
+                          >
+                            <div className="flex items-center gap-4 min-w-0">
+                              <div className="w-16 h-16 rounded-xl border border-[#B78B5A]/20 bg-[#F7F3EA] shrink-0 overflow-hidden flex items-center justify-center text-[10px] text-[#4E3B2A]/40 text-center px-1">
+                                {item.imagen ? (
+                                  <img
+                                    src={item.imagen}
+                                    alt={item.nombre[lang]}
+                                    className="w-full h-full object-cover"
+                                  />
+                                ) : lang === "es" ? (
+                                  "Sin foto"
+                                ) : (
+                                  "No image"
+                                )}
+                              </div>
+
+                              <span className="break-words">{item.nombre[lang]}</span>
                             </div>
 
-                            <span className="break-words">{item.nombre[lang]}</span>
+                            <span className="font-semibold whitespace-nowrap">
+                              {item.precio}
+                            </span>
                           </div>
-
-                          <span className="font-semibold whitespace-nowrap">
-                            {item.precio}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
               </section>
