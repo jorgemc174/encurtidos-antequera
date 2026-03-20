@@ -327,7 +327,7 @@ export default function Home() {
               {t.subtitulo}
             </p>
 
-            <h2 className="text-5xl md:text-6xl font-bold leading-tight mb-6">
+            <h2 className="text-4xl md:text-6xl font-bold leading-tight mb-6">
               {t.titulo}
             </h2>
 
