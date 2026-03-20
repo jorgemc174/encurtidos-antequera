@@ -6,6 +6,7 @@ import inglaterraImg from "../assets/inglaterra.jpg";
 export default function CartaBase({ titulo, categorias }) {
   const [lang, setLang] = useState(() => localStorage.getItem("lang") || "es");
   const [activeSection, setActiveSection] = useState("");
+  const [openSections, setOpenSections] = useState({});
 
   useEffect(() => {
     localStorage.setItem("lang", lang);
@@ -17,6 +18,16 @@ export default function CartaBase({ titulo, categorias }) {
       id: `categoria-${index}`,
     }));
   }, [categorias]);
+
+  useEffect(() => {
+    if (!categoriasConId.length) return;
+
+    const initialOpenState = {};
+    categoriasConId.forEach((categoria, index) => {
+      initialOpenState[categoria.id] = index === 0;
+    });
+    setOpenSections(initialOpenState);
+  }, [categoriasConId]);
 
   useEffect(() => {
     if (!categoriasConId.length) return;
@@ -62,6 +73,13 @@ export default function CartaBase({ titulo, categorias }) {
   const categoriaActual =
     categoriasConId.find((categoria) => categoria.id === activeSection) ||
     categoriasConId[0];
+
+  const toggleSection = (id) => {
+    setOpenSections((prev) => ({
+      ...prev,
+      [id]: !prev[id],
+    }));
+  };
 
   return (
     <div className="min-h-screen bg-[#F7F3EA] text-[#4E3B2A]">
@@ -127,48 +145,84 @@ export default function CartaBase({ titulo, categorias }) {
 
       <div className="max-w-5xl mx-auto px-6 py-8">
         <div className="grid gap-8">
-          {categoriasConId.map((categoria) => (
-            <section
-              key={categoria.id}
-              id={categoria.id}
-              className="scroll-mt-24 bg-white rounded-3xl p-6 border border-[#B78B5A]/20 shadow-sm"
-            >
-              <h2 className="text-2xl font-bold text-[#A8C66C] mb-6">
-                {categoria.nombre[lang]}
-              </h2>
+          {categoriasConId.map((categoria) => {
+            const isOpen = openSections[categoria.id];
 
-              <div className="space-y-4">
-                {categoria.items.map((item, i) => (
-                  <div
-                    key={i}
-                    className="flex items-center justify-between gap-4 border-b border-[#B78B5A]/10 pb-3"
-                  >
-                    <div className="flex items-center gap-4 min-w-0">
-                      <div className="w-16 h-16 rounded-xl border border-[#B78B5A]/20 bg-[#F7F3EA] shrink-0 overflow-hidden flex items-center justify-center text-[10px] text-[#4E3B2A]/40 text-center px-1">
-                        {item.imagen ? (
-                          <img
-                            src={item.imagen}
-                            alt={item.nombre[lang]}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : lang === "es" ? (
-                          "Sin foto"
-                        ) : (
-                          "No image"
-                        )}
-                      </div>
+            return (
+              <section
+                key={categoria.id}
+                id={categoria.id}
+                className="scroll-mt-24 bg-white rounded-3xl border border-[#B78B5A]/20 shadow-sm overflow-hidden"
+              >
+                <button
+                  type="button"
+                  onClick={() => toggleSection(categoria.id)}
+                  className="w-full flex items-center justify-between gap-4 p-6 text-left"
+                >
+                  <h2 className="text-2xl font-bold text-[#A8C66C]">
+                    {categoria.nombre[lang]}
+                  </h2>
 
-                      <span className="break-words">{item.nombre[lang]}</span>
+                  <span className="text-2xl font-semibold text-[#B78B5A] leading-none">
+                    {isOpen ? "−" : "+"}
+                  </span>
+                </button>
+
+                {!isOpen && (
+                  <div className="px-6 pb-6">
+                    <div className="w-full h-48 rounded-2xl border border-[#B78B5A]/20 bg-[#F7F3EA] overflow-hidden flex items-center justify-center text-sm text-[#4E3B2A]/45">
+                      {categoria.imagenSeccion ? (
+                        <img
+                          src={categoria.imagenSeccion}
+                          alt={categoria.nombre[lang]}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : lang === "es" ? (
+                        "Imagen de sección"
+                      ) : (
+                        "Section image"
+                      )}
                     </div>
-
-                    <span className="font-semibold whitespace-nowrap">
-                      {item.precio}
-                    </span>
                   </div>
-                ))}
-              </div>
-            </section>
-          ))}
+                )}
+
+                {isOpen && (
+                  <div className="px-6 pb-6">
+                    <div className="space-y-4">
+                      {categoria.items.map((item, i) => (
+                        <div
+                          key={i}
+                          className="flex items-center justify-between gap-4 border-b border-[#B78B5A]/10 pb-3"
+                        >
+                          <div className="flex items-center gap-4 min-w-0">
+                            <div className="w-16 h-16 rounded-xl border border-[#B78B5A]/20 bg-[#F7F3EA] shrink-0 overflow-hidden flex items-center justify-center text-[10px] text-[#4E3B2A]/40 text-center px-1">
+                              {item.imagen ? (
+                                <img
+                                  src={item.imagen}
+                                  alt={item.nombre[lang]}
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : lang === "es" ? (
+                                "Sin foto"
+                              ) : (
+                                "No image"
+                              )}
+                            </div>
+
+                            <span className="break-words">{item.nombre[lang]}</span>
+                          </div>
+
+                          <span className="font-semibold whitespace-nowrap">
+                            {item.precio}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </section>
+            );
+          })}
         </div>
       </div>
     </div>

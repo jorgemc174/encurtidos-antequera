@@ -10,6 +10,7 @@ import inglaterraImg from "../assets/inglaterra.jpg";
 
 export default function Home() {
   const [lang, setLang] = useState(() => localStorage.getItem("lang") || "es");
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     localStorage.setItem("lang", lang);
@@ -42,6 +43,8 @@ export default function Home() {
       contactoTexto: "Escríbenos para más información o consultas.",
       telefono: "Teléfono",
       correo: "Correo",
+      idioma: "Idioma",
+      menu: "Menú",
     },
     en: {
       inicio: "Home",
@@ -69,6 +72,8 @@ export default function Home() {
       contactoTexto: "Write to us for more information or enquiries.",
       telefono: "Phone",
       correo: "Email",
+      idioma: "Language",
+      menu: "Menu",
     },
   };
 
@@ -126,6 +131,8 @@ export default function Home() {
     },
   ];
 
+  const closeMenu = () => setMenuOpen(false);
+
   return (
     <div className="min-h-screen bg-[#F7F3EA] text-[#4E3B2A]">
       <header className="sticky top-0 z-50 bg-[#D9C3A3]/95 backdrop-blur border-b border-[#B78B5A]/30">
@@ -134,13 +141,12 @@ export default function Home() {
             <img
               src={logoImg}
               alt="Logo Encurtidos Antequera"
-              className="h-18 w-auto object-contain"
+              className="h-20 w-auto object-contain"
             />
-
           </div>
 
-          <div className="flex items-center gap-4">
-            <div className="hidden md:flex gap-6 font-medium items-center">
+          <div className="hidden md:flex items-center gap-4">
+            <div className="flex gap-6 font-medium items-center">
               <a href="#inicio" className="hover:text-[#7A5530] transition">
                 {t.inicio}
               </a>
@@ -158,19 +164,159 @@ export default function Home() {
               </a>
             </div>
 
-            <button
-              onClick={() => setLang(lang === "es" ? "en" : "es")}
-              className="p-1 rounded-xl border bg-[#D9C3A3] border-[#D9C3A3] transition"
-            >
-              <img
-                src={lang === "es" ? inglaterraImg : espanaImg}
-                alt={lang === "es" ? "Switch to English" : "Cambiar a español"}
-                className="w-8 h-5 object-cover rounded-sm"
-              />
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setLang("es")}
+                className={`p-1 rounded-xl border transition ${
+                  lang === "es"
+                    ? "bg-[#A8C66C] border-[#A8C66C]"
+                    : "bg-white border-[#B78B5A]/30"
+                }`}
+              >
+                <img
+                  src={espanaImg}
+                  alt="Español"
+                  className="w-8 h-5 object-cover rounded-sm"
+                />
+              </button>
+
+              <button
+                onClick={() => setLang("en")}
+                className={`p-1 rounded-xl border transition ${
+                  lang === "en"
+                    ? "bg-[#A8C66C] border-[#A8C66C]"
+                    : "bg-white border-[#B78B5A]/30"
+                }`}
+              >
+                <img
+                  src={inglaterraImg}
+                  alt="English"
+                  className="w-8 h-5 object-cover rounded-sm"
+                />
+              </button>
+            </div>
           </div>
+
+          <button
+            onClick={() => setMenuOpen(true)}
+            className="md:hidden flex flex-col justify-center gap-1.5 p-2 rounded-xl border border-[#7A5530]/20 bg-[#A8C66C] shadow-sm hover:opacity-90 transition"
+            aria-label="Abrir menú"
+          >
+            <span className="block w-6 h-0.5 bg-white"></span>
+            <span className="block w-6 h-0.5 bg-white"></span>
+            <span className="block w-6 h-0.5 bg-white"></span>
+          </button>
         </nav>
       </header>
+
+      <div
+        className={`md:hidden fixed inset-0 z-[60] ${
+          menuOpen ? "pointer-events-auto" : "pointer-events-none"
+        }`}
+      >
+        <div
+          className={`absolute inset-0 bg-black/35 transition-opacity duration-300 ${
+            menuOpen ? "opacity-100" : "opacity-0"
+          }`}
+          onClick={() => setMenuOpen(false)}
+        ></div>
+
+        <aside
+          className={`absolute top-0 right-0 h-full w-[82%] max-w-sm bg-[#EFE7DA] border-l border-[#B78B5A] shadow-2xl transition-transform duration-300 ease-out ${
+            menuOpen ? "translate-x-0" : "translate-x-full"
+          }`}
+        >
+          <div className="flex items-center justify-between px-6 py-5 border-b border-[#B78B5A]/20">
+            <span className="text-lg font-bold text-[#4E3B2A]">{t.menu}</span>
+
+            <button
+              onClick={() => setMenuOpen(false)}
+              className="p-2 rounded-xl border border-[#B78B5A]/30 bg-white"
+              aria-label="Cerrar menú"
+            >
+              ✕
+            </button>
+          </div>
+
+          <div className="px-6 py-5 flex flex-col gap-5 font-medium">
+            <a
+              href="#inicio"
+              onClick={closeMenu}
+              className="hover:text-[#7A5530] transition"
+            >
+              {t.inicio}
+            </a>
+
+            <a
+              href="#nosotros"
+              onClick={closeMenu}
+              className="hover:text-[#7A5530] transition"
+            >
+              {t.nosotros}
+            </a>
+
+            <a
+              href="#productos"
+              onClick={closeMenu}
+              className="hover:text-[#7A5530] transition"
+            >
+              {t.productos}
+            </a>
+
+            <a
+              href="#puestos"
+              onClick={closeMenu}
+              className="hover:text-[#7A5530] transition"
+            >
+              {t.puestos}
+            </a>
+
+            <a
+              href="#contacto"
+              onClick={closeMenu}
+              className="hover:text-[#7A5530] transition"
+            >
+              {t.contacto}
+            </a>
+
+            <div className="pt-4 border-t border-[#B78B5A]/20">
+              <p className="text-sm mb-3 text-[#4E3B2A]/70">{t.idioma}</p>
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setLang("es")}
+                  className={`p-1 rounded-xl border transition ${
+                    lang === "es"
+                      ? "bg-[#A8C66C] border-[#A8C66C]"
+                      : "bg-white border-[#B78B5A]/30"
+                  }`}
+                >
+                  <img
+                    src={espanaImg}
+                    alt="Español"
+                    className="w-8 h-5 object-cover rounded-sm"
+                  />
+                </button>
+
+                <button
+                  onClick={() => setLang("en")}
+                  className={`p-1 rounded-xl border transition ${
+                    lang === "en"
+                      ? "bg-[#A8C66C] border-[#A8C66C]"
+                      : "bg-white border-[#B78B5A]/30"
+                  }`}
+                >
+                  <img
+                    src={inglaterraImg}
+                    alt="English"
+                    className="w-8 h-5 object-cover rounded-sm"
+                  />
+                </button>
+              </div>
+            </div>
+          </div>
+        </aside>
+      </div>
 
       <section id="inicio" className="px-6 py-20 md:py-28">
         <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-10 items-center">
