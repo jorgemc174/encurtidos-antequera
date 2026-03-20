@@ -7,6 +7,7 @@ export default function CartaBase({ titulo, categorias }) {
   const [lang, setLang] = useState(() => localStorage.getItem("lang") || "es");
   const [activeLabel, setActiveLabel] = useState("");
   const [openSections, setOpenSections] = useState({});
+  const [openSubsections, setOpenSubsections] = useState({});
 
   useEffect(() => {
     localStorage.setItem("lang", lang);
@@ -29,10 +30,20 @@ export default function CartaBase({ titulo, categorias }) {
     if (!categoriasConId.length) return;
 
     const initialOpenState = {};
+    const initialSubOpenState = {};
+
     categoriasConId.forEach((categoria, index) => {
       initialOpenState[categoria.id] = index === 0;
+
+      if (categoria.subcategoriasPlegables && categoria.subcategorias) {
+        categoria.subcategorias.forEach((subcategoria) => {
+          initialSubOpenState[subcategoria.id] = false;
+        });
+      }
     });
+
     setOpenSections(initialOpenState);
+    setOpenSubsections(initialSubOpenState);
   }, [categoriasConId]);
 
   useEffect(() => {
@@ -104,6 +115,44 @@ export default function CartaBase({ titulo, categorias }) {
     }));
   };
 
+  const toggleSubsection = (id) => {
+    setOpenSubsections((prev) => ({
+      ...prev,
+      [id]: !prev[id],
+    }));
+  };
+
+  const renderItems = (items) => (
+    <div className="space-y-4">
+      {items.map((item, i) => (
+        <div
+          key={i}
+          className="flex items-center justify-between gap-4 border-b border-[#B78B5A]/10 pb-3"
+        >
+          <div className="flex items-center gap-4 min-w-0">
+            <div className="w-16 h-16 rounded-xl border border-[#B78B5A]/20 bg-[#F7F3EA] shrink-0 overflow-hidden flex items-center justify-center text-[10px] text-[#4E3B2A]/40 text-center px-1">
+              {item.imagen ? (
+                <img
+                  src={item.imagen}
+                  alt={item.nombre[lang]}
+                  className="w-full h-full object-cover"
+                />
+              ) : lang === "es" ? (
+                "Sin foto"
+              ) : (
+                "No image"
+              )}
+            </div>
+
+            <span className="break-words">{item.nombre[lang]}</span>
+          </div>
+
+          <span className="font-semibold whitespace-nowrap">{item.precio}</span>
+        </div>
+      ))}
+    </div>
+  );
+
   return (
     <div className="min-h-screen bg-[#F7F3EA] text-[#4E3B2A]">
       <div className="max-w-5xl mx-auto px-6 py-8">
@@ -116,9 +165,7 @@ export default function CartaBase({ titulo, categorias }) {
           </Link>
         </div>
 
-        <h1 className="text-4xl md:text-5xl font-bold mb-6">
-          {titulo[lang]}
-        </h1>
+        <h1 className="text-4xl md:text-5xl font-bold mb-6">{titulo[lang]}</h1>
       </div>
 
       <div className="sticky top-0 z-40 bg-[#F7F3EA]/95 backdrop-blur border-y border-[#B78B5A]/20">
@@ -212,79 +259,85 @@ export default function CartaBase({ titulo, categorias }) {
                 {isOpen && (
                   <div className="px-6 pb-6">
                     {categoria.subcategorias ? (
-                      <div className="space-y-8">
-                        {categoria.subcategorias.map((subcategoria, subIndex) => (
-                          <div key={subIndex} id={subcategoria.id} className="scroll-mt-24">
-                            <h3 className="text-xl md:text-2xl font-bold text-[#7E9F00] mb-4">
-                              {subcategoria.nombre[lang]}
-                            </h3>
+                      categoria.subcategoriasPlegables ? (
+                        <div className="space-y-6">
+                          {categoria.subcategorias.map((subcategoria, subIndex) => {
+                            const isSubOpen = openSubsections[subcategoria.id];
 
-                            <div className="space-y-4">
-                              {subcategoria.items.map((item, i) => (
-                                <div
-                                  key={i}
-                                  className="flex items-center justify-between gap-4 border-b border-[#B78B5A]/10 pb-3"
+                            return (
+                              <div
+                                key={subIndex}
+                                id={subcategoria.id}
+                                className="scroll-mt-24 rounded-2xl border border-[#B78B5A]/15 bg-[#FCFAF6] overflow-hidden"
+                              >
+                                <button
+                                  type="button"
+                                  onClick={() => toggleSubsection(subcategoria.id)}
+                                  className="w-full flex items-center justify-between gap-4 p-5 text-left"
                                 >
-                                  <div className="flex items-center gap-4 min-w-0">
-                                    <div className="w-16 h-16 rounded-xl border border-[#B78B5A]/20 bg-[#F7F3EA] shrink-0 overflow-hidden flex items-center justify-center text-[10px] text-[#4E3B2A]/40 text-center px-1">
-                                      {item.imagen ? (
+                                  <h3 className="text-xl md:text-2xl font-bold text-[#7E9F00]">
+                                    {subcategoria.nombre[lang]}
+                                  </h3>
+
+                                  <span className="text-2xl font-semibold text-[#B78B5A] leading-none">
+                                    {isSubOpen ? "−" : "+"}
+                                  </span>
+                                </button>
+
+                                {!isSubOpen && (
+                                  <div className="px-5 pb-5">
+                                    <div className="w-full h-40 rounded-2xl border border-[#B78B5A]/20 bg-[#F7F3EA] overflow-hidden flex items-center justify-center text-sm text-[#4E3B2A]/45">
+                                      {subcategoria.imagenSeccion ? (
                                         <img
-                                          src={item.imagen}
-                                          alt={item.nombre[lang]}
+                                          src={subcategoria.imagenSeccion}
+                                          alt={subcategoria.nombre[lang]}
                                           className="w-full h-full object-cover"
                                         />
                                       ) : lang === "es" ? (
-                                        "Sin foto"
+                                        "Imagen de subsección"
                                       ) : (
-                                        "No image"
+                                        "Subsection image"
                                       )}
                                     </div>
-
-                                    <span className="break-words">
-                                      {item.nombre[lang]}
-                                    </span>
                                   </div>
+                                )}
 
-                                  <span className="font-semibold whitespace-nowrap">
-                                    {item.precio}
-                                  </span>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="space-y-4">
-                        {categoria.items.map((item, i) => (
-                          <div
-                            key={i}
-                            className="flex items-center justify-between gap-4 border-b border-[#B78B5A]/10 pb-3"
-                          >
-                            <div className="flex items-center gap-4 min-w-0">
-                              <div className="w-16 h-16 rounded-xl border border-[#B78B5A]/20 bg-[#F7F3EA] shrink-0 overflow-hidden flex items-center justify-center text-[10px] text-[#4E3B2A]/40 text-center px-1">
-                                {item.imagen ? (
-                                  <img
-                                    src={item.imagen}
-                                    alt={item.nombre[lang]}
-                                    className="w-full h-full object-cover"
-                                  />
-                                ) : lang === "es" ? (
-                                  "Sin foto"
-                                ) : (
-                                  "No image"
+                                {isSubOpen && (
+                                  <div className="px-5 pb-5">
+                                    {subcategoria.grupos ? (
+                                      <div className="space-y-8">
+                                        {subcategoria.grupos.map((grupo, grupoIndex) => (
+                                          <div key={grupoIndex}>
+                                            <h4 className="text-lg md:text-xl font-bold text-[#7E9F00] mb-4">
+                                              {grupo.nombre[lang]}
+                                            </h4>
+                                            {renderItems(grupo.items)}
+                                          </div>
+                                        ))}
+                                      </div>
+                                    ) : (
+                                      renderItems(subcategoria.items)
+                                    )}
+                                  </div>
                                 )}
                               </div>
-
-                              <span className="break-words">{item.nombre[lang]}</span>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <div className="space-y-8">
+                          {categoria.subcategorias.map((subcategoria, subIndex) => (
+                            <div key={subIndex} id={subcategoria.id} className="scroll-mt-24">
+                              <h3 className="text-xl md:text-2xl font-bold text-[#7E9F00] mb-4">
+                                {subcategoria.nombre[lang]}
+                              </h3>
+                              {renderItems(subcategoria.items)}
                             </div>
-
-                            <span className="font-semibold whitespace-nowrap">
-                              {item.precio}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
+                          ))}
+                        </div>
+                      )
+                    ) : (
+                      renderItems(categoria.items)
                     )}
                   </div>
                 )}

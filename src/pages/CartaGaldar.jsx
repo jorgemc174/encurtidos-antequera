@@ -6,6 +6,15 @@ export default function CartaGaldar() {
       nombre: { es: "Montaditos", en: "Mini sandwiches" },
       subcategorias: [
         {
+          nombre: { es: "Montaditos", en: "Mini sandwiches" },
+          items: [
+            {
+              nombre: { es: "Montaditos", en: "Mini sandwiches" },
+              precio: "2,80 €",
+            },
+          ],
+        },
+        {
           nombre: { es: "Montaditos Especial", en: "Special mini sandwiches" },
           items: [
             {
@@ -310,6 +319,7 @@ export default function CartaGaldar() {
     },
     {
       nombre: { es: "Bebidas", en: "Drinks" },
+      subcategoriasPlegables: true,
       subcategorias: [
         {
           nombre: { es: "Refrescos", en: "Soft drinks" },
@@ -449,124 +459,129 @@ export default function CartaGaldar() {
           ],
         },
         {
-          nombre: { es: "Vino blanco", en: "White wine" },
-          items: [
+          nombre: { es: "Vinos", en: "Wines" },
+          grupos: [
             {
-              nombre: { es: "Copa afrutado", en: "Fruity white wine glass" },
-              precio: "3,50 €",
+              nombre: { es: "Vino blanco", en: "White wine" },
+              items: [
+                {
+                  nombre: { es: "Copa afrutado", en: "Fruity white wine glass" },
+                  precio: "3,50 €",
+                },
+                {
+                  nombre: {
+                    es: "Copa Verdejo Castillo de Aza D.O. Rueda",
+                    en: "Glass of Verdejo Castillo de Aza D.O. Rueda",
+                  },
+                  precio: "3,20 €",
+                },
+                {
+                  nombre: {
+                    es: "Copa semi Jaume Serra D.O. Penedès",
+                    en: "Glass of semi-sweet Jaume Serra D.O. Penedès",
+                  },
+                  precio: "3,20 €",
+                },
+                {
+                  nombre: {
+                    es: "Copa manzanilla fino",
+                    en: "Glass of fino manzanilla",
+                  },
+                  precio: "2,90 €",
+                },
+                {
+                  nombre: {
+                    es: "Botella afrutado",
+                    en: "Bottle of fruity white wine",
+                  },
+                  precio: "16,00 €",
+                },
+                {
+                  nombre: {
+                    es: "Botella Verdejo Castillo de Aza D.O. Rueda",
+                    en: "Bottle of Verdejo Castillo de Aza D.O. Rueda",
+                  },
+                  precio: "13,80 €",
+                },
+                {
+                  nombre: {
+                    es: "Botella semi Jaume Serra D.O. Penedès",
+                    en: "Bottle of semi-sweet Jaume Serra D.O. Penedès",
+                  },
+                  precio: "13,80 €",
+                },
+                {
+                  nombre: { es: "Botella Albariño", en: "Bottle of Albariño" },
+                  precio: "13,80 €",
+                },
+              ],
             },
             {
-              nombre: {
-                es: "Copa Verdejo Castillo de Aza D.O. Rueda",
-                en: "Glass of Verdejo Castillo de Aza D.O. Rueda",
-              },
-              precio: "3,20 €",
+              nombre: { es: "Vino rosado", en: "Rosé wine" },
+              items: [
+                {
+                  nombre: {
+                    es: "Copa rosado de mi pueblo",
+                    en: "Glass of house rosé",
+                  },
+                  precio: "2,90 €",
+                },
+                {
+                  nombre: {
+                    es: "Botella rosado de mi pueblo",
+                    en: "Bottle of house rosé",
+                  },
+                  precio: "13,50 €",
+                },
+              ],
             },
             {
-              nombre: {
-                es: "Copa semi Jaume Serra D.O. Penedès",
-                en: "Glass of semi-sweet Jaume Serra D.O. Penedès",
-              },
-              precio: "3,20 €",
-            },
-            {
-              nombre: {
-                es: "Copa manzanilla fino",
-                en: "Glass of fino manzanilla",
-              },
-              precio: "2,90 €",
-            },
-            {
-              nombre: {
-                es: "Botella afrutado",
-                en: "Bottle of fruity white wine",
-              },
-              precio: "16,00 €",
-            },
-            {
-              nombre: {
-                es: "Botella Verdejo Castillo de Aza D.O. Rueda",
-                en: "Bottle of Verdejo Castillo de Aza D.O. Rueda",
-              },
-              precio: "13,80 €",
-            },
-            {
-              nombre: {
-                es: "Botella semi Jaume Serra D.O. Penedès",
-                en: "Bottle of semi-sweet Jaume Serra D.O. Penedès",
-              },
-              precio: "13,80 €",
-            },
-            {
-              nombre: { es: "Botella Albariño", en: "Bottle of Albariño" },
-              precio: "13,80 €",
-            },
-          ],
-        },
-        {
-          nombre: { es: "Vino rosado", en: "Rosé wine" },
-          items: [
-            {
-              nombre: {
-                es: "Copa rosado de mi pueblo",
-                en: "Glass of house rosé",
-              },
-              precio: "2,90 €",
-            },
-            {
-              nombre: {
-                es: "Botella rosado de mi pueblo",
-                en: "Bottle of house rosé",
-              },
-              precio: "13,50 €",
-            },
-          ],
-        },
-        {
-          nombre: { es: "Vino tinto", en: "Red wine" },
-          items: [
-            {
-              nombre: { es: "Copa de Rioja", en: "Glass of Rioja" },
-              precio: "3,50 €",
-            },
-            {
-              nombre: {
-                es: "Copa Figuero 4 D.O. Ribera del Duero Roble",
-                en: "Glass of Figuero 4 D.O. Ribera del Duero Roble",
-              },
-              precio: "3,50 €",
-            },
-            {
-              nombre: {
-                es: "Copa Pagos de Valcerracín Ribera del Duero Roble",
-                en: "Glass of Pagos de Valcerracín Ribera del Duero Roble",
-              },
-              precio: "3,50 €",
-            },
-            {
-              nombre: { es: "Copa tinto de verano", en: "Summer red wine" },
-              precio: "4,40 €",
-            },
-            {
-              nombre: {
-                es: "Botella Figuero 4 D.O. Ribera del Duero Roble",
-                en: "Bottle of Figuero 4 D.O. Ribera del Duero Roble",
-              },
-              precio: "17,00 €",
-            },
-            {
-              nombre: {
-                es: "Botella Pagos de Valcerracín Ribera del Duero Roble",
-                en: "Bottle of Pagos de Valcerracín Ribera del Duero Roble",
-              },
-              precio: "16,00 €",
-            },
-            {
-              nombre: {
-                es: "Botella Viña Paceta Crianza D.O. Rioja",
-                en: "Bottle of Viña Paceta Crianza D.O. Rioja",
-              },
-              precio: "16,00 €",
+              nombre: { es: "Vino tinto", en: "Red wine" },
+              items: [
+                {
+                  nombre: { es: "Copa de Rioja", en: "Glass of Rioja" },
+                  precio: "3,50 €",
+                },
+                {
+                  nombre: {
+                    es: "Copa Figuero 4 D.O. Ribera del Duero Roble",
+                    en: "Glass of Figuero 4 D.O. Ribera del Duero Roble",
+                  },
+                  precio: "3,50 €",
+                },
+                {
+                  nombre: {
+                    es: "Copa Pagos de Valcerracín Ribera del Duero Roble",
+                    en: "Glass of Pagos de Valcerracín Ribera del Duero Roble",
+                  },
+                  precio: "3,50 €",
+                },
+                {
+                  nombre: { es: "Copa tinto de verano", en: "Summer red wine" },
+                  precio: "4,40 €",
+                },
+                {
+                  nombre: {
+                    es: "Botella Figuero 4 D.O. Ribera del Duero Roble",
+                    en: "Bottle of Figuero 4 D.O. Ribera del Duero Roble",
+                  },
+                  precio: "17,00 €",
+                },
+                {
+                  nombre: {
+                    es: "Botella Pagos de Valcerracín Ribera del Duero Roble",
+                    en: "Bottle of Pagos de Valcerracín Ribera del Duero Roble",
+                  },
+                  precio: "16,00 €",
+                },
+                {
+                  nombre: {
+                    es: "Botella Viña Paceta Crianza D.O. Rioja",
+                    en: "Bottle of Viña Paceta Crianza D.O. Rioja",
+                  },
+                  precio: "16,00 €",
+                },
+              ],
             },
           ],
         },
