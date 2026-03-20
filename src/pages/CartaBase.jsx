@@ -65,37 +65,7 @@ export default function CartaBase({ titulo, categorias }) {
             {lang === "es" ? "Volver" : "Back"}
           </Link>
 
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setLang("es")}
-              className={`p-1 rounded-xl border transition ${
-                lang === "es"
-                  ? "bg-[#A8C66C] border-[#A8C66C]"
-                  : "bg-white border-[#B78B5A]/30"
-              }`}
-            >
-              <img
-                src={espanaImg}
-                alt="Español"
-                className="w-8 h-5 object-cover rounded-sm"
-              />
-            </button>
-
-            <button
-              onClick={() => setLang("en")}
-              className={`p-1 rounded-xl border transition ${
-                lang === "en"
-                  ? "bg-[#A8C66C] border-[#A8C66C]"
-                  : "bg-white border-[#B78B5A]/30"
-              }`}
-            >
-              <img
-                src={inglaterraImg}
-                alt="English"
-                className="w-8 h-5 object-cover rounded-sm"
-              />
-            </button>
-          </div>
+          
         </div>
 
         <h1 className="text-4xl md:text-5xl font-bold mb-6">
