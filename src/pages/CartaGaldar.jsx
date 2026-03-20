@@ -3,7 +3,7 @@ import CartaBase from "./CartaBase";
 export default function CartaGaldar() {
   const categorias = [
     {
-      nombre: "Montaditos",
+      nombre: "Montaditos Especial",
       items: [
         { nombre: "Queso cabra con cebolla caramelizada", precio: "2,80 €" },
         { nombre: "Queso ahumado con arándano", precio: "2,80 €" },
