@@ -139,54 +139,35 @@ export default function Home() {
             <span className="text-2xl font-bold">Encurtidos Antequera</span>
           </div>
 
-          <div className="hidden md:flex gap-6 font-medium items-center">
-            <a href="#inicio" className="hover:text-[#7A5530] transition">
-              {t.inicio}
-            </a>
-            <a href="#nosotros" className="hover:text-[#7A5530] transition">
-              {t.nosotros}
-            </a>
-            <a href="#productos" className="hover:text-[#7A5530] transition">
-              {t.productos}
-            </a>
-            <a href="#puestos" className="hover:text-[#7A5530] transition">
-              {t.puestos}
-            </a>
-            <a href="#contacto" className="hover:text-[#7A5530] transition">
-              {t.contacto}
-            </a>
-
-            <div className="flex items-center gap-2 ml-4">
-              <button
-                onClick={() => setLang("es")}
-                className={`p-1 rounded-xl border transition ${
-                  lang === "es"
-                    ? "bg-[#A8C66C] border-[#A8C66C]"
-                    : "bg-white border-[#B78B5A]/30"
-                }`}
-              >
-                <img
-                  src={espanaImg}
-                  alt="Español"
-                  className="w-8 h-5 object-cover rounded-sm"
-                />
-              </button>
-
-              <button
-                onClick={() => setLang("en")}
-                className={`p-1 rounded-xl border transition ${
-                  lang === "en"
-                    ? "bg-[#A8C66C] border-[#A8C66C]"
-                    : "bg-white border-[#B78B5A]/30"
-                }`}
-              >
-                <img
-                  src={inglaterraImg}
-                  alt="English"
-                  className="w-8 h-5 object-cover rounded-sm"
-                />
-              </button>
+          <div className="flex items-center gap-4">
+            <div className="hidden md:flex gap-6 font-medium items-center">
+              <a href="#inicio" className="hover:text-[#7A5530] transition">
+                {t.inicio}
+              </a>
+              <a href="#nosotros" className="hover:text-[#7A5530] transition">
+                {t.nosotros}
+              </a>
+              <a href="#productos" className="hover:text-[#7A5530] transition">
+                {t.productos}
+              </a>
+              <a href="#puestos" className="hover:text-[#7A5530] transition">
+                {t.puestos}
+              </a>
+              <a href="#contacto" className="hover:text-[#7A5530] transition">
+                {t.contacto}
+              </a>
             </div>
+
+            <button
+              onClick={() => setLang(lang === "es" ? "en" : "es")}
+              className="p-1 rounded-xl border bg-[#D9C3A3] border-[#D9C3A3] transition"
+            >
+              <img
+                src={lang === "es" ? inglaterraImg : espanaImg}
+                alt={lang === "es" ? "Switch to English" : "Cambiar a español"}
+                className="w-8 h-5 object-cover rounded-sm"
+              />
+            </button>
           </div>
         </nav>
       </header>
