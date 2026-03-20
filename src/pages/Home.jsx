@@ -134,7 +134,7 @@ export default function Home() {
   const closeMenu = () => setMenuOpen(false);
 
   return (
-    <div className="min-h-screen bg-[#F7F3EA] text-[#4E3B2A] overflow-x-hidden">
+    <div className="min-h-screen bg-[#F7F3EA] text-[#4E3B2A]">
       <header className="sticky top-0 z-50 bg-[#D9C3A3]/98 backdrop-blur border-b border-[#B78B5A]/25 shadow-sm">
         <nav className="max-w-6xl mx-auto px-4 md:px-6 h-24 md:h-28 flex items-center justify-between">
           <div className="flex items-center">
@@ -169,7 +169,7 @@ export default function Home() {
                 onClick={() => setLang("es")}
                 className={`p-1 rounded-xl border transition ${
                   lang === "es"
-                    ? "bg-[#7E9F00] border-[#7E9F00]"
+                    ? "bg-[#7E9f00] border-[#7E9f00]"
                     : "bg-white border-[#B78B5A]/30"
                 }`}
               >
@@ -184,7 +184,7 @@ export default function Home() {
                 onClick={() => setLang("en")}
                 className={`p-1 rounded-xl border transition ${
                   lang === "en"
-                    ? "bg-[#7E9F00] border-[#7E9F00]"
+                    ? "bg-[#7E9f00] border-[#7E9f00]"
                     : "bg-white border-[#B78B5A]/30"
                 }`}
               >
@@ -199,7 +199,7 @@ export default function Home() {
 
           <button
             onClick={() => setMenuOpen(true)}
-            className="md:hidden flex items-center justify-center w-12 h-12 rounded-2xl border border-[#7A5530]/15 bg-[#7E9F00] shadow-sm hover:bg-[#6F8E00] transition"
+            className="md:hidden flex items-center justify-center w-12 h-12 rounded-2xl border border-[#7A5530]/15 bg-[#7E9f00] shadow-sm hover:opacity-90 transition"
             aria-label="Abrir menú"
           >
             <div className="flex flex-col justify-center gap-1.5">
@@ -241,19 +241,43 @@ export default function Home() {
           </div>
 
           <div className="px-6 py-5 flex flex-col gap-5 font-medium">
-            <a href="#inicio" onClick={closeMenu} className="hover:text-[#7A5530] transition">
+            <a
+              href="#inicio"
+              onClick={closeMenu}
+              className="hover:text-[#7A5530] transition"
+            >
               {t.inicio}
             </a>
-            <a href="#nosotros" onClick={closeMenu} className="hover:text-[#7A5530] transition">
+
+            <a
+              href="#nosotros"
+              onClick={closeMenu}
+              className="hover:text-[#7A5530] transition"
+            >
               {t.nosotros}
             </a>
-            <a href="#productos" onClick={closeMenu} className="hover:text-[#7A5530] transition">
+
+            <a
+              href="#productos"
+              onClick={closeMenu}
+              className="hover:text-[#7A5530] transition"
+            >
               {t.productos}
             </a>
-            <a href="#puestos" onClick={closeMenu} className="hover:text-[#7A5530] transition">
+
+            <a
+              href="#puestos"
+              onClick={closeMenu}
+              className="hover:text-[#7A5530] transition"
+            >
               {t.puestos}
             </a>
-            <a href="#contacto" onClick={closeMenu} className="hover:text-[#7A5530] transition">
+
+            <a
+              href="#contacto"
+              onClick={closeMenu}
+              className="hover:text-[#7A5530] transition"
+            >
               {t.contacto}
             </a>
 
@@ -265,7 +289,7 @@ export default function Home() {
                   onClick={() => setLang("es")}
                   className={`p-1 rounded-xl border transition ${
                     lang === "es"
-                      ? "bg-[#7E9F00] border-[#7E9F00]"
+                      ? "bg-[#7E9f00] border-[#7E9f00]"
                       : "bg-white border-[#B78B5A]/30"
                   }`}
                 >
@@ -280,7 +304,7 @@ export default function Home() {
                   onClick={() => setLang("en")}
                   className={`p-1 rounded-xl border transition ${
                     lang === "en"
-                      ? "bg-[#7E9F00] border-[#7E9F00]"
+                      ? "bg-[#7E9f00] border-[#7E9f00]"
                       : "bg-white border-[#B78B5A]/30"
                   }`}
                 >
@@ -299,15 +323,15 @@ export default function Home() {
       <section id="inicio" className="px-6 py-20 md:py-28">
         <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-10 items-center">
           <div>
-            <p className="uppercase tracking-[0.16em] md:tracking-[0.25em] text-xs md:text-sm text-[#7E9F00] mb-4 font-semibold">
+            <p className="uppercase tracking-[0.25em] text-sm text-[#A8C66C] mb-4 font-semibold">
               {t.subtitulo}
             </p>
 
-            <h2 className="text-3xl sm:text-4xl md:text-6xl font-bold leading-tight mb-6">
+            <h2 className="text-5xl md:text-6xl font-bold leading-tight mb-6">
               {t.titulo}
             </h2>
 
-            <p className="text-base md:text-lg text-[#4E3B2A]/75 mb-8 max-w-xl leading-8 md:leading-normal">
+            <p className="text-lg text-[#4E3B2A]/75 mb-8 max-w-xl">
               {t.descripcion}
             </p>
 
@@ -338,8 +362,8 @@ export default function Home() {
 
       <section id="nosotros" className="px-6 py-20 bg-white">
         <div className="max-w-4xl mx-auto text-center">
-          <h3 className="text-3xl md:text-4xl font-bold mb-6">{t.quienesSomos}</h3>
-          <p className="text-base md:text-lg text-[#4E3B2A]/75 leading-8">
+          <h3 className="text-4xl font-bold mb-6">{t.quienesSomos}</h3>
+          <p className="text-lg text-[#4E3B2A]/75 leading-8">
             {t.quienesTexto}
           </p>
         </div>
@@ -347,8 +371,8 @@ export default function Home() {
 
       <section id="productos" className="px-6 py-20">
         <div className="max-w-6xl mx-auto">
-          <h3 className="text-3xl md:text-4xl font-bold mb-4">{t.nuestrosProductos}</h3>
-          <p className="text-base md:text-lg text-[#4E3B2A]/70 mb-10">{t.productosTexto}</p>
+          <h3 className="text-4xl font-bold mb-4">{t.nuestrosProductos}</h3>
+          <p className="text-[#4E3B2A]/70 mb-10">{t.productosTexto}</p>
 
           <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6">
             {productos[lang].map((producto, index) => (
@@ -356,7 +380,7 @@ export default function Home() {
                 key={index}
                 className="bg-white rounded-3xl p-6 shadow-sm border border-[#B78B5A]/20"
               >
-                <h4 className="text-lg md:text-xl font-semibold">{producto}</h4>
+                <h4 className="text-xl font-semibold">{producto}</h4>
               </div>
             ))}
           </div>
@@ -365,8 +389,8 @@ export default function Home() {
 
       <section id="puestos" className="px-6 py-20 bg-white">
         <div className="max-w-6xl mx-auto">
-          <h3 className="text-3xl md:text-4xl font-bold mb-4">{t.nuestrosPuestos}</h3>
-          <p className="text-base md:text-lg text-[#4E3B2A]/70 mb-10">{t.puestosTexto}</p>
+          <h3 className="text-4xl font-bold mb-4">{t.nuestrosPuestos}</h3>
+          <p className="text-[#4E3B2A]/70 mb-10">{t.puestosTexto}</p>
 
           <div className="grid md:grid-cols-3 gap-6">
             {puestos.map((puesto, index) => (
@@ -381,11 +405,11 @@ export default function Home() {
                 />
 
                 <div className="p-6">
-                  <h4 className="text-xl md:text-2xl font-bold mb-3 text-[#7E9F00]">
+                  <h4 className="text-2xl font-bold mb-3 text-[#7E9f00]">
                     {puesto.nombre[lang]}
                   </h4>
 
-                  <p className="text-base md:text-lg text-[#4E3B2A]/75 mb-5 leading-8 md:leading-normal">
+                  <p className="text-[#4E3B2A]/75 mb-5">
                     {puesto.descripcion[lang]}
                   </p>
 
@@ -401,7 +425,7 @@ export default function Home() {
 
                     <Link
                       to={puesto.rutaCarta}
-                      className="inline-block px-5 py-3 rounded-2xl bg-[#7E9F00] text-white font-semibold hover:bg-[#6F8E00] transition"
+                      className="inline-block px-5 py-3 rounded-2xl bg-[#7E9f00] text-white font-semibold hover:opacity-90 transition"
                     >
                       {t.verCarta}
                     </Link>
@@ -415,22 +439,22 @@ export default function Home() {
 
       <section id="contacto" className="px-6 py-20 bg-white">
         <div className="max-w-3xl mx-auto text-center">
-          <h3 className="text-3xl md:text-4xl font-bold mb-4">{t.contactoTitulo}</h3>
-          <p className="text-base md:text-lg text-[#4E3B2A]/70 mb-8">{t.contactoTexto}</p>
+          <h3 className="text-4xl font-bold mb-4">{t.contactoTitulo}</h3>
+          <p className="text-[#4E3B2A]/70 mb-8">{t.contactoTexto}</p>
 
           <div className="grid gap-4">
             <a
               href="tel:617883822"
-              className="p-4 rounded-2xl bg-[#F7F3EA] border border-[#B78B5A]/20 block hover:opacity-90 transition text-base md:text-lg"
+              className="p-4 rounded-2xl bg-[#F7F3EA] border border-[#B78B5A]/20 block hover:opacity-90 transition"
             >
               {t.telefono}: 617 883 822
             </a>
 
             <a
               href="mailto:correo@encurtidosantequera.com"
-              className="p-4 rounded-2xl bg-[#F7F3EA] border border-[#B78B5A]/20 block hover:opacity-90 transition text-base md:text-lg"
+              className="p-4 rounded-2xl bg-[#F7F3EA] border border-[#B78B5A]/20 block hover:opacity-90 transition"
             >
-              {t.correo}: pendiente
+              {t.correo}: correo@encurtidosantequera.com
             </a>
           </div>
         </div>
