@@ -4,16 +4,7 @@ export default function CartaGaldar() {
   const categorias = [
     {
       nombre: { es: "Montaditos", en: "Mini sandwiches" },
-      subcategorias: [
-        {
-          nombre: { es: "Montaditos", en: "Mini sandwiches" },
-          items: [
-            {
-              nombre: { es: "Montaditos", en: "Mini sandwiches" },
-              precio: "2,80 €",
-            },
-          ],
-        },
+      subcategorias: [        
         {
           nombre: { es: "Montaditos Especial", en: "Special mini sandwiches" },
           items: [
