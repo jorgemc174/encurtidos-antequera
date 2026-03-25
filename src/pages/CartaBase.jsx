@@ -215,19 +215,19 @@ export default function CartaBase({ titulo, categorias }) {
       </div>
 
       <div className="max-w-5xl mx-auto px-6 py-6">
-        <section className="bg-white rounded-3xl border border-[#B78B5A]/20 shadow-sm p-4 md:p-5 mb-6">
-          <p className="text-sm md:text-base text-[#4E3B2A]/80 mb-3 leading-6">
-            {lang === "es"
-              ? "Todos nuestros platos, pinchos y banderillas pueden contener trazas de:"
-              : "All our dishes, pinchos and skewers may contain traces of:"}
-          </p>
+        <section className="mb-6">
+  <p className="text-sm md:text-base text-[#4E3B2A]/80 mb-3 leading-6 text-center">
+    {lang === "es"
+      ? "Todos nuestros platos, pinchos y banderillas pueden contener trazas de:"
+      : "All our dishes, pinchos and skewers may contain traces of:"}
+  </p>
 
-          <img
-            src={alergenosImg}
-            alt={lang === "es" ? "Tabla de alérgenos" : "Allergen chart"}
-            className="w-full max-w-3xl rounded-2xl border border-[#B78B5A]/15"
-          />
-        </section>
+  <img
+    src={alergenosImg}
+    alt={lang === "es" ? "Tabla de alérgenos" : "Allergen chart"}
+    className="w-full max-w-3xl mx-auto"
+  />
+</section>
 
         <div className="grid gap-8">
           {categoriasConId.map((categoria) => {
