@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
 import espanaImg from "../assets/españa.jpg";
 import inglaterraImg from "../assets/inglaterra.jpg";
+import alergenosImg from "../assets/alergenos.jpg";
 
 export default function CartaBase({ titulo, categorias }) {
   const [lang, setLang] = useState(() => localStorage.getItem("lang") || "es");
@@ -166,6 +167,24 @@ export default function CartaBase({ titulo, categorias }) {
         </div>
 
         <h1 className="text-4xl md:text-5xl font-bold mb-6">{titulo[lang]}</h1>
+
+        <section className="bg-white rounded-3xl border border-[#B78B5A]/20 shadow-sm p-5 md:p-6 mb-8">
+          <h2 className="text-xl md:text-2xl font-bold text-[#7E9F00] mb-4">
+            {lang === "es" ? "Alérgenos" : "Allergens"}
+          </h2>
+
+          <p className="text-sm md:text-base text-[#4E3B2A]/80 mb-4 leading-7">
+            {lang === "es"
+              ? "Todos nuestros platos, pinchos y banderillas pueden contener trazas de:"
+              : "All our dishes, pinchos and skewers may contain traces of:"}
+          </p>
+
+          <img
+            src={alergenosImg}
+            alt={lang === "es" ? "Tabla de alérgenos" : "Allergen chart"}
+            className="w-full rounded-2xl border border-[#B78B5A]/15"
+          />
+        </section>
       </div>
 
       <div className="sticky top-0 z-40 bg-[#F7F3EA]/95 backdrop-blur border-y border-[#B78B5A]/20">
