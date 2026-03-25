@@ -45,6 +45,7 @@ export default function Home() {
       correo: "Correo",
       idioma: "Idioma",
       menu: "Menú",
+      horario: "Horario",
     },
     en: {
       inicio: "Home",
@@ -74,6 +75,7 @@ export default function Home() {
       correo: "Email",
       idioma: "Language",
       menu: "Menu",
+      horario: "Opening hours",
     },
   };
 
@@ -108,6 +110,26 @@ export default function Home() {
       mapa: "https://maps.app.goo.gl/R18Khz2ULXaL5vcc7",
       rutaCarta: "/carta-las-palmas",
       imagen: lasPalmasImg,
+      horario: {
+        es: [
+          { dia: "Lunes", hora: "11:00 - 16:00" },
+          { dia: "Martes", hora: "11:00 - 24:00" },
+          { dia: "Miércoles", hora: "11:00 - 24:00" },
+          { dia: "Jueves", hora: "11:00 - 24:00" },
+          { dia: "Viernes", hora: "11:00 - 24:00" },
+          { dia: "Sábado", hora: "11:00 - 24:00" },
+          { dia: "Domingo", hora: "11:00 - 17:00" },
+        ],
+        en: [
+          { dia: "Monday", hora: "11:00 - 16:00" },
+          { dia: "Tuesday", hora: "11:00 - 24:00" },
+          { dia: "Wednesday", hora: "11:00 - 24:00" },
+          { dia: "Thursday", hora: "11:00 - 24:00" },
+          { dia: "Friday", hora: "11:00 - 24:00" },
+          { dia: "Saturday", hora: "11:00 - 24:00" },
+          { dia: "Sunday", hora: "11:00 - 17:00" },
+        ],
+      },
     },
     {
       nombre: { es: "Gáldar", en: "Gáldar" },
@@ -118,6 +140,26 @@ export default function Home() {
       mapa: "https://maps.app.goo.gl/ACi1i4GrA85HnbZAA",
       rutaCarta: "/carta-galdar",
       imagen: galdarImg,
+      horario: {
+        es: [
+          { dia: "Lunes", hora: "Cerrado" },
+          { dia: "Martes", hora: "11:00 - 22:00" },
+          { dia: "Miércoles", hora: "11:00 - 22:00" },
+          { dia: "Jueves", hora: "11:00 - 22:00" },
+          { dia: "Viernes", hora: "12:00 - 24:00" },
+          { dia: "Sábado", hora: "12:00 - 24:00" },
+          { dia: "Domingo", hora: "12:00 - 17:00" },
+        ],
+        en: [
+          { dia: "Monday", hora: "Closed" },
+          { dia: "Tuesday", hora: "11:00 - 22:00" },
+          { dia: "Wednesday", hora: "11:00 - 22:00" },
+          { dia: "Thursday", hora: "11:00 - 22:00" },
+          { dia: "Friday", hora: "12:00 - 24:00" },
+          { dia: "Saturday", hora: "12:00 - 24:00" },
+          { dia: "Sunday", hora: "12:00 - 17:00" },
+        ],
+      },
     },
     {
       nombre: { es: "Telde", en: "Telde" },
@@ -128,6 +170,26 @@ export default function Home() {
       mapa: "https://maps.app.goo.gl/iRxEPQPSHbNWSf5L6",
       rutaCarta: "/carta-telde",
       imagen: teldeImg,
+      horario: {
+        es: [
+          { dia: "Lunes", hora: "10:00 - 23:00" },
+          { dia: "Martes", hora: "10:00 - 23:00" },
+          { dia: "Miércoles", hora: "10:00 - 23:00" },
+          { dia: "Jueves", hora: "10:00 - 23:00" },
+          { dia: "Viernes", hora: "10:00 - 02:00" },
+          { dia: "Sábado", hora: "10:00 - 02:00" },
+          { dia: "Domingo", hora: "12:00 - 22:00" },
+        ],
+        en: [
+          { dia: "Monday", hora: "10:00 - 23:00" },
+          { dia: "Tuesday", hora: "10:00 - 23:00" },
+          { dia: "Wednesday", hora: "10:00 - 23:00" },
+          { dia: "Thursday", hora: "10:00 - 23:00" },
+          { dia: "Friday", hora: "10:00 - 02:00" },
+          { dia: "Saturday", hora: "10:00 - 02:00" },
+          { dia: "Sunday", hora: "12:00 - 22:00" },
+        ],
+      },
     },
   ];
 
@@ -320,7 +382,7 @@ export default function Home() {
         </aside>
       </div>
 
-      <section id="inicio" className="scroll-mt-24 px-6 py-20 md:py-28">
+      <section id="inicio" className="scroll-mt-20 px-6 py-20 md:py-28">
         <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-10 items-center">
           <div>
             <p className="uppercase tracking-[0.25em] text-sm text-[#A8C66C] mb-4 font-semibold">
@@ -360,7 +422,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section id="nosotros" className="scroll-mt-24 px-6 py-20 bg-white">
+      <section id="nosotros" className="scroll-mt-20 px-6 py-20 bg-white">
         <div className="max-w-4xl mx-auto text-center">
           <h3 className="text-4xl font-bold mb-6">{t.quienesSomos}</h3>
           <p className="text-lg text-[#4E3B2A]/75 leading-8">
@@ -369,7 +431,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section id="productos" className="scroll-mt-24 px-6 py-20">
+      <section id="productos" className="scroll-mt-20 px-6 py-20">
         <div className="max-w-6xl mx-auto">
           <h3 className="text-4xl font-bold mb-4">{t.nuestrosProductos}</h3>
           <p className="text-[#4E3B2A]/70 mb-10">{t.productosTexto}</p>
@@ -387,7 +449,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section id="puestos" className="scroll-mt-24 px-6 py-20 bg-white">
+      <section id="puestos" className="scroll-mt-20 px-6 py-20 bg-white">
         <div className="max-w-6xl mx-auto">
           <h3 className="text-4xl font-bold mb-4">{t.nuestrosPuestos}</h3>
           <p className="text-[#4E3B2A]/70 mb-10">{t.puestosTexto}</p>
@@ -409,9 +471,32 @@ export default function Home() {
                     {puesto.nombre[lang]}
                   </h4>
 
-                  <p className="text-[#4E3B2A]/75 mb-5">
+                  <p className="text-[#4E3B2A]/75 mb-4">
                     {puesto.descripcion[lang]}
                   </p>
+
+                  <div className="mb-5">
+                    <p className="text-sm font-bold text-[#7E9f00] mb-2">
+                      {t.horario}
+                    </p>
+
+                    <div className="space-y-1 text-sm text-[#4E3B2A]/80">
+                      {puesto.horario[lang].map((item, i) => (
+                        <div key={i} className="flex justify-between gap-4">
+                          <span className="font-medium">{item.dia}</span>
+                          <span
+                            className={`text-right ${
+                              item.hora === "Cerrado" || item.hora === "Closed"
+                                ? "text-[#B85C38] font-semibold"
+                                : ""
+                            }`}
+                          >
+                            {item.hora}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
 
                   <div className="flex justify-between items-center">
                     <a
@@ -437,7 +522,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section id="contacto" className="px-6 py-20 bg-white">
+      <section id="contacto" className="scroll-mt-20 px-6 py-20 bg-white">
         <div className="max-w-3xl mx-auto text-center">
           <h3 className="text-4xl font-bold mb-4">{t.contactoTitulo}</h3>
           <p className="text-[#4E3B2A]/70 mb-8">{t.contactoTexto}</p>
