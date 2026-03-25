@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import logoImg from "../assets/logo.png";
 import lasPalmasImg from "../assets/laspalmas.jpg";
 import galdarImg from "../assets/galdar.jpg";
@@ -11,6 +11,7 @@ import inglaterraImg from "../assets/inglaterra.jpg";
 export default function Home() {
   const [lang, setLang] = useState(() => localStorage.getItem("lang") || "es");
   const [menuOpen, setMenuOpen] = useState(false);
+  const [openSchedules, setOpenSchedules] = useState({});
 
   useEffect(() => {
     localStorage.setItem("lang", lang);
@@ -46,6 +47,9 @@ export default function Home() {
       idioma: "Idioma",
       menu: "Menú",
       horario: "Horario",
+      hoy: "Hoy",
+      verHorario: "Ver horario completo",
+      ocultarHorario: "Ocultar horario",
     },
     en: {
       inicio: "Home",
@@ -76,6 +80,9 @@ export default function Home() {
       idioma: "Language",
       menu: "Menu",
       horario: "Opening hours",
+      hoy: "Today",
+      verHorario: "View full schedule",
+      ocultarHorario: "Hide schedule",
     },
   };
 
@@ -102,6 +109,7 @@ export default function Home() {
 
   const puestos = [
     {
+      id: "las-palmas",
       nombre: { es: "Las Palmas", en: "Las Palmas" },
       descripcion: {
         es: "Puesto con nuestra selección de aceitunas, encurtidos y tapas tradicionales.",
@@ -132,6 +140,7 @@ export default function Home() {
       },
     },
     {
+      id: "galdar",
       nombre: { es: "Gáldar", en: "Gáldar" },
       descripcion: {
         es: "Un espacio donde disfrutar del sabor de siempre con producto cercano y cuidado.",
@@ -162,6 +171,7 @@ export default function Home() {
       },
     },
     {
+      id: "telde",
       nombre: { es: "Telde", en: "Telde" },
       descripcion: {
         es: "Nuestra propuesta con el sabor de siempre, ideal para probar nuestras especialidades.",
@@ -194,6 +204,18 @@ export default function Home() {
   ];
 
   const closeMenu = () => setMenuOpen(false);
+
+  const todayIndex = useMemo(() => {
+    const jsDay = new Date().getDay();
+    return jsDay === 0 ? 6 : jsDay - 1;
+  }, []);
+
+  const toggleSchedule = (id) => {
+    setOpenSchedules((prev) => ({
+      ...prev,
+      [id]: !prev[id],
+    }));
+  };
 
   return (
     <div className="min-h-screen bg-[#F7F3EA] text-[#4E3B2A]">
@@ -455,69 +477,99 @@ export default function Home() {
           <p className="text-[#4E3B2A]/70 mb-10">{t.puestosTexto}</p>
 
           <div className="grid md:grid-cols-3 gap-6">
-            {puestos.map((puesto, index) => (
-              <div
-                key={index}
-                className="rounded-3xl overflow-hidden bg-[#F7F3EA] border border-[#B78B5A]/20 shadow-sm"
-              >
-                <img
-                  src={puesto.imagen}
-                  alt={puesto.nombre[lang]}
-                  className="w-full h-56 object-cover"
-                />
+            {puestos.map((puesto, index) => {
+              const hoy = puesto.horario[lang][todayIndex];
+              const isOpen = openSchedules[puesto.id];
 
-                <div className="p-6">
-                  <h4 className="text-2xl font-bold mb-3 text-[#7E9f00]">
-                    {puesto.nombre[lang]}
-                  </h4>
+              return (
+                <div
+                  key={index}
+                  className="rounded-3xl overflow-hidden bg-[#F7F3EA] border border-[#B78B5A]/20 shadow-sm"
+                >
+                  <img
+                    src={puesto.imagen}
+                    alt={puesto.nombre[lang]}
+                    className="w-full h-56 object-cover"
+                  />
 
-                  <p className="text-[#4E3B2A]/75 mb-4">
-                    {puesto.descripcion[lang]}
-                  </p>
+                  <div className="p-6">
+                    <h4 className="text-2xl font-bold mb-3 text-[#7E9f00]">
+                      {puesto.nombre[lang]}
+                    </h4>
 
-                  <div className="mb-5">
-                    <p className="text-sm font-bold text-[#7E9f00] mb-2">
-                      {t.horario}
+                    <p className="text-[#4E3B2A]/75 mb-4">
+                      {puesto.descripcion[lang]}
                     </p>
 
-                    <div className="space-y-1 text-sm text-[#4E3B2A]/80">
-                      {puesto.horario[lang].map((item, i) => (
-                        <div key={i} className="flex justify-between gap-4">
-                          <span className="font-medium">{item.dia}</span>
-                          <span
-                            className={`text-right ${
-                              item.hora === "Cerrado" || item.hora === "Closed"
-                                ? "text-[#B85C38] font-semibold"
-                                : ""
-                            }`}
-                          >
-                            {item.hora}
-                          </span>
+                    <div className="mb-5 rounded-2xl bg-white/70 border border-[#B78B5A]/15 p-4">
+                      <p className="text-sm font-bold text-[#7E9f00] mb-2">
+                        {t.horario}
+                      </p>
+
+                      <div className="flex justify-between gap-4 text-sm text-[#4E3B2A]/80">
+                        <span className="font-medium">
+                          {t.hoy}: {hoy.dia}
+                        </span>
+                        <span
+                          className={`text-right ${
+                            hoy.hora === "Cerrado" || hoy.hora === "Closed"
+                              ? "text-[#B85C38] font-semibold"
+                              : ""
+                          }`}
+                        >
+                          {hoy.hora}
+                        </span>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => toggleSchedule(puesto.id)}
+                        className="mt-3 text-sm font-semibold text-[#7E9f00] hover:opacity-80 transition"
+                      >
+                        {isOpen ? t.ocultarHorario : t.verHorario}
+                      </button>
+
+                      {isOpen && (
+                        <div className="mt-3 pt-3 border-t border-[#B78B5A]/15 space-y-1 text-sm text-[#4E3B2A]/80">
+                          {puesto.horario[lang].map((item, i) => (
+                            <div key={i} className="flex justify-between gap-4">
+                              <span className="font-medium">{item.dia}</span>
+                              <span
+                                className={`text-right ${
+                                  item.hora === "Cerrado" || item.hora === "Closed"
+                                    ? "text-[#B85C38] font-semibold"
+                                    : ""
+                                }`}
+                              >
+                                {item.hora}
+                              </span>
+                            </div>
+                          ))}
                         </div>
-                      ))}
+                      )}
+                    </div>
+
+                    <div className="flex justify-between items-center">
+                      <a
+                        href={puesto.mapa}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-block px-5 py-3 rounded-2xl bg-[#B78B5A] text-white font-semibold hover:opacity-90 transition"
+                      >
+                        {t.verUbicacion}
+                      </a>
+
+                      <Link
+                        to={puesto.rutaCarta}
+                        className="inline-block px-5 py-3 rounded-2xl bg-[#7E9f00] text-white font-semibold hover:opacity-90 transition"
+                      >
+                        {t.verCarta}
+                      </Link>
                     </div>
                   </div>
-
-                  <div className="flex justify-between items-center">
-                    <a
-                      href={puesto.mapa}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-block px-5 py-3 rounded-2xl bg-[#B78B5A] text-white font-semibold hover:opacity-90 transition"
-                    >
-                      {t.verUbicacion}
-                    </a>
-
-                    <Link
-                      to={puesto.rutaCarta}
-                      className="inline-block px-5 py-3 rounded-2xl bg-[#7E9f00] text-white font-semibold hover:opacity-90 transition"
-                    >
-                      {t.verCarta}
-                    </Link>
-                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>
