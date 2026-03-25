@@ -11,7 +11,6 @@ import inglaterraImg from "../assets/inglaterra.jpg";
 export default function Home() {
   const [lang, setLang] = useState(() => localStorage.getItem("lang") || "es");
   const [menuOpen, setMenuOpen] = useState(false);
-  const [openSchedules, setOpenSchedules] = useState({});
 
   useEffect(() => {
     localStorage.setItem("lang", lang);
@@ -48,8 +47,6 @@ export default function Home() {
       menu: "Menú",
       horario: "Horario",
       hoy: "Hoy",
-      verHorario: "Ver horario completo",
-      ocultarHorario: "Ocultar horario",
     },
     en: {
       inicio: "Home",
@@ -81,8 +78,6 @@ export default function Home() {
       menu: "Menu",
       horario: "Opening hours",
       hoy: "Today",
-      verHorario: "View full schedule",
-      ocultarHorario: "Hide schedule",
     },
   };
 
@@ -109,7 +104,6 @@ export default function Home() {
 
   const puestos = [
     {
-      id: "las-palmas",
       nombre: { es: "Las Palmas", en: "Las Palmas" },
       descripcion: {
         es: "Puesto con nuestra selección de aceitunas, encurtidos y tapas tradicionales.",
@@ -140,7 +134,6 @@ export default function Home() {
       },
     },
     {
-      id: "galdar",
       nombre: { es: "Gáldar", en: "Gáldar" },
       descripcion: {
         es: "Un espacio donde disfrutar del sabor de siempre con producto cercano y cuidado.",
@@ -171,7 +164,6 @@ export default function Home() {
       },
     },
     {
-      id: "telde",
       nombre: { es: "Telde", en: "Telde" },
       descripcion: {
         es: "Nuestra propuesta con el sabor de siempre, ideal para probar nuestras especialidades.",
@@ -209,13 +201,6 @@ export default function Home() {
     const jsDay = new Date().getDay();
     return jsDay === 0 ? 6 : jsDay - 1;
   }, []);
-
-  const toggleSchedule = (id) => {
-    setOpenSchedules((prev) => ({
-      ...prev,
-      [id]: !prev[id],
-    }));
-  };
 
   return (
     <div className="min-h-screen bg-[#F7F3EA] text-[#4E3B2A]">
@@ -479,7 +464,6 @@ export default function Home() {
           <div className="grid md:grid-cols-3 gap-6">
             {puestos.map((puesto, index) => {
               const hoy = puesto.horario[lang][todayIndex];
-              const isOpen = openSchedules[puesto.id];
 
               return (
                 <div
@@ -501,8 +485,8 @@ export default function Home() {
                       {puesto.descripcion[lang]}
                     </p>
 
-                    <div className="mb-5 rounded-2xl bg-white/70 border border-[#B78B5A]/15 p-4">
-                      <p className="text-sm font-bold text-[#7E9f00] mb-2">
+                    <div className="mb-5">
+                      <p className="text-sm font-bold text-[#7E9f00] mb-1">
                         {t.horario}
                       </p>
 
@@ -520,33 +504,6 @@ export default function Home() {
                           {hoy.hora}
                         </span>
                       </div>
-
-                      <button
-                        type="button"
-                        onClick={() => toggleSchedule(puesto.id)}
-                        className="mt-3 text-sm font-semibold text-[#7E9f00] hover:opacity-80 transition"
-                      >
-                        {isOpen ? t.ocultarHorario : t.verHorario}
-                      </button>
-
-                      {isOpen && (
-                        <div className="mt-3 pt-3 border-t border-[#B78B5A]/15 space-y-1 text-sm text-[#4E3B2A]/80">
-                          {puesto.horario[lang].map((item, i) => (
-                            <div key={i} className="flex justify-between gap-4">
-                              <span className="font-medium">{item.dia}</span>
-                              <span
-                                className={`text-right ${
-                                  item.hora === "Cerrado" || item.hora === "Closed"
-                                    ? "text-[#B85C38] font-semibold"
-                                    : ""
-                                }`}
-                              >
-                                {item.hora}
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-                      )}
                     </div>
 
                     <div className="flex justify-between items-center">
