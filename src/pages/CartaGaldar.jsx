@@ -11,6 +11,7 @@ export default function CartaGaldar() {
             en: "Goat cheese with caramelized onion",
           },
           precio: "2,50 € - 3,00 €",
+          imagenKey: "queso-de-cabra-cebolla-caramelizada",
         },
         {
           nombre: {
@@ -18,10 +19,12 @@ export default function CartaGaldar() {
             en: "Smoked cheese with blueberry",
           },
           precio: "2,50 € - 3,00 €",
+          imagenKey: "queso-ahumado-arandanos",
         },
         {
           nombre: { es: "Tortilla", en: "Spanish omelette" },
           precio: "2,50 € - 3,00 €",
+          imagenKey: "tortilla",
         },
         {
           nombre: { es: "Pollo barbacoa", en: "Barbecue chicken" },
@@ -41,6 +44,7 @@ export default function CartaGaldar() {
         {
           nombre: { es: "Albóndigas", en: "Meatballs" },
           precio: "2,50 € - 3,00 €",
+          imagenKey: "albondigas",
         },
         {
           nombre: {
@@ -74,6 +78,7 @@ export default function CartaGaldar() {
         {
           nombre: { es: "Chorizos parrillero", en: "Grilled chorizo" },
           precio: "2,50 € - 3,00 €",
+          imagenKey: "chorizo-parrillero",
         },
         {
           nombre: { es: "Serrano con queso", en: "Serrano ham with cheese" },
@@ -89,6 +94,7 @@ export default function CartaGaldar() {
         {
           nombre: { es: "Vueltas de ternera", en: "Beef strips" },
           precio: "2,50 € - 3,00 €",
+          imagenKey: "vueltas",
         },
         {
           nombre: {
@@ -96,6 +102,7 @@ export default function CartaGaldar() {
             en: "Tuna, pepper and anchovy",
           },
           precio: "2,50 € - 3,00 €",
+          imagenKey: "atun-anchoas",
         },
         {
           nombre: { es: "Chatka y gambas", en: "Crab stick and prawns" },
@@ -104,10 +111,12 @@ export default function CartaGaldar() {
         {
           nombre: { es: "Pollo Kentucky", en: "Kentucky chicken" },
           precio: "2,50 € - 3,00 €",
+          imagenKey: "pollo-kentucky",
         },
         {
           nombre: { es: "Pollo mechado", en: "Shredded chicken" },
           precio: "2,50 € - 3,00 €",
+          imagenKey: "pollo-mechado",
         },
         {
           nombre: {
@@ -115,6 +124,7 @@ export default function CartaGaldar() {
             en: "Shredded pork with goat cheese",
           },
           precio: "2,50 € - 3,00 €",
+          imagenKey: "cerdo-mechado",
         },
         {
           nombre: { es: "Siempre alguno más", en: "And always more specials" },
@@ -161,6 +171,7 @@ export default function CartaGaldar() {
         {
           nombre: { es: "Cazón en adobo", en: "Marinated dogfish" },
           precio: "12,50 €",
+          imagenKey: "cazon",
         },
         {
           nombre: {

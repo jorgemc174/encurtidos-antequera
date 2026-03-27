@@ -11,6 +11,7 @@ export default function CartaTelde() {
             en: "Goat cheese with caramelized onion",
           },
           precio: "2,50 € - 3,50 €",
+          imagenKey: "queso-de-cabra-cebolla-caramelizada",
         },
         {
           nombre: {
@@ -18,6 +19,7 @@ export default function CartaTelde() {
             en: "Smoked cheese with blueberry",
           },
           precio: "2,50 € - 3,50 €",
+          imagenKey: "queso-ahumado-arandanos",
         },
         {
           nombre: {
@@ -29,6 +31,7 @@ export default function CartaTelde() {
         {
           nombre: { es: "Tortilla", en: "Spanish omelette" },
           precio: "2,50 € - 3,50 €",
+          imagenKey: "tortilla",
         },
         {
           nombre: { es: "Pollo barbacoa", en: "Barbecue chicken" },
@@ -48,6 +51,7 @@ export default function CartaTelde() {
         {
           nombre: { es: "Albóndigas", en: "Meatballs" },
           precio: "2,50 € - 3,50 €",
+          imagenKey: "albondigas",
         },
         {
           nombre: {
@@ -55,6 +59,7 @@ export default function CartaTelde() {
             en: "Marinated dogfish with mojo",
           },
           precio: "2,50 € - 3,50 €",
+          imagenKey: "cazon",
         },
         {
           nombre: {
@@ -106,6 +111,7 @@ export default function CartaTelde() {
         {
           nombre: { es: "Filete de merluza", en: "Hake fillet" },
           precio: "2,50 € - 3,50 €",
+          imagenKey: "merluza",
         },
         {
           nombre: {
@@ -113,6 +119,7 @@ export default function CartaTelde() {
             en: "Tuna, pepper and anchovy",
           },
           precio: "2,50 € - 3,50 €",
+          imagenKey: "atun-anchoas",
         },
         {
           nombre: { es: "Chatka y gambas", en: "Crab stick and prawns" },
@@ -121,6 +128,7 @@ export default function CartaTelde() {
         {
           nombre: { es: "Pollo Kentucky", en: "Kentucky chicken" },
           precio: "2,50 € - 3,50 €",
+          imagenKey: "pollo-kentucky",
         },
         {
           nombre: { es: "Siempre alguno más", en: "And always more specials" },
@@ -157,6 +165,7 @@ export default function CartaTelde() {
         {
           nombre: { es: "Ensalada de cangrejo", en: "Crab salad" },
           precio: "8,95 €",
+          imagenKey: "ensalada-cangrejo",
         },
         {
           nombre: {
@@ -211,6 +220,7 @@ export default function CartaTelde() {
         {
           nombre: { es: "Pollo Kentucky", en: "Kentucky chicken" },
           precio: "12,50 €",
+          imagenKey: "pollo-kentucky",
         },
         {
           nombre: { es: "Rabas", en: "Fried squid strips" },
@@ -226,6 +236,7 @@ export default function CartaTelde() {
         {
           nombre: { es: "Cazuela de albóndigas", en: "Meatball casserole" },
           precio: "15,90 €",
+          imagenKey: "albondigas",
         },
         {
           nombre: { es: "Mejillones 18/25 piezas", en: "Mussels 18/25 pieces" },
@@ -277,7 +288,7 @@ export default function CartaTelde() {
         },
       ],
     },
-    {
+  {
           nombre: { es: "Bebidas", en: "Drinks" },
           subcategoriasPlegables: true,
           subcategorias: [

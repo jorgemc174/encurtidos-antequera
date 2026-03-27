@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import espanaImg from "../assets/españa.jpg";
 import inglaterraImg from "../assets/inglaterra.jpg";
 import alergenosImg from "../assets/alergenos.jpg";
+import { imagenesProductos } from "../data/imagenesProductos";
 
 export default function CartaBase({ titulo, categorias }) {
   const [lang, setLang] = useState(() => localStorage.getItem("lang") || "es");
@@ -125,32 +126,36 @@ export default function CartaBase({ titulo, categorias }) {
 
   const renderItems = (items) => (
     <div className="space-y-4">
-      {items.map((item, i) => (
-        <div
-          key={i}
-          className="flex items-center justify-between gap-4 border-b border-[#B78B5A]/10 pb-3"
-        >
-          <div className="flex items-center gap-4 min-w-0">
-            <div className="w-16 h-16 rounded-xl border border-[#B78B5A]/20 bg-[#F7F3EA] shrink-0 overflow-hidden flex items-center justify-center text-[10px] text-[#4E3B2A]/40 text-center px-1">
-              {item.imagen ? (
-                <img
-                  src={item.imagen}
-                  alt={item.nombre[lang]}
-                  className="w-full h-full object-cover"
-                />
-              ) : lang === "es" ? (
-                "Sin foto"
-              ) : (
-                "No image"
-              )}
+      {items.map((item, i) => {
+        const imagen = item.imagen || (item.imagenKey ? imagenesProductos[item.imagenKey] : null);
+
+        return (
+          <div
+            key={i}
+            className="flex items-center justify-between gap-4 border-b border-[#B78B5A]/10 pb-3"
+          >
+            <div className="flex items-center gap-4 min-w-0">
+              <div className="w-16 h-16 rounded-xl border border-[#B78B5A]/20 bg-[#F7F3EA] shrink-0 overflow-hidden flex items-center justify-center text-[10px] text-[#4E3B2A]/40 text-center px-1">
+                {imagen ? (
+                  <img
+                    src={imagen}
+                    alt={item.nombre[lang]}
+                    className="w-full h-full object-cover"
+                  />
+                ) : lang === "es" ? (
+                  "Sin foto"
+                ) : (
+                  "No image"
+                )}
+              </div>
+
+              <span className="break-words">{item.nombre[lang]}</span>
             </div>
 
-            <span className="break-words">{item.nombre[lang]}</span>
+            <span className="font-semibold whitespace-nowrap">{item.precio}</span>
           </div>
-
-          <span className="font-semibold whitespace-nowrap">{item.precio}</span>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 
