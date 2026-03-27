@@ -149,6 +149,7 @@ export default function CartaTelde() {
         {
           nombre: { es: "Fajita", en: "Fajita" },
           precio: "3,50 €",
+          imagenKey:"fajita",
         },
       ],
     },
@@ -165,7 +166,7 @@ export default function CartaTelde() {
         {
           nombre: { es: "Ensalada de cangrejo", en: "Crab salad" },
           precio: "8,95 €",
-          imagenKey: "ensalada-cangrejo",
+          imagenKey: "ensalada-cangrejo-picar",
         },
         {
           nombre: {
@@ -196,6 +197,7 @@ export default function CartaTelde() {
         {
           nombre: { es: "Gambas a la gabardina", en: "Battered prawns" },
           precio: "8,50 €",
+          imagenKey:"gambas-gabardina",
         },
         {
           nombre: { es: "Boquerones", en: "Marinated anchovies" },

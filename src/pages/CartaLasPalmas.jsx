@@ -149,6 +149,7 @@ export default function CartaLasPalmas() {
         {
           nombre: { es: "Fajita", en: "Fajita" },
           precio: "3,50 €",
+          imagenKey:"fajita",
         },
       ],
     },
@@ -158,7 +159,7 @@ export default function CartaLasPalmas() {
         {
           nombre: { es: "Ensalada de cangrejo", en: "Crab salad" },
           precio: "8,95 €",
-          imagenKey: "ensalada-cangrejo",
+          imagenKey: "ensalada-cangrejo-picar",
         },
         {
           nombre: {
@@ -193,7 +194,6 @@ export default function CartaLasPalmas() {
         {
           nombre: { es: "Pollo Kentucky", en: "Kentucky chicken" },
           precio: "12,50 €",
-          imagenKey: "pollo-kentucky",
         },
         {
           nombre: { es: "Rabas", en: "Fried squid strips" },

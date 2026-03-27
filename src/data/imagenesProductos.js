@@ -1,6 +1,5 @@
 import albondigas from "../assets/productos/albondigas.jpeg";
 import cazon from "../assets/productos/cazon.jpeg";
-import ensaladaCangrejo from "../assets/productos/ensalada-cangrejo.jpeg";
 import polloKentucky from "../assets/productos/pollo-kentucky.jpeg";
 import quesoAhumadoArandanos from "../assets/productos/queso-ahumado-arandanos.jpeg";
 import quesoCabraCebollaCaramelizada from "../assets/productos/queso-de-cabra-cebolla-caramelizada.jpeg";
@@ -12,10 +11,13 @@ import merluza from "../assets/productos/merluza.jpeg";
 import tortilla from "../assets/productos/Tortilla.jpeg";
 import polloMechado from "../assets/productos/pollo-mechado.jpeg";
 
+import fajita from "../assets/productos/fajita.jpeg";
+import gambasGabardina from "../assets/productos/gambas-gabardina.jpeg";
+import ensaladaCangrejoPicar from "../assets/productos/ensalada-cangrejo-picar.jpeg";
+
 export const imagenesProductos = {
   albondigas,
   cazon,
-  "ensalada-cangrejo": ensaladaCangrejo,
   "pollo-kentucky": polloKentucky,
   "queso-ahumado-arandanos": quesoAhumadoArandanos,
   "queso-de-cabra-cebolla-caramelizada": quesoCabraCebollaCaramelizada,
@@ -26,4 +28,8 @@ export const imagenesProductos = {
   merluza,
   tortilla,
   "pollo-mechado": polloMechado,
+
+  fajita,
+  "gambas-gabardina": gambasGabardina,
+  "ensalada-cangrejo-picar": ensaladaCangrejoPicar,
 };
