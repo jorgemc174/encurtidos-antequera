@@ -249,7 +249,8 @@ export default function CartaLasPalmas() {
           precio: "Consultar",
         },
       ],
-    {
+    },
+  {
       nombre: { es: "Bebidas", en: "Drinks" },
       subcategoriasPlegables: true,
       subcategorias: [
