@@ -4,164 +4,142 @@ export default function CartaGaldar() {
   const categorias = [
     {
       nombre: { es: "Montaditos", en: "Mini sandwiches" },
-      subcategorias: [        
+      items: [
         {
-          nombre: { es: "Montaditos Especial", en: "Special mini sandwiches" },
-          items: [
-            {
-              nombre: {
-                es: "Queso cabra con cebolla caramelizada",
-                en: "Goat cheese with caramelized onion",
-              },
-              precio: "2,80 €",
-            },
-            {
-              nombre: {
-                es: "Queso ahumado con arándano",
-                en: "Smoked cheese with blueberry",
-              },
-              precio: "2,80 €",
-            },
-            {
-              nombre: { es: "Tortilla", en: "Spanish omelette" },
-              precio: "2,80 €",
-            },
-            {
-              nombre: { es: "Pollo Kentucky", en: "Kentucky chicken" },
-              precio: "2,80 €",
-            },
-            {
-              nombre: { es: "Mini hamburguesas", en: "Mini burgers" },
-              precio: "2,80 €",
-            },
-            {
-              nombre: { es: "Fajitas", en: "Fajitas" },
-              precio: "2,80 €",
-            },
-            {
-              nombre: { es: "Espiral relleno", en: "Stuffed spiral pastry" },
-              precio: "2,80 €",
-            },
-            {
-              nombre: { es: "Siempre alguno más", en: "And always more specials" },
-              precio: "2,80 €",
-            },
-          ],
+          nombre: {
+            es: "Queso cabra con cebolla caramelizada",
+            en: "Goat cheese with caramelized onion",
+          },
+          precio: "2,50 € - 3,00 €",
         },
         {
-          nombre: { es: "Montaditos Royer", en: "Royer mini sandwiches" },
-          items: [
-            {
-              nombre: { es: "Pollo con barbacoa", en: "Chicken with barbecue sauce" },
-              precio: "2,80 €",
-            },
-            {
-              nombre: { es: "Ternera mechada", en: "Shredded beef" },
-              precio: "2,80 €",
-            },
-            {
-              nombre: {
-                es: "Morcilla con tomate deshidratado",
-                en: "Black pudding with sun-dried tomato",
-              },
-              precio: "2,80 €",
-            },
-            {
-              nombre: { es: "Albóndigas", en: "Meatballs" },
-              precio: "2,80 €",
-            },
-            {
-              nombre: {
-                es: "Cazón en adobo y mojo",
-                en: "Marinated dogfish with mojo",
-              },
-              precio: "2,80 €",
-            },
-            {
-              nombre: {
-                es: "Solomillo de pollo y huevo",
-                en: "Chicken tenderloin with egg",
-              },
-              precio: "2,80 €",
-            },
-            {
-              nombre: {
-                es: "Chistorras, papas y huevo",
-                en: "Chistorra sausage, potatoes and egg",
-              },
-              precio: "2,80 €",
-            },
-            {
-              nombre: { es: "Costilla prensada", en: "Pressed ribs" },
-              precio: "2,80 €",
-            },
-            {
-              nombre: { es: "Rabas de calamar", en: "Fried squid strips" },
-              precio: "2,80 €",
-            },
-            {
-              nombre: { es: "Filete de merluza", en: "Hake fillet" },
-              precio: "2,80 €",
-            },
-            {
-              nombre: {
-                es: "Atún con pimiento y anchoas",
-                en: "Tuna with peppers and anchovies",
-              },
-              precio: "2,80 €",
-            },
-            {
-              nombre: { es: "Chatka y gambas", en: "Crab stick and prawns" },
-              precio: "2,80 €",
-            },
-            {
-              nombre: {
-                es: "Serrano con queso azul y tumaca",
-                en: "Serrano ham with blue cheese and tomato bread",
-              },
-              precio: "2,80 €",
-            },
-            {
-              nombre: { es: "Croquetas", en: "Croquettes" },
-              precio: "2,80 €",
-            },
-            {
-              nombre: {
-                es: "Jamón york con puerro y queso",
-                en: "Ham with leek and cheese",
-              },
-              precio: "2,80 €",
-            },
-            {
-              nombre: {
-                es: "Berros con queso y miel",
-                en: "Watercress with cheese and honey",
-              },
-              precio: "2,80 €",
-            },
-            {
-              nombre: { es: "Pollo guacamole", en: "Chicken with guacamole" },
-              precio: "2,80 €",
-            },
-            {
-              nombre: { es: "Perritos calientes", en: "Hot dogs" },
-              precio: "2,80 €",
-            },
-            {
-              nombre: { es: "Siempre alguno más", en: "And always more specials" },
-              precio: "2,80 €",
-            },
-          ],
+          nombre: {
+            es: "Queso ahumado con arándano",
+            en: "Smoked cheese with blueberry",
+          },
+          precio: "2,50 € - 3,00 €",
+        },
+        {
+          nombre: { es: "Tortilla", en: "Spanish omelette" },
+          precio: "2,50 € - 3,00 €",
+        },
+        {
+          nombre: { es: "Pollo barbacoa", en: "Barbecue chicken" },
+          precio: "2,50 € - 3,00 €",
+        },
+        {
+          nombre: { es: "Ternera mechada", en: "Shredded beef" },
+          precio: "2,50 € - 3,00 €",
+        },
+        {
+          nombre: {
+            es: "Morcilla de Burgos con tomate deshidratado",
+            en: "Burgos black pudding with sun-dried tomato",
+          },
+          precio: "2,50 € - 3,00 €",
+        },
+        {
+          nombre: { es: "Albóndigas", en: "Meatballs" },
+          precio: "2,50 € - 3,00 €",
+        },
+        {
+          nombre: {
+            es: "Bacalao con mojo palmero",
+            en: "Cod with Palmero mojo",
+          },
+          precio: "2,50 € - 3,00 €",
+        },
+        {
+          nombre: {
+            es: "Solomillo de pollo macerado con mojo palmero",
+            en: "Marinated chicken tenderloin with Palmero mojo",
+          },
+          precio: "2,50 € - 3,00 €",
+        },
+        {
+          nombre: {
+            es: "Chistorra, papas y huevo",
+            en: "Chistorra sausage, potatoes and egg",
+          },
+          precio: "2,50 € - 3,00 €",
+        },
+        {
+          nombre: { es: "Costilla prensada", en: "Pressed ribs" },
+          precio: "2,50 € - 3,00 €",
+        },
+        {
+          nombre: { es: "Rabas", en: "Fried squid strips" },
+          precio: "2,50 € - 3,00 €",
+        },
+        {
+          nombre: { es: "Chorizos parrillero", en: "Grilled chorizo" },
+          precio: "2,50 € - 3,00 €",
+        },
+        {
+          nombre: { es: "Serrano con queso", en: "Serrano ham with cheese" },
+          precio: "2,50 € - 3,00 €",
+        },
+        {
+          nombre: {
+            es: "Pollo con crema de aguacate",
+            en: "Chicken with avocado cream",
+          },
+          precio: "2,50 € - 3,00 €",
+        },
+        {
+          nombre: { es: "Vueltas de ternera", en: "Beef strips" },
+          precio: "2,50 € - 3,00 €",
+        },
+        {
+          nombre: {
+            es: "Atún, pimiento y anchoa",
+            en: "Tuna, pepper and anchovy",
+          },
+          precio: "2,50 € - 3,00 €",
+        },
+        {
+          nombre: { es: "Chatka y gambas", en: "Crab stick and prawns" },
+          precio: "2,50 € - 3,00 €",
+        },
+        {
+          nombre: { es: "Pollo Kentucky", en: "Kentucky chicken" },
+          precio: "2,50 € - 3,00 €",
+        },
+        {
+          nombre: { es: "Pollo mechado", en: "Shredded chicken" },
+          precio: "2,50 € - 3,00 €",
+        },
+        {
+          nombre: {
+            es: "Cerdo mechado con queso de cabra",
+            en: "Shredded pork with goat cheese",
+          },
+          precio: "2,50 € - 3,00 €",
+        },
+        {
+          nombre: { es: "Siempre alguno más", en: "And always more specials" },
+          precio: "Consultar",
+        },
+        {
+          nombre: { es: "Perritos", en: "Hot dogs" },
+          precio: "3,00 €",
+        },
+        {
+          nombre: { es: "Hamburguesas", en: "Burgers" },
+          precio: "3,50 €",
+        },
+        {
+          nombre: {
+            es: "Porción de empanada gallega",
+            en: "Portion of Galician pie",
+          },
+          precio: "4,95 €",
         },
       ],
     },
     {
       nombre: { es: "Para picar", en: "To share" },
       items: [
-        {
-          nombre: { es: "Ensalada de cangrejo", en: "Crab salad" },
-          precio: "8,95 €",
-        },
         {
           nombre: {
             es: "Tomates aliñados con ventresca",
@@ -171,94 +149,86 @@ export default function CartaGaldar() {
         },
         {
           nombre: {
-            es: "Tabla de queso variado canario",
-            en: "Canarian assorted cheese board",
+            es: "Pimientos de Padrón con o sin queso",
+            en: "Padrón peppers with or without cheese",
           },
-          precio: "8,65 €",
+          precio: "9,30 €",
+        },
+        {
+          nombre: { es: "Lágrimas de pollo", en: "Chicken strips" },
+          precio: "12,50 €",
+        },
+        {
+          nombre: { es: "Cazón en adobo", en: "Marinated dogfish" },
+          precio: "12,50 €",
+        },
+        {
+          nombre: {
+            es: "Croquetas variadas, atún, pollo y serrano",
+            en: "Assorted croquettes, tuna, chicken and serrano",
+          },
+          precio: "1,20 € ud.",
+        },
+        {
+          nombre: { es: "Codillo al horno", en: "Roasted pork knuckle" },
+          precio: "19,85 €",
         },
         {
           nombre: { es: "Papas Antequera", en: "Antequera potatoes" },
           precio: "6,50 €",
         },
         {
-          nombre: { es: "Chorizo campo", en: "Country chorizo" },
-          precio: "7,80 €",
-        },
-        {
-          nombre: { es: "Jamón ibérico", en: "Iberian ham" },
-          precio: "16,95 €",
-        },
-        {
-          nombre: { es: "Costillas barbacoa", en: "Barbecue ribs" },
-          precio: "19,85 €",
-        },
-        {
-          nombre: { es: "Codillo en su jugo", en: "Pork knuckle in its own juices" },
-          precio: "19,85 €",
-        },
-        {
-          nombre: { es: "Anchoas", en: "Anchovies" },
-          precio: "8,85 €",
-        },
-        {
-          nombre: { es: "Boquerones", en: "Marinated anchovies" },
-          precio: "8,85 €",
-        },
-        {
-          nombre: { es: "Mejillones (18/25 piezas)", en: "Mussels (18/25 pieces)" },
-          precio: "15,95 €",
-        },
-        {
-          nombre: { es: "Berberechos", en: "Cockles" },
-          precio: "11,95 €",
+          nombre: { es: "Papas bravas", en: "Patatas bravas" },
+          precio: "5,95 €",
         },
         {
           nombre: {
-            es: "Langostinos a la carmelita",
+            es: "Alitas de pollo a la barbacoa",
+            en: "Barbecue chicken wings",
+          },
+          precio: "8,50 €",
+        },
+        {
+          nombre: { es: "Costilla a la barbacoa", en: "Barbecue ribs" },
+          precio: "19,85 €",
+        },
+        {
+          nombre: {
+            es: "Langostinos a la Carmelita",
             en: "Carmelita-style prawns",
           },
           precio: "14,50 €",
         },
         {
-          nombre: {
-            es: "Chistorras de Navarra",
-            en: "Navarra chistorra sausages",
-          },
-          precio: "7,80 €",
+          nombre: { es: "Jamón ibérico", en: "Iberian ham" },
+          precio: "17,90 €",
         },
         {
-          nombre: { es: "Rabas", en: "Fried squid strips" },
-          precio: "8,95 €",
+          nombre: { es: "Quesos variados", en: "Assorted cheeses" },
+          precio: "9,80 €",
         },
         {
-          nombre: {
-            es: "Ensalada de pollo mostaza y miel",
-            en: "Chicken salad with mustard and honey",
-          },
-          precio: "8,95 €",
-        },
-        {
-          nombre: { es: "Cazuela de albóndigas", en: "Meatball casserole" },
-          precio: "7,20 €",
-        },
-        {
-          nombre: { es: "Atún con mojo", en: "Tuna with mojo sauce" },
-          precio: "7,85 €",
+          nombre: { es: "Chorizo campus", en: "Campus chorizo" },
+          precio: "8,50 €",
         },
         {
           nombre: { es: "Pulpo a la gallega", en: "Galician-style octopus" },
-          precio: "15,50 €",
+          precio: "15,90 €",
+        },
+        {
+          nombre: { es: "Mejillones 18/25 piezas", en: "Mussels 18/25 pieces" },
+          precio: "15,95 €",
+        },
+        {
+          nombre: { es: "Mejillones 4/6 piezas", en: "Mussels 4/6 pieces" },
+          precio: "4,95 €",
         },
         {
           nombre: {
-            es: "Ensalada de pollo crujiente",
-            en: "Crispy chicken salad",
+            es: "Anchoas y boquerones",
+            en: "Anchovies and marinated anchovies",
           },
-          precio: "9,85 €",
-        },
-        {
-          nombre: { es: "Ensalada cóctel", en: "Cocktail salad" },
-          precio: "10,95 €",
+          precio: "8,90 €",
         },
       ],
     },
@@ -266,45 +236,39 @@ export default function CartaGaldar() {
       nombre: { es: "Pinchos y banderillas", en: "Skewers and pinchos" },
       items: [
         {
-          nombre: { es: "Cecina y queso", en: "Cured beef and cheese" },
-          precio: "1,90 €",
+          nombre: { es: "Salmón con queso", en: "Salmon with cheese" },
+          precio: "2,20 €",
         },
         {
-          nombre: { es: "Salmón y queso", en: "Salmon and cheese" },
-          precio: "2,00 €",
-        },
-        {
-          nombre: { es: "Piparra y anchoa", en: "Piparra pepper and anchovy" },
-          precio: "1,90 €",
+          nombre: { es: "Piparra con anchoa", en: "Piparra pepper with anchovy" },
+          precio: "2,20 €",
         },
         {
           nombre: {
-            es: "Boquerón con pimiento",
-            en: "Marinated anchovy with pepper",
+            es: "Boquerón con relleno",
+            en: "Stuffed marinated anchovy",
           },
-          precio: "1,90 €",
+          precio: "2,20 €",
         },
         {
-          nombre: { es: "Queso con anchoas", en: "Cheese with anchovies" },
-          precio: "1,90 €",
+          nombre: { es: "Cecina con queso", en: "Cured beef with cheese" },
+          precio: "2,20 €",
         },
         {
-          nombre: {
-            es: "Huevo con boquerón",
-            en: "Egg with marinated anchovy",
-          },
-          precio: "1,90 €",
+          nombre: { es: "Alcachofa braseada", en: "Braised artichoke" },
+          precio: "2,50 €",
         },
         {
-          nombre: {
-            es: "Boquerón y anchoa (matrimonio)",
-            en: "Anchovy and marinated anchovy",
-          },
-          precio: "1,90 €",
+          nombre: { es: "Cuenco de aceitunas", en: "Bowl of olives" },
+          precio: "1,50 €",
         },
         {
-          nombre: { es: "Dátil con queso", en: "Date with cheese" },
-          precio: "1,90 €",
+          nombre: { es: "Cuenco de frutos secos", en: "Bowl of nuts" },
+          precio: "1,50 €",
+        },
+        {
+          nombre: { es: "Siempre alguno más", en: "And always more specials" },
+          precio: "Consultar",
         },
       ],
     },
