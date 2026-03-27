@@ -141,6 +141,7 @@ export default function CartaTelde() {
         {
           nombre: { es: "Hamburguesas", en: "Burgers" },
           precio: "3,50 €",
+          imagenKey: "hamburguesa",
         },
         {
           nombre: { es: "Mini pizzas", en: "Mini pizzas" },
