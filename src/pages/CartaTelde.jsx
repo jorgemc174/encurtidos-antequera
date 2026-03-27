@@ -36,6 +36,7 @@ export default function CartaTelde() {
         {
           nombre: { es: "Pollo barbacoa", en: "Barbecue chicken" },
           precio: "2,50 € - 3,50 €",
+          imagenKey: "pollo-mechado",
         },
         {
           nombre: { es: "Ternera mechada", en: "Shredded beef" },

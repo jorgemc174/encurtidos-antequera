@@ -29,6 +29,7 @@ export default function CartaGaldar() {
         {
           nombre: { es: "Pollo barbacoa", en: "Barbecue chicken" },
           precio: "2,50 € - 3,00 €",
+          imagenKey: "pollo-mechado",
         },
         {
           nombre: { es: "Ternera mechada", en: "Shredded beef" },
@@ -116,7 +117,7 @@ export default function CartaGaldar() {
         {
           nombre: { es: "Pollo mechado", en: "Shredded chicken" },
           precio: "2,50 € - 3,00 €",
-          imagenKey: "pollo-mechado",
+          
         },
         {
           nombre: {
