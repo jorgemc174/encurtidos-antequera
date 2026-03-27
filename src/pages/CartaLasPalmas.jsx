@@ -806,7 +806,7 @@ export default function CartaLasPalmas() {
           ],
         },
       
-  ];  º
+  ];  
 
   return (
     <CartaBase
