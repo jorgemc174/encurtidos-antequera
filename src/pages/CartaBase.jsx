@@ -10,10 +10,22 @@ export default function CartaBase({ titulo, categorias }) {
   const [activeLabel, setActiveLabel] = useState("");
   const [openSections, setOpenSections] = useState({});
   const [openSubsections, setOpenSubsections] = useState({});
+  const [selectedImage, setSelectedImage] = useState(null);
 
   useEffect(() => {
     localStorage.setItem("lang", lang);
   }, [lang]);
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") {
+        setSelectedImage(null);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   const categoriasConId = useMemo(() => {
     return categorias.map((categoria, index) => ({
@@ -137,11 +149,22 @@ export default function CartaBase({ titulo, categorias }) {
             <div className="flex items-center gap-4 min-w-0">
               <div className="w-16 h-16 rounded-xl border border-[#B78B5A]/20 bg-[#F7F3EA] shrink-0 overflow-hidden flex items-center justify-center text-[10px] text-[#4E3B2A]/40 text-center px-1">
                 {imagen ? (
-                  <img
-                    src={imagen}
-                    alt={item.nombre[lang]}
-                    className="w-full h-full object-cover"
-                  />
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setSelectedImage({
+                        src: imagen,
+                        alt: item.nombre[lang],
+                      })
+                    }
+                    className="w-full h-full"
+                  >
+                    <img
+                      src={imagen}
+                      alt={item.nombre[lang]}
+                      className="w-full h-full object-cover cursor-pointer hover:opacity-90 transition"
+                    />
+                  </button>
                 ) : lang === "es" ? (
                   "Sin foto"
                 ) : (
@@ -366,6 +389,28 @@ export default function CartaBase({ titulo, categorias }) {
           })}
         </div>
       </div>
+
+      {selectedImage && (
+        <div
+          className="fixed inset-0 z-[100] bg-black/80 flex items-center justify-center p-4"
+          onClick={() => setSelectedImage(null)}
+        >
+          <button
+            type="button"
+            onClick={() => setSelectedImage(null)}
+            className="absolute top-4 right-4 w-11 h-11 rounded-full bg-white/15 text-white text-2xl font-bold hover:bg-white/25 transition"
+          >
+            ×
+          </button>
+
+          <img
+            src={selectedImage.src}
+            alt={selectedImage.alt}
+            className="max-w-full max-h-[85vh] rounded-2xl shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
     </div>
   );
 }
