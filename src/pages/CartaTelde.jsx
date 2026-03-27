@@ -223,7 +223,6 @@ export default function CartaTelde() {
         {
           nombre: { es: "Pollo Kentucky", en: "Kentucky chicken" },
           precio: "12,50 €",
-          imagenKey: "pollo-kentucky",
         },
         {
           nombre: { es: "Rabas", en: "Fried squid strips" },
@@ -239,7 +238,7 @@ export default function CartaTelde() {
         {
           nombre: { es: "Cazuela de albóndigas", en: "Meatball casserole" },
           precio: "15,90 €",
-          imagenKey: "albondigas",
+          
         },
         {
           nombre: { es: "Mejillones 18/25 piezas", en: "Mussels 18/25 pieces" },

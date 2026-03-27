@@ -210,7 +210,7 @@ export default function CartaLasPalmas() {
         {
           nombre: { es: "Cazuela de albóndigas", en: "Meatball casserole" },
           precio: "15,90 €",
-          imagenKey: "albondigas",
+          
         },
         {
           nombre: { es: "Mejillones 18/25 piezas", en: "Mussels 18/25 pieces" },

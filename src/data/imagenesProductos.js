@@ -15,6 +15,8 @@ import fajita from "../assets/productos/fajita.jpeg";
 import gambasGabardina from "../assets/productos/gambas-gabardina.jpeg";
 import ensaladaCangrejoPicar from "../assets/productos/ensalada-cangrejo-picar.jpeg";
 import hamburguesa from "../assets/productos/hamburguesa.jpeg";
+import papasBravas from "../assets/productos/papas-bravas.jpeg";
+import alitas from "../assets/productos/alitas.jpeg";
 
 export const imagenesProductos = {
   albondigas,
@@ -34,4 +36,6 @@ export const imagenesProductos = {
   "gambas-gabardina": gambasGabardina,
   "ensalada-cangrejo-picar": ensaladaCangrejoPicar,
   "hamburguesa": hamburguesa,
+  "papas-bravas": papasBravas,
+  "alitas": alitas,
 };

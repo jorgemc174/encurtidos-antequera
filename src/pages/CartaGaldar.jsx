@@ -172,7 +172,7 @@ export default function CartaGaldar() {
         {
           nombre: { es: "Cazón en adobo", en: "Marinated dogfish" },
           precio: "12,50 €",
-          imagenKey: "cazon",
+          
         },
         {
           nombre: {
@@ -192,11 +192,13 @@ export default function CartaGaldar() {
         {
           nombre: { es: "Papas bravas", en: "Patatas bravas" },
           precio: "5,95 €",
+          imagenKey: "papas-bravas",
         },
         {
           nombre: {
             es: "Alitas de pollo a la barbacoa",
             en: "Barbecue chicken wings",
+            imagenKey: "alitas",
           },
           precio: "8,50 €",
         },
