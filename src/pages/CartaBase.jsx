@@ -4,7 +4,7 @@ import espanaImg from "../assets/españa.jpg";
 import inglaterraImg from "../assets/inglaterra.jpg";
 import alergenosImg from "../assets/alergenos.jpg";
 import { imagenesProductos } from "../data/imagenesProductos";
-import { supabase, BUCKET, normalizeKey } from "../lib/supabase";
+import { supabase, normalizeKey } from "../lib/supabase";
 
 function compressToDataUrl(file) {
   return new Promise((resolve, reject) => {
@@ -38,14 +38,6 @@ function compressToDataUrl(file) {
   });
 }
 
-function dataUrlToBlob(dataUrl) {
-  const [header, data] = dataUrl.split(",");
-  const mime = header.match(/:(.*?);/)[1];
-  const bytes = atob(data);
-  const arr = new Uint8Array(bytes.length);
-  for (let i = 0; i < bytes.length; i++) arr[i] = bytes.charCodeAt(i);
-  return new Blob([arr], { type: mime });
-}
 
 export default function CartaBase({ titulo, categorias }) {
   const [lang, setLang] = useState(() => localStorage.getItem("lang") || "es");
@@ -188,13 +180,11 @@ export default function CartaBase({ titulo, categorias }) {
   };
 
   useEffect(() => {
-    supabase.storage.from(BUCKET).list().then(({ data, error }) => {
+    supabase.from("fotos_carta").select("item_key, photo_data").then(({ data, error }) => {
       if (error || !data) return;
       const photos = {};
-      data.forEach((file) => {
-        const key = file.name.replace(/\.[^.]+$/, "");
-        const { data: urlData } = supabase.storage.from(BUCKET).getPublicUrl(file.name);
-        photos[key] = urlData.publicUrl;
+      data.forEach(({ item_key, photo_data }) => {
+        photos[item_key] = photo_data;
       });
       setSupabasePhotos(photos);
     });
@@ -233,25 +223,19 @@ export default function CartaBase({ titulo, categorias }) {
     setUploading(normalized);
 
     try {
-      const blob = dataUrlToBlob(dataUrl);
-      const filename = `${normalized}.jpg`;
-      const { error } = await supabase.storage.from(BUCKET).upload(filename, blob, {
-        contentType: "image/jpeg",
-        upsert: true,
-      });
+      const { error } = await supabase.from("fotos_carta").upsert(
+        { item_key: normalized, photo_data: dataUrl, updated_at: new Date().toISOString() },
+        { onConflict: "item_key" }
+      );
       if (error) throw error;
-      const { data } = supabase.storage.from(BUCKET).getPublicUrl(filename);
-      setSupabasePhotos((prev) => ({ ...prev, [normalized]: data.publicUrl }));
     } catch (err) {
-      console.error("Error subiendo a Supabase:", err);
+      console.error("Error guardando foto:", err);
       setSupabasePhotos((prev) => {
         const next = { ...prev };
         delete next[normalized];
         return next;
       });
-      alert(
-        `No se pudo guardar la foto. Comprueba la política de Supabase.\n\nError: ${err.message}`
-      );
+      alert(`No se pudo guardar la foto.\n\nError: ${err.message}`);
     } finally {
       setUploading(null);
     }
