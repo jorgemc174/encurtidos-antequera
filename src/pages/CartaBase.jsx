@@ -7,22 +7,30 @@ import { imagenesProductos } from "../data/imagenesProductos";
 import { supabase, BUCKET, normalizeKey } from "../lib/supabase";
 
 function compressToDataUrl(file) {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     const reader = new FileReader();
+    reader.onerror = () => reject(new Error("No se pudo leer el archivo"));
     reader.onload = (ev) => {
       const img = new Image();
+      img.onerror = () => reject(new Error("Formato de imagen no soportado"));
       img.onload = () => {
-        const MAX = 900;
-        let { width, height } = img;
-        if (width > MAX || height > MAX) {
-          if (width > height) { height = Math.round((height / width) * MAX); width = MAX; }
-          else { width = Math.round((width / height) * MAX); height = MAX; }
+        try {
+          const MAX = 900;
+          let { width, height } = img;
+          if (width > MAX || height > MAX) {
+            if (width > height) { height = Math.round((height / width) * MAX); width = MAX; }
+            else { width = Math.round((width / height) * MAX); height = MAX; }
+          }
+          const canvas = document.createElement("canvas");
+          canvas.width = width;
+          canvas.height = height;
+          canvas.getContext("2d").drawImage(img, 0, 0, width, height);
+          const dataUrl = canvas.toDataURL("image/jpeg", 0.82);
+          if (dataUrl === "data:,") reject(new Error("No se pudo comprimir la imagen"));
+          else resolve(dataUrl);
+        } catch (err) {
+          reject(err);
         }
-        const canvas = document.createElement("canvas");
-        canvas.width = width;
-        canvas.height = height;
-        canvas.getContext("2d").drawImage(img, 0, 0, width, height);
-        resolve(canvas.toDataURL("image/jpeg", 0.82));
       };
       img.src = ev.target.result;
     };
@@ -213,19 +221,37 @@ export default function CartaBase({ titulo, categorias }) {
     const normalized = normalizeKey(itemKey);
     e.target.value = "";
 
-    const dataUrl = await compressToDataUrl(file);
+    let dataUrl;
+    try {
+      dataUrl = await compressToDataUrl(file);
+    } catch (err) {
+      alert(`Error al procesar la imagen: ${err.message}`);
+      return;
+    }
+
     setSupabasePhotos((prev) => ({ ...prev, [normalized]: dataUrl }));
     setUploading(normalized);
 
     try {
       const blob = dataUrlToBlob(dataUrl);
       const filename = `${normalized}.jpg`;
-      await supabase.storage.from(BUCKET).upload(filename, blob, {
+      const { error } = await supabase.storage.from(BUCKET).upload(filename, blob, {
         contentType: "image/jpeg",
         upsert: true,
       });
+      if (error) throw error;
       const { data } = supabase.storage.from(BUCKET).getPublicUrl(filename);
       setSupabasePhotos((prev) => ({ ...prev, [normalized]: data.publicUrl }));
+    } catch (err) {
+      console.error("Error subiendo a Supabase:", err);
+      setSupabasePhotos((prev) => {
+        const next = { ...prev };
+        delete next[normalized];
+        return next;
+      });
+      alert(
+        `No se pudo guardar la foto. Comprueba la política de Supabase.\n\nError: ${err.message}`
+      );
     } finally {
       setUploading(null);
     }
