@@ -48,7 +48,9 @@ export default function CartaBase({ titulo, categorias }) {
   const [editMode, setEditMode] = useState(false);
   const [supabasePhotos, setSupabasePhotos] = useState({});
   const [uploading, setUploading] = useState(null);
+  const [uploadMenu, setUploadMenu] = useState(null);
   const fileInputRef = useRef(null);
+  const cameraInputRef = useRef(null);
   const pendingKeyRef = useRef(null);
 
   useEffect(() => {
@@ -190,9 +192,18 @@ export default function CartaBase({ titulo, categorias }) {
     });
   }, []);
 
-  const openFilePicker = (itemKey) => {
-    pendingKeyRef.current = itemKey;
-    fileInputRef.current?.click();
+  const openUploadMenu = (itemKey) => {
+    setUploadMenu(itemKey);
+  };
+
+  const handleMenuOption = (type) => {
+    pendingKeyRef.current = uploadMenu;
+    setUploadMenu(null);
+    if (type === "camera") {
+      cameraInputRef.current?.click();
+    } else {
+      fileInputRef.current?.click();
+    }
   };
 
   const handleFileChange = async (e) => {
@@ -244,7 +255,7 @@ export default function CartaBase({ titulo, categorias }) {
                       type="button"
                       onClick={() =>
                         editMode
-                          ? openFilePicker(itemKey)
+                          ? openUploadMenu(itemKey)
                           : setSelectedImage({ src: imagen, alt: item.nombre[lang] })
                       }
                       className="w-full h-full block"
@@ -274,7 +285,7 @@ export default function CartaBase({ titulo, categorias }) {
                 ) : editMode ? (
                   <button
                     type="button"
-                    onClick={() => openFilePicker(itemKey)}
+                    onClick={() => openUploadMenu(itemKey)}
                     className="w-full h-full flex flex-col items-center justify-center gap-1 hover:bg-[#B78B5A]/10 transition cursor-pointer"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 text-[#B78B5A]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -381,6 +392,14 @@ export default function CartaBase({ titulo, categorias }) {
             ref={fileInputRef}
             type="file"
             accept="image/*"
+            className="hidden"
+            onChange={handleFileChange}
+          />
+          <input
+            ref={cameraInputRef}
+            type="file"
+            accept="image/*"
+            capture="environment"
             className="hidden"
             onChange={handleFileChange}
           />
@@ -547,6 +566,50 @@ export default function CartaBase({ titulo, categorias }) {
           })}
         </div>
       </div>
+
+      {uploadMenu && (
+        <div
+          className="fixed inset-0 z-[100] bg-black/50 flex items-end justify-center p-4"
+          onClick={() => setUploadMenu(null)}
+        >
+          <div
+            className="bg-white rounded-3xl w-full max-w-sm pb-2 overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <p className="text-center text-sm font-semibold text-[#4E3B2A] py-4 border-b border-[#B78B5A]/15">
+              {lang === "es" ? "Añadir foto" : "Add photo"}
+            </p>
+            <button
+              type="button"
+              onClick={() => handleMenuOption("camera")}
+              className="w-full flex items-center gap-4 px-6 py-4 text-[#4E3B2A] font-medium border-b border-[#B78B5A]/15 active:bg-[#F7F3EA]"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 text-[#B78B5A] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              {lang === "es" ? "Cámara" : "Camera"}
+            </button>
+            <button
+              type="button"
+              onClick={() => handleMenuOption("gallery")}
+              className="w-full flex items-center gap-4 px-6 py-4 text-[#4E3B2A] font-medium border-b border-[#B78B5A]/15 active:bg-[#F7F3EA]"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 text-[#B78B5A] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              {lang === "es" ? "Galería / Archivos" : "Gallery / Files"}
+            </button>
+            <button
+              type="button"
+              onClick={() => setUploadMenu(null)}
+              className="w-full py-4 text-sm text-[#4E3B2A]/50 active:bg-[#F7F3EA]"
+            >
+              {lang === "es" ? "Cancelar" : "Cancel"}
+            </button>
+          </div>
+        </div>
+      )}
 
       {selectedImage && (
         <div
