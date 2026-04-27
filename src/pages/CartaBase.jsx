@@ -409,7 +409,7 @@ export default function CartaBase({ titulo, categorias }) {
             ref={cameraInputRef}
             type="file"
             accept="image/*"
-            capture="environment"
+            capture
             className="hidden"
             onChange={handleFileChange}
           />
