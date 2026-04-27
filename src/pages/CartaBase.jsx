@@ -1,9 +1,43 @@
 import { Link } from "react-router-dom";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import espanaImg from "../assets/españa.jpg";
 import inglaterraImg from "../assets/inglaterra.jpg";
 import alergenosImg from "../assets/alergenos.jpg";
 import { imagenesProductos } from "../data/imagenesProductos";
+import { supabase, BUCKET, normalizeKey } from "../lib/supabase";
+
+function compressToDataUrl(file) {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const img = new Image();
+      img.onload = () => {
+        const MAX = 900;
+        let { width, height } = img;
+        if (width > MAX || height > MAX) {
+          if (width > height) { height = Math.round((height / width) * MAX); width = MAX; }
+          else { width = Math.round((width / height) * MAX); height = MAX; }
+        }
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        canvas.getContext("2d").drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL("image/jpeg", 0.82));
+      };
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function dataUrlToBlob(dataUrl) {
+  const [header, data] = dataUrl.split(",");
+  const mime = header.match(/:(.*?);/)[1];
+  const bytes = atob(data);
+  const arr = new Uint8Array(bytes.length);
+  for (let i = 0; i < bytes.length; i++) arr[i] = bytes.charCodeAt(i);
+  return new Blob([arr], { type: mime });
+}
 
 export default function CartaBase({ titulo, categorias }) {
   const [lang, setLang] = useState(() => localStorage.getItem("lang") || "es");
@@ -11,6 +45,11 @@ export default function CartaBase({ titulo, categorias }) {
   const [openSections, setOpenSections] = useState({});
   const [openSubsections, setOpenSubsections] = useState({});
   const [selectedImage, setSelectedImage] = useState(null);
+  const [editMode, setEditMode] = useState(false);
+  const [supabasePhotos, setSupabasePhotos] = useState({});
+  const [uploading, setUploading] = useState(null);
+  const fileInputRef = useRef(null);
+  const pendingKeyRef = useRef(null);
 
   useEffect(() => {
     localStorage.setItem("lang", lang);
@@ -138,12 +177,59 @@ export default function CartaBase({ titulo, categorias }) {
     }));
   };
 
+  useEffect(() => {
+    supabase.storage.from(BUCKET).list().then(({ data, error }) => {
+      if (error || !data) return;
+      const photos = {};
+      data.forEach((file) => {
+        const key = file.name.replace(/\.[^.]+$/, "");
+        const { data: urlData } = supabase.storage.from(BUCKET).getPublicUrl(file.name);
+        photos[key] = urlData.publicUrl;
+      });
+      setSupabasePhotos(photos);
+    });
+  }, []);
+
+  const openFilePicker = (itemKey) => {
+    pendingKeyRef.current = itemKey;
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file || !pendingKeyRef.current) return;
+    const itemKey = pendingKeyRef.current;
+    const normalized = normalizeKey(itemKey);
+    e.target.value = "";
+
+    const dataUrl = await compressToDataUrl(file);
+    setSupabasePhotos((prev) => ({ ...prev, [normalized]: dataUrl }));
+    setUploading(normalized);
+
+    try {
+      const blob = dataUrlToBlob(dataUrl);
+      const filename = `${normalized}.jpg`;
+      await supabase.storage.from(BUCKET).upload(filename, blob, {
+        contentType: "image/jpeg",
+        upsert: true,
+      });
+      const { data } = supabase.storage.from(BUCKET).getPublicUrl(filename);
+      setSupabasePhotos((prev) => ({ ...prev, [normalized]: data.publicUrl }));
+    } finally {
+      setUploading(null);
+    }
+  };
+
   const renderItems = (items) => (
     <div className="space-y-4">
       {items.map((item, i) => {
-        const imagen =
+        const itemKey = item.nombre.es;
+        const normalized = normalizeKey(itemKey);
+        const staticImage =
           item.imagen ||
           (item.imagenKey ? imagenesProductos[item.imagenKey] : null);
+        const imagen = supabasePhotos[normalized] || staticImage;
+        const isUploading = uploading === normalized;
 
         return (
           <div
@@ -151,23 +237,51 @@ export default function CartaBase({ titulo, categorias }) {
             className="flex items-center justify-between gap-4 border-b border-[#B78B5A]/10 pb-3"
           >
             <div className="flex items-center gap-4 min-w-0">
-              <div className="w-16 h-16 rounded-xl border border-[#B78B5A]/20 bg-[#F7F3EA] shrink-0 overflow-hidden flex items-center justify-center text-[10px] text-[#4E3B2A]/40 text-center">
+              <div className="relative w-16 h-16 rounded-xl border border-[#B78B5A]/20 bg-[#F7F3EA] shrink-0 overflow-hidden flex items-center justify-center text-[10px] text-[#4E3B2A]/40 text-center">
                 {imagen ? (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        editMode
+                          ? openFilePicker(itemKey)
+                          : setSelectedImage({ src: imagen, alt: item.nombre[lang] })
+                      }
+                      className="w-full h-full block"
+                    >
+                      <img
+                        src={imagen}
+                        alt={item.nombre[lang]}
+                        className="block w-full h-full object-cover"
+                      />
+                    </button>
+                    {(editMode || isUploading) && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/40 pointer-events-none">
+                        {isUploading ? (
+                          <svg className="w-6 h-6 text-white animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+                          </svg>
+                        ) : (
+                          <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                          </svg>
+                        )}
+                      </div>
+                    )}
+                  </>
+                ) : editMode ? (
                   <button
                     type="button"
-                    onClick={() =>
-                      setSelectedImage({
-                        src: imagen,
-                        alt: item.nombre[lang],
-                      })
-                    }
-                    className="w-full h-full block"
+                    onClick={() => openFilePicker(itemKey)}
+                    className="w-full h-full flex flex-col items-center justify-center gap-1 hover:bg-[#B78B5A]/10 transition cursor-pointer"
                   >
-                    <img
-                      src={imagen}
-                      alt={item.nombre[lang]}
-                      className="block w-full h-full object-cover cursor-pointer"
-                    />
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 text-[#B78B5A]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    <span className="text-[9px] text-[#B78B5A]">Añadir</span>
                   </button>
                 ) : lang === "es" ? (
                   "Sin foto"
@@ -218,6 +332,21 @@ export default function CartaBase({ titulo, categorias }) {
 
           <div className="flex items-center gap-2 shrink-0">
             <button
+              onClick={() => setEditMode((v) => !v)}
+              title={editMode ? "Salir de edición" : "Editar fotos"}
+              className={`p-2 rounded-xl border transition ${
+                editMode
+                  ? "bg-[#B78B5A] border-[#B78B5A] text-white"
+                  : "bg-white border-[#B78B5A]/30 text-[#B78B5A]"
+              }`}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+            </button>
+
+            <button
               onClick={() => setLang("es")}
               className={`p-1 rounded-xl border transition ${
                 lang === "es"
@@ -247,6 +376,14 @@ export default function CartaBase({ titulo, categorias }) {
               />
             </button>
           </div>
+
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handleFileChange}
+          />
         </div>
       </div>
 
