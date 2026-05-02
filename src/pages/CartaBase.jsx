@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { useEffect, useMemo, useReducer, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import espanaImg from "../assets/españa.jpg";
 import inglaterraImg from "../assets/inglaterra.jpg";
 import alergenosImg from "../assets/alergenos.jpg";
@@ -62,10 +62,9 @@ export default function CartaBase({ titulo, categorias }) {
   const cameraInputRef = useRef(null);
   const pendingKeyRef = useRef(null);
 
-  const menuStorageKey = `encurtidos_menu_${titulo.es}`;
-
   const [isAdmin] = useState(() => localStorage.getItem("encurtidos_admin") === "true");
   const [adminEditMode, setAdminEditMode] = useState(false);
+  const menuStorageKey = `encurtidos_menu_${titulo.es}`;
   const [menuData, setMenuData] = useState(() => {
     const saved = localStorage.getItem(menuStorageKey);
     if (saved) { try { return JSON.parse(saved); } catch {} }
@@ -75,11 +74,6 @@ export default function CartaBase({ titulo, categorias }) {
   const [editNombreES, setEditNombreES] = useState("");
   const [editNombreEN, setEditNombreEN] = useState("");
   const [editPrecio, setEditPrecio] = useState("");
-  const [, forceRender] = useReducer((x) => x + 1, 0);
-  const getDestacados = () => {
-    const saved = localStorage.getItem("encurtidos_destacados_items");
-    return saved ? JSON.parse(saved) : [];
-  };
 
   useEffect(() => {
     localStorage.setItem("lang", lang);
@@ -87,32 +81,7 @@ export default function CartaBase({ titulo, categorias }) {
 
   useEffect(() => {
     localStorage.setItem(menuStorageKey, JSON.stringify(menuData));
-    supabase.from("menu_json").upsert(
-      { location: titulo.es, data: menuData, updated_at: new Date().toISOString() },
-      { onConflict: "location" }
-    ).then(({ error }) => { if (error) console.error("Error Syncing menu data:", error); });
-  }, [menuData, menuStorageKey, titulo.es]);
-
-  useEffect(() => {
-    supabase.from("menu_json").select("data").eq("location", titulo.es).single()
-      .then(({ data, error }) => {
-        if (!error && data?.data) {
-          setMenuData(data.data);
-          localStorage.setItem(menuStorageKey, JSON.stringify(data.data));
-        }
-      });
-  }, [titulo.es, menuStorageKey]);
-
-  useEffect(() => {
-    supabase.from("destacados").select("item_key")
-      .then(({ data, error }) => {
-        if (!error && data) {
-          const keys = data.map((r) => r.item_key);
-          localStorage.setItem("encurtidos_destacados_items", JSON.stringify(keys));
-          forceRender();
-        }
-      });
-  }, []);
+  }, [menuData, menuStorageKey]);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -293,27 +262,19 @@ export default function CartaBase({ titulo, categorias }) {
     });
   };
 
-  const destacadoKey = (item) => `${titulo.es}::${normalizeKey(item.nombre.es)}`;
+  const destacadoKeyFn = (item) => `${titulo.es}::${normalizeKey(item.nombre.es)}`;
+
+  const getDestacados = () => {
+    const saved = localStorage.getItem("encurtidos_destacados_items");
+    return saved ? JSON.parse(saved) : [];
+  };
 
   const toggleDestacado = (item) => {
-    const key = destacadoKey(item);
+    const key = destacadoKeyFn(item);
     const current = getDestacados();
-    const isFeatured = current.includes(key);
-    const next = isFeatured ? current.filter((k) => k !== key) : [...current, key];
+    const next = current.includes(key) ? current.filter((k) => k !== key) : [...current, key];
     localStorage.setItem("encurtidos_destacados_items", JSON.stringify(next));
-    if (isFeatured) {
-      supabase.from("destacados").delete().eq("item_key", key).then(({ error }) => {
-        if (error) console.error("Error removing destacado:", error);
-      });
-    } else {
-      supabase.from("destacados").upsert(
-        { item_key: key, updated_at: new Date().toISOString() },
-        { onConflict: "item_key" }
-      ).then(({ error }) => {
-        if (error) console.error("Error saving destacado:", error);
-      });
-    }
-    forceRender();
+    setMenuData((prev) => [...prev]);
   };
 
   const renderItems = (items, catIdx, subIdx, grpIdx, noImages) => (
@@ -328,21 +289,18 @@ export default function CartaBase({ titulo, categorias }) {
         const editPriceKey = mkKey(catIdx, subIdx, grpIdx, i, "precio");
         const isEditingName = editingKey === editKey;
         const isEditingPrice = editingKey === editPriceKey;
+        const esDestacado = getDestacados().includes(destacadoKeyFn(item));
 
         return (
-          <div key={i} className={`flex items-center justify-between gap-4 border-b pb-3 ${getDestacados().includes(destacadoKey(item)) ? "border-[#D4A843]/40" : "border-[#B78B5A]/10"}`}>
+          <div key={i} className={`flex items-center justify-between gap-4 border-b pb-3 ${esDestacado ? "border-[#D4A843]/40" : "border-[#B78B5A]/10"}`}>
             <div className="flex items-center gap-4 min-w-0 flex-1">
               {isAdmin && (
                 <button
                   onClick={() => toggleDestacado(item)}
-                  className={`shrink-0 p-1 rounded transition ${
-                    destacados.includes(destacadoKey(item))
-                      ? "text-[#D4A843]"
-                      : "text-gray-300 hover:text-[#D4A843]"
-                  }`}
-                  title={getDestacados().includes(destacadoKey(item)) ? (lang === "es" ? "Quitar destacado" : "Unfeature") : (lang === "es" ? "Destacar" : "Feature")}
+                  className={`shrink-0 p-1 rounded transition ${esDestacado ? "text-[#D4A843]" : "text-gray-300 hover:text-[#D4A843]"}`}
+                  title={esDestacado ? (lang === "es" ? "Quitar destacado" : "Unfeature") : (lang === "es" ? "Destacar" : "Feature")}
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 20 20" fill={getDestacados().includes(destacadoKey(item)) ? "currentColor" : "none"} stroke="currentColor" strokeWidth={1.5}>
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 20 20" fill={esDestacado ? "currentColor" : "none"} stroke="currentColor" strokeWidth={1.5}>
                     <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                   </svg>
                 </button>
@@ -393,21 +351,8 @@ export default function CartaBase({ titulo, categorias }) {
               <div className="flex flex-col min-w-0 flex-1">
                 {isEditingName ? (
                   <div className="flex flex-col gap-1">
-                    <input
-                      className="border border-[#B78B5A] rounded px-2 py-1 text-sm"
-                      value={editNombreES}
-                      onChange={(e) => setEditNombreES(e.target.value)}
-                      placeholder="ES"
-                      autoFocus
-                      onKeyDown={(e) => { if (e.key === "Enter") saveEdit(); if (e.key === "Escape") setEditingKey(null); }}
-                    />
-                    <input
-                      className="border border-[#B78B5A] rounded px-2 py-1 text-sm"
-                      value={editNombreEN}
-                      onChange={(e) => setEditNombreEN(e.target.value)}
-                      placeholder="EN"
-                      onKeyDown={(e) => { if (e.key === "Enter") saveEdit(); if (e.key === "Escape") setEditingKey(null); }}
-                    />
+                    <input className="border border-[#B78B5A] rounded px-2 py-1 text-sm" value={editNombreES} onChange={(e) => setEditNombreES(e.target.value)} placeholder="ES" autoFocus onKeyDown={(e) => { if (e.key === "Enter") saveEdit(); if (e.key === "Escape") setEditingKey(null); }} />
+                    <input className="border border-[#B78B5A] rounded px-2 py-1 text-sm" value={editNombreEN} onChange={(e) => setEditNombreEN(e.target.value)} placeholder="EN" onKeyDown={(e) => { if (e.key === "Enter") saveEdit(); if (e.key === "Escape") setEditingKey(null); }} />
                     <div className="flex gap-1 mt-1">
                       <button onClick={saveEdit} className="text-xs bg-[#7E9F00] text-white px-2 py-0.5 rounded">OK</button>
                       <button onClick={() => setEditingKey(null)} className="text-xs bg-gray-300 text-gray-700 px-2 py-0.5 rounded">×</button>
@@ -421,7 +366,7 @@ export default function CartaBase({ titulo, categorias }) {
                     >
                       {item.nombre[lang]}
                     </button>
-                    {getDestacados().includes(destacadoKey(item)) && (
+                    {esDestacado && (
                       <span className="text-[10px] text-[#D4A843] font-medium whitespace-nowrap shrink-0">
                         ★ {lang === "es" ? "Destacado" : "Featured"}
                       </span>
@@ -434,14 +379,7 @@ export default function CartaBase({ titulo, categorias }) {
             <div className="flex items-center gap-2 shrink-0">
               {isEditingPrice ? (
                 <div className="flex items-center gap-1">
-                  <input
-                    className="border border-[#B78B5A] rounded px-2 py-1 text-sm w-28 text-right"
-                    value={editPrecio}
-                    onChange={(e) => setEditPrecio(e.target.value)}
-                    autoFocus
-                    onKeyDown={(e) => { if (e.key === "Enter") saveEdit(); if (e.key === "Escape") setEditingKey(null); }}
-                    onBlur={saveEdit}
-                  />
+                  <input className="border border-[#B78B5A] rounded px-2 py-1 text-sm w-28 text-right" value={editPrecio} onChange={(e) => setEditPrecio(e.target.value)} autoFocus onKeyDown={(e) => { if (e.key === "Enter") saveEdit(); if (e.key === "Escape") setEditingKey(null); }} onBlur={saveEdit} />
                 </div>
               ) : (
                 <button
@@ -481,17 +419,11 @@ export default function CartaBase({ titulo, categorias }) {
     <div className="min-h-screen bg-[#F7F3EA] text-[#4E3B2A]">
       <div className="max-w-5xl mx-auto px-6 py-8">
         <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
-          <Link
-            to="/"
-            className="inline-block px-5 py-3 rounded-2xl bg-[#B78B5A] text-white font-semibold hover:opacity-90 transition"
-          >
+          <Link to="/" className="inline-block px-5 py-3 rounded-2xl bg-[#B78B5A] text-white font-semibold hover:opacity-90 transition">
             {lang === "es" ? "Volver" : "Back"}
           </Link>
         </div>
-
-        <h1 className="text-4xl md:text-5xl font-bold mb-6">
-          {titulo[lang]}
-        </h1>
+        <h1 className="text-4xl md:text-5xl font-bold mb-6">{titulo[lang]}</h1>
       </div>
 
       <div className="sticky top-0 z-40 bg-[#F7F3EA]/95 backdrop-blur border-y border-[#B78B5A]/20">
@@ -500,20 +432,14 @@ export default function CartaBase({ titulo, categorias }) {
             <p className="text-xs uppercase tracking-[0.2em] text-[#4E3B2A]/50 mb-1">
               {lang === "es" ? "Sección actual" : "Current section"}
             </p>
-            <p className="text-lg font-semibold text-[#7E9F00] truncate">
-              {activeLabel || titulo[lang]}
-            </p>
+            <p className="text-lg font-semibold text-[#7E9F00] truncate">{activeLabel || titulo[lang]}</p>
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
             <button
               onClick={() => setEditMode((v) => !v)}
               title={editMode ? "Salir de edición" : "Editar fotos"}
-              className={`p-2 rounded-xl border transition ${
-                editMode
-                  ? "bg-[#B78B5A] border-[#B78B5A] text-white"
-                  : "bg-white border-[#B78B5A]/30 text-[#B78B5A]"
-              }`}
+              className={`p-2 rounded-xl border transition ${editMode ? "bg-[#B78B5A] border-[#B78B5A] text-white" : "bg-white border-[#B78B5A]/30 text-[#B78B5A]"}`}
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
@@ -525,11 +451,7 @@ export default function CartaBase({ titulo, categorias }) {
               <button
                 onClick={() => setAdminEditMode((v) => !v)}
                 title={adminEditMode ? "Salir de edición admin" : "Editar productos"}
-                className={`p-2 rounded-xl border transition ${
-                  adminEditMode
-                    ? "bg-[#4E3B2A] border-[#4E3B2A] text-white"
-                    : "bg-white border-[#B78B5A]/30 text-[#B78B5A]"
-                }`}
+                className={`p-2 rounded-xl border transition ${adminEditMode ? "bg-[#4E3B2A] border-[#4E3B2A] text-white" : "bg-white border-[#B78B5A]/30 text-[#B78B5A]"}`}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -537,25 +459,10 @@ export default function CartaBase({ titulo, categorias }) {
               </button>
             )}
 
-            <button
-              onClick={() => setLang("es")}
-              className={`p-1 rounded-xl border transition ${
-                lang === "es"
-                  ? "bg-[#7E9F00] border-[#7E9F00]"
-                  : "bg-white border-[#B78B5A]/30"
-              }`}
-            >
+            <button onClick={() => setLang("es")} className={`p-1 rounded-xl border transition ${lang === "es" ? "bg-[#7E9F00] border-[#7E9F00]" : "bg-white border-[#B78B5A]/30"}`}>
               <img src={espanaImg} alt="Español" className="w-8 h-5 object-cover rounded-sm" />
             </button>
-
-            <button
-              onClick={() => setLang("en")}
-              className={`p-1 rounded-xl border transition ${
-                lang === "en"
-                  ? "bg-[#7E9F00] border-[#7E9F00]"
-                  : "bg-white border-[#B78B5A]/30"
-              }`}
-            >
+            <button onClick={() => setLang("en")} className={`p-1 rounded-xl border transition ${lang === "en" ? "bg-[#7E9F00] border-[#7E9F00]" : "bg-white border-[#B78B5A]/30"}`}>
               <img src={inglaterraImg} alt="English" className="w-8 h-5 object-cover rounded-sm" />
             </button>
           </div>
@@ -568,9 +475,7 @@ export default function CartaBase({ titulo, categorias }) {
       <div className="max-w-5xl mx-auto px-6 py-6">
         <section className="mb-6">
           <p className="text-sm md:text-base text-[#4E3B2A]/80 mb-3 leading-6 text-center">
-            {lang === "es"
-              ? "Todos nuestros platos, pinchos y banderillas pueden contener trazas de:"
-              : "All our dishes, pinchos and skewers may contain traces of:"}
+            {lang === "es" ? "Todos nuestros platos, pinchos y banderillas pueden contener trazas de:" : "All our dishes, pinchos and skewers may contain traces of:"}
           </p>
           <img src={alergenosImg} alt={lang === "es" ? "Tabla de alérgenos" : "Allergen chart"} className="w-full max-w-3xl mx-auto" />
         </section>
@@ -579,22 +484,10 @@ export default function CartaBase({ titulo, categorias }) {
           {menuDataConId.map((categoria, catIdx) => {
             const isOpen = openSections[categoria.id];
             return (
-              <section
-                key={categoria.id}
-                id={!categoria.subcategorias ? categoria.id : undefined}
-                className="scroll-mt-24 bg-white rounded-3xl border border-[#B78B5A]/20 shadow-sm overflow-hidden"
-              >
-                <button
-                  type="button"
-                  onClick={() => toggleSection(categoria.id)}
-                  className="w-full flex items-center justify-between gap-4 p-6 text-left"
-                >
-                  <h2 className="text-2xl font-bold text-[#7E9F00]">
-                    {categoria.nombre[lang]}
-                  </h2>
-                  <span className="text-2xl font-semibold text-[#B78B5A] leading-none">
-                    {isOpen ? "−" : "+"}
-                  </span>
+              <section key={categoria.id} id={!categoria.subcategorias ? categoria.id : undefined} className="scroll-mt-24 bg-white rounded-3xl border border-[#B78B5A]/20 shadow-sm overflow-hidden">
+                <button type="button" onClick={() => toggleSection(categoria.id)} className="w-full flex items-center justify-between gap-4 p-6 text-left">
+                  <h2 className="text-2xl font-bold text-[#7E9F00]">{categoria.nombre[lang]}</h2>
+                  <span className="text-2xl font-semibold text-[#B78B5A] leading-none">{isOpen ? "−" : "+"}</span>
                 </button>
 
                 {!isOpen && (
@@ -616,17 +509,9 @@ export default function CartaBase({ titulo, categorias }) {
                             const isSubOpen = openSubsections[subcategoria.id];
                             return (
                               <div key={subIdx} id={subcategoria.id} className="scroll-mt-24 rounded-2xl border border-[#B78B5A]/15 bg-[#FCFAF6] overflow-hidden">
-                                <button
-                                  type="button"
-                                  onClick={() => toggleSubsection(subcategoria.id)}
-                                  className="w-full flex items-center justify-between gap-4 p-5 text-left"
-                                >
-                                  <h3 className="text-xl md:text-2xl font-bold text-[#7E9F00]">
-                                    {subcategoria.nombre[lang]}
-                                  </h3>
-                                  <span className="text-2xl font-semibold text-[#B78B5A] leading-none">
-                                    {isSubOpen ? "−" : "+"}
-                                  </span>
+                                <button type="button" onClick={() => toggleSubsection(subcategoria.id)} className="w-full flex items-center justify-between gap-4 p-5 text-left">
+                                  <h3 className="text-xl md:text-2xl font-bold text-[#7E9F00]">{subcategoria.nombre[lang]}</h3>
+                                  <span className="text-2xl font-semibold text-[#B78B5A] leading-none">{isSubOpen ? "−" : "+"}</span>
                                 </button>
 
                                 {!isSubOpen && (
@@ -645,9 +530,7 @@ export default function CartaBase({ titulo, categorias }) {
                                       <div className="space-y-8">
                                         {subcategoria.grupos.map((grupo, grpIdx) => (
                                           <div key={grpIdx}>
-                                            <h4 className="text-lg md:text-xl font-bold text-[#7E9F00] mb-4">
-                                              {grupo.nombre[lang]}
-                                            </h4>
+                                            <h4 className="text-lg md:text-xl font-bold text-[#7E9F00] mb-4">{grupo.nombre[lang]}</h4>
                                             {renderItems(grupo.items, catIdx, subIdx, grpIdx, categoria.noImages)}
                                           </div>
                                         ))}
@@ -665,9 +548,7 @@ export default function CartaBase({ titulo, categorias }) {
                         <div className="space-y-8">
                           {categoria.subcategorias.map((subcategoria, subIdx) => (
                             <div key={subIdx} id={subcategoria.id} className="scroll-mt-24">
-                              <h3 className="text-xl md:text-2xl font-bold text-[#7E9F00] mb-4">
-                                {subcategoria.nombre[lang]}
-                              </h3>
+                              <h3 className="text-xl md:text-2xl font-bold text-[#7E9F00] mb-4">{subcategoria.nombre[lang]}</h3>
                               {renderItems(subcategoria.items, catIdx, subIdx, null, categoria.noImages)}
                             </div>
                           ))}
