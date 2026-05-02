@@ -69,6 +69,10 @@ export default function CartaBase({ titulo, categorias }) {
   const [editNombreES, setEditNombreES] = useState("");
   const [editNombreEN, setEditNombreEN] = useState("");
   const [editPrecio, setEditPrecio] = useState("");
+  const [destacados, setDestacados] = useState(() => {
+    const saved = localStorage.getItem("encurtidos_destacados_items");
+    return saved ? JSON.parse(saved) : [];
+  });
 
   useEffect(() => {
     localStorage.setItem("lang", lang);
@@ -253,6 +257,17 @@ export default function CartaBase({ titulo, categorias }) {
     });
   };
 
+  const destacadoKey = (item) => `${titulo.es}::${normalizeKey(item.nombre.es)}`;
+
+  const toggleDestacado = (item) => {
+    const key = destacadoKey(item);
+    setDestacados((prev) => {
+      const next = prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key];
+      localStorage.setItem("encurtidos_destacados_items", JSON.stringify(next));
+      return next;
+    });
+  };
+
   const renderItems = (items, catIdx, subIdx, grpIdx, noImages) => (
     <div className="space-y-4">
       {items.map((item, i) => {
@@ -267,8 +282,23 @@ export default function CartaBase({ titulo, categorias }) {
         const isEditingPrice = editingKey === editPriceKey;
 
         return (
-          <div key={i} className="flex items-center justify-between gap-4 border-b border-[#B78B5A]/10 pb-3">
+          <div key={i} className={`flex items-center justify-between gap-4 border-b pb-3 ${destacados.includes(destacadoKey(item)) ? "border-[#D4A843]/40" : "border-[#B78B5A]/10"}`}>
             <div className="flex items-center gap-4 min-w-0 flex-1">
+              {isAdmin && (
+                <button
+                  onClick={() => toggleDestacado(item)}
+                  className={`shrink-0 p-1 rounded transition ${
+                    destacados.includes(destacadoKey(item))
+                      ? "text-[#D4A843]"
+                      : "text-gray-300 hover:text-[#D4A843]"
+                  }`}
+                  title={destacados.includes(destacadoKey(item)) ? (lang === "es" ? "Quitar destacado" : "Unfeature") : (lang === "es" ? "Destacar" : "Feature")}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 20 20" fill={destacados.includes(destacadoKey(item)) ? "currentColor" : "none"} stroke="currentColor" strokeWidth={1.5}>
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                  </svg>
+                </button>
+              )}
               {!noImages && (
                 <div className="relative w-16 h-16 rounded-xl border border-[#B78B5A]/20 bg-[#F7F3EA] shrink-0 overflow-hidden flex items-center justify-center text-[10px] text-[#4E3B2A]/40 text-center">
                   {imagen ? (
@@ -336,12 +366,19 @@ export default function CartaBase({ titulo, categorias }) {
                     </div>
                   </div>
                 ) : (
-                  <button
-                    onClick={isAdmin && adminEditMode ? () => startEdit(catIdx, subIdx, grpIdx, i, "nombre") : undefined}
-                    className={`text-left break-words ${isAdmin && adminEditMode ? "cursor-text hover:bg-[#B78B5A]/10 px-1 -ml-1 rounded" : ""}`}
-                  >
-                    {item.nombre[lang]}
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={isAdmin && adminEditMode ? () => startEdit(catIdx, subIdx, grpIdx, i, "nombre") : undefined}
+                      className={`text-left break-words ${isAdmin && adminEditMode ? "cursor-text hover:bg-[#B78B5A]/10 px-1 -ml-1 rounded" : ""}`}
+                    >
+                      {item.nombre[lang]}
+                    </button>
+                    {destacados.includes(destacadoKey(item)) && (
+                      <span className="text-[10px] text-[#D4A843] font-medium whitespace-nowrap shrink-0">
+                        ★ {lang === "es" ? "Destacado" : "Featured"}
+                      </span>
+                    )}
+                  </div>
                 )}
               </div>
             </div>

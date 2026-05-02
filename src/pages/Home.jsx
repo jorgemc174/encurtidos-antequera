@@ -284,12 +284,8 @@ export default function Home() {
   const [textos, setTextos] = useState(() => JSON.parse(JSON.stringify(textosBase)));
   const [productos, setProductos] = useState(() => JSON.parse(JSON.stringify(productosBase)));
   const [puestos, setPuestos] = useState(() => JSON.parse(JSON.stringify(puestosBase)));
-  const [destacados, setDestacados] = useState(() => {
-    const saved = localStorage.getItem("encurtidos_destacados");
-    return saved ? JSON.parse(saved) : [];
-  });
 
-  const isAdmin = localStorage.getItem("encurtidos_admin") === "true";
+  const [isAdmin] = useState(() => localStorage.getItem("encurtidos_admin") === "true");
   const t = textos[lang];
 
   useEffect(() => {
@@ -333,25 +329,12 @@ export default function Home() {
     }));
   };
 
-  const toggleDestacado = (index) => {
-    setDestacados((prev) => {
-      const next = prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index];
-      localStorage.setItem("encurtidos_destacados", JSON.stringify(next));
-      return next;
-    });
-  };
-
   const deleteProducto = (index) => {
     if (!confirm("¿Eliminar este producto?")) return;
     setProductos((prev) => ({
       es: prev.es.filter((_, i) => i !== index),
       en: prev.en.filter((_, i) => i !== index),
     }));
-    setDestacados((prev) => {
-      const next = prev.filter((i) => i !== index).map((i) => (i > index ? i - 1 : i));
-      localStorage.setItem("encurtidos_destacados", JSON.stringify(next));
-      return next;
-    });
   };
 
   const startEditPuesto = (index, field) => {
@@ -719,34 +702,8 @@ export default function Home() {
           )}
 
           <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6">
-            {productos[lang].map((producto, index) => {
-              const esDestacado = destacados.includes(index);
-              return (
-              <div key={index} className={`rounded-3xl p-6 shadow-sm border relative ${
-                esDestacado
-                  ? "bg-amber-50 border-[#D4A843] shadow-amber-200/50"
-                  : "bg-white border-[#B78B5A]/20"
-              }`}>
-                {esDestacado && !isAdmin && (
-                  <span className="absolute -top-2.5 -right-2.5 bg-[#D4A843] text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm uppercase tracking-wide">
-                    {lang === "es" ? "Destacado" : "Featured"}
-                  </span>
-                )}
-                {isAdmin && (
-                  <button
-                    onClick={() => toggleDestacado(index)}
-                    className={`absolute -top-2.5 -right-2.5 p-1.5 rounded-full transition shadow-sm z-10 ${
-                      esDestacado
-                        ? "bg-[#D4A843] text-white hover:bg-[#c09836]"
-                        : "bg-white text-gray-400 hover:text-[#D4A843] border border-gray-200"
-                    }`}
-                    title={esDestacado ? "Quitar destacado" : "Marcar como destacado"}
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 20 20" fill={esDestacado ? "currentColor" : "none"} stroke="currentColor" strokeWidth={1.5}>
-                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                    </svg>
-                  </button>
-                )}
+            {productos[lang].map((producto, index) => (
+              <div key={index} className="bg-white rounded-3xl p-6 shadow-sm border border-[#B78B5A]/20 relative">
                 {editKey === `prod-${index}` ? (
                   <div className="flex flex-col gap-1">
                     <input className="border border-[#B78B5A] rounded px-2 py-1 text-sm" value={editValES} onChange={(e) => setEditValES(e.target.value)} placeholder="ES" autoFocus onKeyDown={(e) => { if (e.key === "Enter") saveProducto(index); if (e.key === "Escape") setEditKey(null); }} />
@@ -759,7 +716,7 @@ export default function Home() {
                 ) : (
                   <h4
                     onClick={editMode ? () => startEditProducto(index) : undefined}
-                    className={`text-xl font-semibold ${esDestacado ? "text-[#8B6F1C]" : ""} ${editMode ? "cursor-text hover:bg-[#B78B5A]/10 px-1 -ml-1 rounded" : ""}`}
+                    className={`text-xl font-semibold ${editMode ? "cursor-text hover:bg-[#B78B5A]/10 px-1 -ml-1 rounded" : ""}`}
                   >
                     {producto}
                   </h4>
@@ -776,8 +733,7 @@ export default function Home() {
                   </button>
                 )}
               </div>
-            );
-            })}
+            ))}
             {editMode && (
               <button
                 onClick={addProducto}
