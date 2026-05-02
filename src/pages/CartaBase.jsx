@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useReducer, useRef, useState } from "react";
 import espanaImg from "../assets/españa.jpg";
 import inglaterraImg from "../assets/inglaterra.jpg";
 import alergenosImg from "../assets/alergenos.jpg";
@@ -62,21 +62,32 @@ export default function CartaBase({ titulo, categorias }) {
   const cameraInputRef = useRef(null);
   const pendingKeyRef = useRef(null);
 
+  const menuStorageKey = `encurtidos_menu_${titulo.es}`;
+
   const [isAdmin] = useState(() => localStorage.getItem("encurtidos_admin") === "true");
   const [adminEditMode, setAdminEditMode] = useState(false);
-  const [menuData, setMenuData] = useState(() => JSON.parse(JSON.stringify(categorias)));
+  const [menuData, setMenuData] = useState(() => {
+    const saved = localStorage.getItem(menuStorageKey);
+    if (saved) { try { return JSON.parse(saved); } catch {} }
+    return JSON.parse(JSON.stringify(categorias));
+  });
   const [editingKey, setEditingKey] = useState(null);
   const [editNombreES, setEditNombreES] = useState("");
   const [editNombreEN, setEditNombreEN] = useState("");
   const [editPrecio, setEditPrecio] = useState("");
-  const [destacados, setDestacados] = useState(() => {
+  const [, forceRender] = useReducer((x) => x + 1, 0);
+  const getDestacados = () => {
     const saved = localStorage.getItem("encurtidos_destacados_items");
     return saved ? JSON.parse(saved) : [];
-  });
+  };
 
   useEffect(() => {
     localStorage.setItem("lang", lang);
   }, [lang]);
+
+  useEffect(() => {
+    localStorage.setItem(menuStorageKey, JSON.stringify(menuData));
+  }, [menuData, menuStorageKey]);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -261,11 +272,10 @@ export default function CartaBase({ titulo, categorias }) {
 
   const toggleDestacado = (item) => {
     const key = destacadoKey(item);
-    setDestacados((prev) => {
-      const next = prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key];
-      localStorage.setItem("encurtidos_destacados_items", JSON.stringify(next));
-      return next;
-    });
+    const current = getDestacados();
+    const next = current.includes(key) ? current.filter((k) => k !== key) : [...current, key];
+    localStorage.setItem("encurtidos_destacados_items", JSON.stringify(next));
+    forceRender();
   };
 
   const renderItems = (items, catIdx, subIdx, grpIdx, noImages) => (
@@ -282,7 +292,7 @@ export default function CartaBase({ titulo, categorias }) {
         const isEditingPrice = editingKey === editPriceKey;
 
         return (
-          <div key={i} className={`flex items-center justify-between gap-4 border-b pb-3 ${destacados.includes(destacadoKey(item)) ? "border-[#D4A843]/40" : "border-[#B78B5A]/10"}`}>
+          <div key={i} className={`flex items-center justify-between gap-4 border-b pb-3 ${getDestacados().includes(destacadoKey(item)) ? "border-[#D4A843]/40" : "border-[#B78B5A]/10"}`}>
             <div className="flex items-center gap-4 min-w-0 flex-1">
               {isAdmin && (
                 <button
@@ -292,9 +302,9 @@ export default function CartaBase({ titulo, categorias }) {
                       ? "text-[#D4A843]"
                       : "text-gray-300 hover:text-[#D4A843]"
                   }`}
-                  title={destacados.includes(destacadoKey(item)) ? (lang === "es" ? "Quitar destacado" : "Unfeature") : (lang === "es" ? "Destacar" : "Feature")}
+                  title={getDestacados().includes(destacadoKey(item)) ? (lang === "es" ? "Quitar destacado" : "Unfeature") : (lang === "es" ? "Destacar" : "Feature")}
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 20 20" fill={destacados.includes(destacadoKey(item)) ? "currentColor" : "none"} stroke="currentColor" strokeWidth={1.5}>
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 20 20" fill={getDestacados().includes(destacadoKey(item)) ? "currentColor" : "none"} stroke="currentColor" strokeWidth={1.5}>
                     <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                   </svg>
                 </button>
@@ -373,7 +383,7 @@ export default function CartaBase({ titulo, categorias }) {
                     >
                       {item.nombre[lang]}
                     </button>
-                    {destacados.includes(destacadoKey(item)) && (
+                    {getDestacados().includes(destacadoKey(item)) && (
                       <span className="text-[10px] text-[#D4A843] font-medium whitespace-nowrap shrink-0">
                         ★ {lang === "es" ? "Destacado" : "Featured"}
                       </span>

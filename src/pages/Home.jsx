@@ -281,9 +281,21 @@ export default function Home() {
   const [editValEN, setEditValEN] = useState("");
   const [editVal, setEditVal] = useState("");
 
-  const [textos, setTextos] = useState(() => JSON.parse(JSON.stringify(textosBase)));
-  const [productos, setProductos] = useState(() => JSON.parse(JSON.stringify(productosBase)));
-  const [puestos, setPuestos] = useState(() => JSON.parse(JSON.stringify(puestosBase)));
+  const [textos, setTextos] = useState(() => {
+    const saved = localStorage.getItem("encurtidos_home_textos");
+    if (saved) { try { return JSON.parse(saved); } catch {} }
+    return JSON.parse(JSON.stringify(textosBase));
+  });
+  const [productos, setProductos] = useState(() => {
+    const saved = localStorage.getItem("encurtidos_home_productos");
+    if (saved) { try { return JSON.parse(saved); } catch {} }
+    return JSON.parse(JSON.stringify(productosBase));
+  });
+  const [puestos, setPuestos] = useState(() => {
+    const saved = localStorage.getItem("encurtidos_home_puestos");
+    if (saved) { try { return JSON.parse(saved); } catch {} }
+    return JSON.parse(JSON.stringify(puestosBase));
+  });
 
   const [isAdmin] = useState(() => localStorage.getItem("encurtidos_admin") === "true");
   const t = textos[lang];
@@ -291,6 +303,18 @@ export default function Home() {
   useEffect(() => {
     localStorage.setItem("lang", lang);
   }, [lang]);
+
+  useEffect(() => {
+    localStorage.setItem("encurtidos_home_textos", JSON.stringify(textos));
+  }, [textos]);
+
+  useEffect(() => {
+    localStorage.setItem("encurtidos_home_productos", JSON.stringify(productos));
+  }, [productos]);
+
+  useEffect(() => {
+    localStorage.setItem("encurtidos_home_puestos", JSON.stringify(puestos));
+  }, [puestos]);
 
   const startEditText = (key) => {
     setEditKey(key);
