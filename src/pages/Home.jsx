@@ -124,7 +124,12 @@ export default function Home() {
   });
   const [puestos, setPuestos] = useState(() => {
     const s = localStorage.getItem("encurtidos_home_puestos");
-    if (s) { try { return JSON.parse(s); } catch {} }
+    if (s) {
+      try {
+        const parsed = JSON.parse(s);
+        return parsed.map((p, i) => ({ ...puestosBase[i], ...p, imagen: puestosBase[i]?.imagen || p.imagen }));
+      } catch {}
+    }
     return JSON.parse(JSON.stringify(puestosBase));
   });
 
@@ -139,7 +144,8 @@ export default function Home() {
     sbUpsert("home_json", { section: "productos", data: productos, updated_at: new Date().toISOString() }, "section");
   }, [productos]);
   useEffect(() => {
-    localStorage.setItem("encurtidos_home_puestos", JSON.stringify(puestos));
+    const sinImagenes = puestos.map(({ imagen, ...rest }) => rest);
+    localStorage.setItem("encurtidos_home_puestos", JSON.stringify(sinImagenes));
     sbUpsert("home_json", { section: "puestos", data: puestos, updated_at: new Date().toISOString() }, "section");
   }, [puestos]);
   useEffect(() => {
