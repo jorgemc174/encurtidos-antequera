@@ -305,13 +305,18 @@ export default function CartaBase({ titulo, categorias }) {
                 </button>
               )}
               {!noImages && (
-                <div className="relative w-16 h-16 rounded-xl border border-[#B78B5A]/20 bg-[#F7F3EA] shrink-0 overflow-hidden flex items-center justify-center text-[10px] text-[#4E3B2A]/40 text-center px-1">
+                <div className="relative w-16 h-16 rounded-xl bg-[#F7F3EA] shrink-0 overflow-hidden flex items-center justify-center text-[10px] text-[#4E3B2A]/40 text-center">
                   {imagen ? (
                     <>
                       <button type="button" onClick={() => editMode ? openUploadMenu(itemKey) : setSelectedImage({ src: imagen, alt: item.nombre[lang] })}
                         className="w-full h-full block">
                         <img src={imagen} alt={item.nombre[lang]} className="w-full h-full object-cover" />
                       </button>
+                      {esDestacado && !editMode && (
+                        <span className="absolute top-0 left-0 bg-[#D4A843]/90 text-white text-[8px] font-bold px-1.5 py-0.5 rounded-br-xl leading-tight">
+                          ★ {lang === "es" ? "Destacado" : "Featured"}
+                        </span>
+                      )}
                       {(editMode || isUploading) && (
                         <div className="absolute inset-0 flex items-center justify-center bg-black/40 pointer-events-none">
                           {isUploading ? (
@@ -340,13 +345,13 @@ export default function CartaBase({ titulo, categorias }) {
                   ) : null}
                 </div>
               )}
+              {noImages && esDestacado && !isEditingName && (
+                <span className="text-[10px] text-[#D4A843] font-medium whitespace-nowrap shrink-0">
+                  ★ {lang === "es" ? "Destacado" : "Featured"}
+                </span>
+              )}
 
               <div className="flex flex-col min-w-0 flex-1">
-                {esDestacado && !isEditingName && (
-                  <span className="text-[10px] text-[#D4A843] font-medium tracking-wide mb-0.5 leading-tight">
-                    ★ {lang === "es" ? "Producto destacado" : "Featured product"}
-                  </span>
-                )}
                 {isEditingName ? (
                   <div className="flex flex-col gap-1">
                     <input className="border border-[#B78B5A] rounded px-2 py-1 text-sm" value={editNombreES} onChange={(e) => setEditNombreES(e.target.value)} placeholder="ES" autoFocus onKeyDown={(e) => { if (e.key === "Enter") saveEdit(); if (e.key === "Escape") setEditingKey(null); }} />
