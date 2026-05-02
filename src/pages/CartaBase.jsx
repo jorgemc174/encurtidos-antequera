@@ -293,8 +293,8 @@ export default function CartaBase({ titulo, categorias }) {
         const esDestacado = getDestacados().includes(destacadoKey(item));
 
         return (
-          <div key={i} className={`flex items-center justify-between gap-4 border-b pb-3 ${esDestacado ? "border-[#D4A843]/40" : "border-[#B78B5A]/10"}`}>
-            <div className="flex items-center gap-4 min-w-0 flex-1">
+          <div key={i} className={`flex items-start justify-between gap-3 border-b py-2.5 ${esDestacado ? "border-[#D4A843]/40" : "border-[#B78B5A]/10"}`}>
+            <div className="flex items-start gap-3 min-w-0 flex-1">
               {isAdmin && (
                 <button onClick={() => toggleDestacado(item)}
                   className={`shrink-0 p-1 rounded transition ${esDestacado ? "text-[#D4A843]" : "text-gray-300 hover:text-[#D4A843]"}`}
@@ -353,7 +353,7 @@ export default function CartaBase({ titulo, categorias }) {
                 </span>
               )}
 
-              <div className="flex flex-col min-w-0 flex-1">
+              <div className="flex flex-col min-w-0 flex-1 gap-0.5">
                 {isEditingName ? (
                   <div className="flex flex-col gap-1">
                     <input className="border border-[#B78B5A] rounded px-2 py-1 text-sm" value={editNombreES} onChange={(e) => setEditNombreES(e.target.value)} placeholder="ES" autoFocus onKeyDown={(e) => { if (e.key === "Enter") saveEdit(); if (e.key === "Escape") setEditingKey(null); }} />
@@ -372,7 +372,7 @@ export default function CartaBase({ titulo, categorias }) {
               </div>
             </div>
 
-            <div className="flex items-center gap-2 shrink-0">
+            <div className="flex items-center gap-2 shrink-0 mt-0.5">
               {isEditingPrice ? (
                 <input className="border border-[#B78B5A] rounded px-2 py-1 text-sm w-28 text-right" value={editPrecio} onChange={(e) => setEditPrecio(e.target.value)} autoFocus onKeyDown={(e) => { if (e.key === "Enter") saveEdit(); if (e.key === "Escape") setEditingKey(null); }} onBlur={saveEdit} />
               ) : (
