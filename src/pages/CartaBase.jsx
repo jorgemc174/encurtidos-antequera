@@ -313,9 +313,11 @@ export default function CartaBase({ titulo, categorias }) {
                         <img src={imagen} alt={item.nombre[lang]} className="w-full h-full object-cover" />
                       </button>
                       {esDestacado && !editMode && (
-                        <span className="absolute top-0 left-0 bg-[#D4A843]/90 text-white text-[8px] font-bold px-1.5 py-0.5 rounded-br-xl leading-tight">
-                          ★ {lang === "es" ? "Destacado" : "Featured"}
-                        </span>
+                        <div className="absolute inset-0 bg-[#D4A843]/80 flex items-center justify-center">
+                          <span className="text-white text-[10px] font-bold text-center leading-tight px-1">
+                            ★ {lang === "es" ? "Destacado" : "Featured"}
+                          </span>
+                        </div>
                       )}
                       {(editMode || isUploading) && (
                         <div className="absolute inset-0 flex items-center justify-center bg-black/40 pointer-events-none">
