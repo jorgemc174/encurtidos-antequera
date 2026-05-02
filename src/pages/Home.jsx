@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
+import { supabase } from "../lib/supabase";
 import logoImg from "../assets/logo.png";
 import lasPalmasImg from "../assets/laspalmas.jpg";
 import galdarImg from "../assets/galdar.jpg";
@@ -11,11 +12,9 @@ import inglaterraImg from "../assets/inglaterra.jpg";
 const textosBase = {
   es: {
     inicio: "Inicio", nosotros: "Nosotros", productos: "Productos", puestos: "Puestos", contacto: "Contacto",
-    subtitulo: "Canarias · Tapas · Aceitunas",
-    titulo: "Tapas, aceitunas y sabor tradicional",
+    subtitulo: "Canarias · Tapas · Aceitunas", titulo: "Tapas, aceitunas y sabor tradicional",
     descripcion: "En Encurtidos Antequera llevamos el sabor de siempre a nuestros puestos con una selección de encurtidos, aceitunas y tapas pensadas para disfrutar.",
-    verPuestos: "Ver puestos", contactar: "Contactar",
-    quienesSomos: "Quiénes somos",
+    verPuestos: "Ver puestos", contactar: "Contactar", quienesSomos: "Quiénes somos",
     quienesTexto: "En Encurtidos Antequera ofrecemos una selección de aceitunas, encurtidos y tapas con sabor tradicional. Apostamos por un producto cercano, sencillo y de calidad, pensado para disfrutar en cualquiera de nuestros puestos.",
     nuestrosProductos: "Nuestros productos",
     productosTexto: "Una propuesta pensada para compartir, picar algo y disfrutar del sabor tradicional.",
@@ -26,11 +25,9 @@ const textosBase = {
   },
   en: {
     inicio: "Home", nosotros: "About us", productos: "Products", puestos: "Locations", contacto: "Contact",
-    subtitulo: "Canary Islands · Tapas · Olives",
-    titulo: "Tapas, olives and traditional flavour",
+    subtitulo: "Canary Islands · Tapas · Olives", titulo: "Tapas, olives and traditional flavour",
     descripcion: "At Encurtidos Antequera we bring traditional flavour to our stands with a selection of pickles, olives and tapas made to enjoy.",
-    verPuestos: "View locations", contactar: "Contact",
-    quienesSomos: "About us",
+    verPuestos: "View locations", contactar: "Contact", quienesSomos: "About us",
     quienesTexto: "At Encurtidos Antequera we offer a selection of olives, pickles and tapas with a traditional flavour. We focus on close, simple and quality products, made to be enjoyed at any of our stands.",
     nuestrosProductos: "Our products",
     productosTexto: "A selection made for sharing, snacking and enjoying traditional flavour.",
@@ -116,9 +113,32 @@ export default function Home() {
   });
 
   useEffect(() => { localStorage.setItem("lang", lang); }, [lang]);
-  useEffect(() => { localStorage.setItem("encurtidos_home_textos", JSON.stringify(textos)); }, [textos]);
-  useEffect(() => { localStorage.setItem("encurtidos_home_productos", JSON.stringify(productos)); }, [productos]);
-  useEffect(() => { localStorage.setItem("encurtidos_home_puestos", JSON.stringify(puestos)); }, [puestos]);
+
+  useEffect(() => {
+    localStorage.setItem("encurtidos_home_textos", JSON.stringify(textos));
+    supabase.from("home_json").upsert({ section: "textos", data: textos, updated_at: new Date().toISOString() }, { onConflict: "section" }).catch(() => {});
+  }, [textos]);
+
+  useEffect(() => {
+    localStorage.setItem("encurtidos_home_productos", JSON.stringify(productos));
+    supabase.from("home_json").upsert({ section: "productos", data: productos, updated_at: new Date().toISOString() }, { onConflict: "section" }).catch(() => {});
+  }, [productos]);
+
+  useEffect(() => {
+    localStorage.setItem("encurtidos_home_puestos", JSON.stringify(puestos));
+    supabase.from("home_json").upsert({ section: "puestos", data: puestos, updated_at: new Date().toISOString() }, { onConflict: "section" }).catch(() => {});
+  }, [puestos]);
+
+  useEffect(() => {
+    supabase.from("home_json").select("section, data").then(({ data, error }) => {
+      if (error || !data) return;
+      data.forEach(({ section, data: d }) => {
+        if (section === "textos") { setTextos(d); localStorage.setItem("encurtidos_home_textos", JSON.stringify(d)); }
+        else if (section === "productos") { setProductos(d); localStorage.setItem("encurtidos_home_productos", JSON.stringify(d)); }
+        else if (section === "puestos") { setPuestos(d); localStorage.setItem("encurtidos_home_puestos", JSON.stringify(d)); }
+      });
+    }).catch(() => {});
+  }, []);
 
   const t = textos[lang];
 
@@ -149,7 +169,6 @@ export default function Home() {
           <div className="flex items-center">
             <img src={logoImg} alt="Logo Encurtidos Antequera" className="h-14 md:h-20 w-auto object-contain" />
           </div>
-
           <div className="hidden md:flex items-center gap-4">
             <div className="flex gap-6 font-medium items-center">
               <a href="#inicio" className="hover:text-[#7A5530] transition">{t.inicio}</a>
@@ -158,7 +177,6 @@ export default function Home() {
               <a href="#puestos" className="hover:text-[#7A5530] transition">{t.puestos}</a>
               <a href="#contacto" className="hover:text-[#7A5530] transition">{t.contacto}</a>
             </div>
-
             <div className="flex items-center gap-2">
               {isAdmin && (
                 <button onClick={() => { setEditMode((v) => !v); setEditKey(null); }} title={editMode ? "Salir de edición" : "Editar página"}
@@ -176,7 +194,6 @@ export default function Home() {
               </button>
             </div>
           </div>
-
           <button onClick={() => setMenuOpen(true)} className="md:hidden flex items-center justify-center w-12 h-12 rounded-2xl border border-[#7A5530]/15 bg-[#7E9f00] shadow-sm hover:opacity-90 transition" aria-label="Abrir menú">
             <div className="flex flex-col justify-center gap-1.5">
               <span className="block w-5 h-0.5 bg-white rounded"></span>
@@ -187,7 +204,6 @@ export default function Home() {
         </nav>
       </header>
 
-      {/* Mobile menu */}
       <div className={`md:hidden fixed inset-0 z-[60] ${menuOpen ? "pointer-events-auto" : "pointer-events-none"}`}>
         <div className={`absolute inset-0 bg-black/35 transition-opacity duration-300 ${menuOpen ? "opacity-100" : "opacity-0"}`} onClick={() => setMenuOpen(false)}></div>
         <aside className={`absolute top-0 right-0 h-full w-[82%] max-w-sm bg-[#EFE7DA] border-l border-[#B78B5A] shadow-2xl transition-transform duration-300 ease-out ${menuOpen ? "translate-x-0" : "translate-x-full"}`}>
@@ -224,7 +240,6 @@ export default function Home() {
         </aside>
       </div>
 
-      {/* Hero */}
       <section id="inicio" className="scroll-mt-20 px-6 py-20 md:py-28">
         <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-10 items-center">
           <div>
@@ -240,7 +255,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* About */}
       <section id="nosotros" className="scroll-mt-20 px-6 py-20 bg-white">
         <div className="max-w-4xl mx-auto text-center">
           {tEdit("quienesSomos") || <h3 {...editBtn("quienesSomos", textos.es.quienesSomos, textos.en.quienesSomos)} className="text-4xl font-bold mb-6">{t.quienesSomos}</h3>}
@@ -248,12 +262,10 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Products */}
       <section id="productos" className="scroll-mt-20 px-6 py-20">
         <div className="max-w-6xl mx-auto">
           {tEdit("nuestrosProductos") || <h3 {...editBtn("nuestrosProductos", textos.es.nuestrosProductos, textos.en.nuestrosProductos)} className="text-4xl font-bold mb-4">{t.nuestrosProductos}</h3>}
           {tEdit("productosTexto") || <p {...editBtn("productosTexto", textos.es.productosTexto, textos.en.productosTexto)} className="text-[#4E3B2A]/70 mb-10">{t.productosTexto}</p>}
-
           <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6">
             {productos[lang].map((producto, idx) => (
               <div key={idx} className="bg-white rounded-3xl p-6 shadow-sm border border-[#B78B5A]/20 relative">
@@ -280,12 +292,10 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Locations */}
       <section id="puestos" className="scroll-mt-20 px-6 py-20 bg-white">
         <div className="max-w-6xl mx-auto">
           {tEdit("nuestrosPuestos") || <h3 {...editBtn("nuestrosPuestos", textos.es.nuestrosPuestos, textos.en.nuestrosPuestos)} className="text-4xl font-bold mb-4">{t.nuestrosPuestos}</h3>}
           {tEdit("puestosTexto") || <p {...editBtn("puestosTexto", textos.es.puestosTexto, textos.en.puestosTexto)} className="text-[#4E3B2A]/70 mb-10">{t.puestosTexto}</p>}
-
           <div className="grid md:grid-cols-3 gap-6">
             {puestos.map((puesto, idx) => {
               const hoy = puesto.horario[lang][todayIndex];
@@ -322,7 +332,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Contact */}
       <section id="contacto" className="scroll-mt-20 px-6 py-20 bg-white">
         <div className="max-w-3xl mx-auto text-center">
           {tEdit("contactoTitulo") || <h3 {...editBtn("contactoTitulo", textos.es.contactoTitulo, textos.en.contactoTitulo)} className="text-4xl font-bold mb-4">{t.contactoTitulo}</h3>}
