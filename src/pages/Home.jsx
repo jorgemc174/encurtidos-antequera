@@ -1,6 +1,5 @@
 import { Link } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
-import { supabase } from "../lib/supabase";
 import logoImg from "../assets/logo.png";
 import lasPalmasImg from "../assets/laspalmas.jpg";
 import galdarImg from "../assets/galdar.jpg";
@@ -114,31 +113,9 @@ export default function Home() {
 
   useEffect(() => { localStorage.setItem("lang", lang); }, [lang]);
 
-  useEffect(() => {
-    localStorage.setItem("encurtidos_home_textos", JSON.stringify(textos));
-    supabase.from("home_json").upsert({ section: "textos", data: textos, updated_at: new Date().toISOString() }, { onConflict: "section" }).catch(() => {});
-  }, [textos]);
-
-  useEffect(() => {
-    localStorage.setItem("encurtidos_home_productos", JSON.stringify(productos));
-    supabase.from("home_json").upsert({ section: "productos", data: productos, updated_at: new Date().toISOString() }, { onConflict: "section" }).catch(() => {});
-  }, [productos]);
-
-  useEffect(() => {
-    localStorage.setItem("encurtidos_home_puestos", JSON.stringify(puestos));
-    supabase.from("home_json").upsert({ section: "puestos", data: puestos, updated_at: new Date().toISOString() }, { onConflict: "section" }).catch(() => {});
-  }, [puestos]);
-
-  useEffect(() => {
-    supabase.from("home_json").select("section, data").then(({ data, error }) => {
-      if (error || !data) return;
-      data.forEach(({ section, data: d }) => {
-        if (section === "textos") { setTextos(d); localStorage.setItem("encurtidos_home_textos", JSON.stringify(d)); }
-        else if (section === "productos") { setProductos(d); localStorage.setItem("encurtidos_home_productos", JSON.stringify(d)); }
-        else if (section === "puestos") { setPuestos(d); localStorage.setItem("encurtidos_home_puestos", JSON.stringify(d)); }
-      });
-    }).catch(() => {});
-  }, []);
+  useEffect(() => { localStorage.setItem("encurtidos_home_textos", JSON.stringify(textos)); }, [textos]);
+  useEffect(() => { localStorage.setItem("encurtidos_home_productos", JSON.stringify(productos)); }, [productos]);
+  useEffect(() => { localStorage.setItem("encurtidos_home_puestos", JSON.stringify(puestos)); }, [puestos]);
 
   const t = textos[lang];
 
