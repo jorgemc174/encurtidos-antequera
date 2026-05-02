@@ -342,6 +342,11 @@ export default function CartaBase({ titulo, categorias }) {
               )}
 
               <div className="flex flex-col min-w-0 flex-1">
+                {esDestacado && !isEditingName && (
+                  <span className="text-[10px] text-[#D4A843] font-medium tracking-wide mb-0.5 leading-tight">
+                    ★ {lang === "es" ? "Producto destacado" : "Featured product"}
+                  </span>
+                )}
                 {isEditingName ? (
                   <div className="flex flex-col gap-1">
                     <input className="border border-[#B78B5A] rounded px-2 py-1 text-sm" value={editNombreES} onChange={(e) => setEditNombreES(e.target.value)} placeholder="ES" autoFocus onKeyDown={(e) => { if (e.key === "Enter") saveEdit(); if (e.key === "Escape") setEditingKey(null); }} />
@@ -352,13 +357,10 @@ export default function CartaBase({ titulo, categorias }) {
                     </div>
                   </div>
                 ) : (
-                  <div className="flex items-center gap-2">
-                    <button onClick={isAdmin && adminEditMode ? () => startEdit(catIdx, subIdx, grpIdx, i, "nombre") : undefined}
-                      className={`text-left break-words ${isAdmin && adminEditMode ? "cursor-text hover:bg-[#B78B5A]/10 px-1 -ml-1 rounded" : ""}`}>
-                      {item.nombre[lang]}
-                    </button>
-                    {esDestacado && <span className="text-[10px] text-[#D4A843] font-medium whitespace-nowrap shrink-0">★ {lang === "es" ? "Destacado" : "Featured"}</span>}
-                  </div>
+                  <button onClick={isAdmin && adminEditMode ? () => startEdit(catIdx, subIdx, grpIdx, i, "nombre") : undefined}
+                    className={`text-left break-words ${isAdmin && adminEditMode ? "cursor-text hover:bg-[#B78B5A]/10 px-1 -ml-1 rounded" : ""}`}>
+                    {item.nombre[lang]}
+                  </button>
                 )}
               </div>
             </div>
