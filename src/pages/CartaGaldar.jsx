@@ -196,12 +196,12 @@ export default function CartaGaldar() {
           imagenKey: "papas-bravas",
         },
         {
-          nombre: {
-            es: "Alitas de pollo a la barbacoa",
-            en: "Barbecue chicken wings",
-            imagenKey: "alitas",
-          },
-          precio: "8,50 €",
+              nombre: {
+                es: "Alitas de pollo a la barbacoa",
+                en: "Barbecue chicken wings",
+              },
+              precio: "8,50 €",
+              imagenKey: "alitas",
         },
         {
           nombre: { es: "Costilla a la barbacoa", en: "Barbecue ribs" },
@@ -289,6 +289,7 @@ export default function CartaGaldar() {
     },
     {
       nombre: { es: "Bebidas", en: "Drinks" },
+      noImages: true,
       subcategoriasPlegables: true,
       subcategorias: [
         {

@@ -293,6 +293,7 @@ export default function CartaTelde() {
     },
   {
           nombre: { es: "Bebidas", en: "Drinks" },
+          noImages: true,
           subcategoriasPlegables: true,
           subcategorias: [
             {

@@ -265,6 +265,7 @@ export default function CartaLasPalmas() {
     },
   {
           nombre: { es: "Bebidas", en: "Drinks" },
+          noImages: true,
           subcategoriasPlegables: true,
           subcategorias: [
             {
