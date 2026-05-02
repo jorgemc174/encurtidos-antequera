@@ -87,7 +87,32 @@ export default function CartaBase({ titulo, categorias }) {
 
   useEffect(() => {
     localStorage.setItem(menuStorageKey, JSON.stringify(menuData));
-  }, [menuData, menuStorageKey]);
+    supabase.from("menu_json").upsert(
+      { location: titulo.es, data: menuData, updated_at: new Date().toISOString() },
+      { onConflict: "location" }
+    ).then(({ error }) => { if (error) console.error("Error Syncing menu data:", error); });
+  }, [menuData, menuStorageKey, titulo.es]);
+
+  useEffect(() => {
+    supabase.from("menu_json").select("data").eq("location", titulo.es).single()
+      .then(({ data, error }) => {
+        if (!error && data?.data) {
+          setMenuData(data.data);
+          localStorage.setItem(menuStorageKey, JSON.stringify(data.data));
+        }
+      });
+  }, [titulo.es, menuStorageKey]);
+
+  useEffect(() => {
+    supabase.from("destacados").select("item_key")
+      .then(({ data, error }) => {
+        if (!error && data) {
+          const keys = data.map((r) => r.item_key);
+          localStorage.setItem("encurtidos_destacados_items", JSON.stringify(keys));
+          forceRender();
+        }
+      });
+  }, []);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -273,8 +298,21 @@ export default function CartaBase({ titulo, categorias }) {
   const toggleDestacado = (item) => {
     const key = destacadoKey(item);
     const current = getDestacados();
-    const next = current.includes(key) ? current.filter((k) => k !== key) : [...current, key];
+    const isFeatured = current.includes(key);
+    const next = isFeatured ? current.filter((k) => k !== key) : [...current, key];
     localStorage.setItem("encurtidos_destacados_items", JSON.stringify(next));
+    if (isFeatured) {
+      supabase.from("destacados").delete().eq("item_key", key).then(({ error }) => {
+        if (error) console.error("Error removing destacado:", error);
+      });
+    } else {
+      supabase.from("destacados").upsert(
+        { item_key: key, updated_at: new Date().toISOString() },
+        { onConflict: "item_key" }
+      ).then(({ error }) => {
+        if (error) console.error("Error saving destacado:", error);
+      });
+    }
     forceRender();
   };
 

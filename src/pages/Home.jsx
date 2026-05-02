@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
+import { supabase } from "../lib/supabase";
 import logoImg from "../assets/logo.png";
 import lasPalmasImg from "../assets/laspalmas.jpg";
 import galdarImg from "../assets/galdar.jpg";
@@ -306,15 +307,45 @@ export default function Home() {
 
   useEffect(() => {
     localStorage.setItem("encurtidos_home_textos", JSON.stringify(textos));
+    supabase.from("home_json").upsert(
+      { section: "textos", data: textos, updated_at: new Date().toISOString() },
+      { onConflict: "section" }
+    ).then(({ error }) => { if (error) console.error("Error syncing textos:", error); });
   }, [textos]);
 
   useEffect(() => {
     localStorage.setItem("encurtidos_home_productos", JSON.stringify(productos));
+    supabase.from("home_json").upsert(
+      { section: "productos", data: productos, updated_at: new Date().toISOString() },
+      { onConflict: "section" }
+    ).then(({ error }) => { if (error) console.error("Error syncing productos:", error); });
   }, [productos]);
 
   useEffect(() => {
     localStorage.setItem("encurtidos_home_puestos", JSON.stringify(puestos));
+    supabase.from("home_json").upsert(
+      { section: "puestos", data: puestos, updated_at: new Date().toISOString() },
+      { onConflict: "section" }
+    ).then(({ error }) => { if (error) console.error("Error syncing puestos:", error); });
   }, [puestos]);
+
+  useEffect(() => {
+    supabase.from("home_json").select("section, data").then(({ data, error }) => {
+      if (error || !data) return;
+      data.forEach(({ section, data: sectionData }) => {
+        if (section === "textos") {
+          setTextos(sectionData);
+          localStorage.setItem("encurtidos_home_textos", JSON.stringify(sectionData));
+        } else if (section === "productos") {
+          setProductos(sectionData);
+          localStorage.setItem("encurtidos_home_productos", JSON.stringify(sectionData));
+        } else if (section === "puestos") {
+          setPuestos(sectionData);
+          localStorage.setItem("encurtidos_home_puestos", JSON.stringify(sectionData));
+        }
+      });
+    });
+  }, []);
 
   const startEditText = (key) => {
     setEditKey(key);
