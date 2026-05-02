@@ -146,7 +146,7 @@ export default function Home() {
   useEffect(() => {
     const sinImagenes = puestos.map(({ imagen, ...rest }) => rest);
     localStorage.setItem("encurtidos_home_puestos", JSON.stringify(sinImagenes));
-    sbUpsert("home_json", { section: "puestos", data: puestos, updated_at: new Date().toISOString() }, "section");
+    sbUpsert("home_json", { section: "puestos", data: sinImagenes, updated_at: new Date().toISOString() }, "section");
   }, [puestos]);
   useEffect(() => {
     (async () => {
@@ -155,7 +155,11 @@ export default function Home() {
       data.forEach(({ section, data: d }) => {
         if (section === "textos") { setTextos(d); localStorage.setItem("encurtidos_home_textos", JSON.stringify(d)); }
         else if (section === "productos") { setProductos(d); localStorage.setItem("encurtidos_home_productos", JSON.stringify(d)); }
-        else if (section === "puestos") { setPuestos(d); localStorage.setItem("encurtidos_home_puestos", JSON.stringify(d)); }
+        else if (section === "puestos") {
+          const conImagenes = d.map((p, i) => ({ ...puestosBase[i], ...p, imagen: puestosBase[i]?.imagen || p.imagen }));
+          setPuestos(conImagenes);
+          localStorage.setItem("encurtidos_home_puestos", JSON.stringify(d.map(({ imagen, ...rest }) => rest)));
+        }
       });
     })();
   }, []);
