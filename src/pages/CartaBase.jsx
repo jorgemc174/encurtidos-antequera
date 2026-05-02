@@ -76,7 +76,29 @@ export default function CartaBase({ titulo, categorias }) {
   useEffect(() => { localStorage.setItem("lang", lang); }, [lang]);
   useEffect(() => {
     localStorage.setItem(menuStorageKey, JSON.stringify(menuData));
-  }, [menuData, menuStorageKey]);
+    supabase.from("menu_json").upsert(
+      { location: titulo.es, data: menuData, updated_at: new Date().toISOString() },
+      { onConflict: "location" }
+    ).catch(() => {});
+  }, [menuData, menuStorageKey, titulo.es]);
+  useEffect(() => {
+    supabase.from("menu_json").select("data").eq("location", titulo.es).single()
+      .then(({ data, error }) => {
+        if (!error && data?.data) {
+          setMenuData(data.data);
+          localStorage.setItem(menuStorageKey, JSON.stringify(data.data));
+        }
+      }).catch(() => {});
+  }, [titulo.es, menuStorageKey]);
+  useEffect(() => {
+    supabase.from("destacados").select("item_key")
+      .then(({ data, error }) => {
+        if (!error && data) {
+          const keys = data.map((r) => r.item_key);
+          localStorage.setItem("encurtidos_destacados_items", JSON.stringify(keys));
+        }
+      }).catch(() => {});
+  }, []);
 
 
 
@@ -235,8 +257,11 @@ export default function CartaBase({ titulo, categorias }) {
   const toggleDestacado = (item) => {
     const key = destacadoKey(item);
     const current = getDestacados();
-    const next = current.includes(key) ? current.filter((k) => k !== key) : [...current, key];
+    const isFeat = current.includes(key);
+    const next = isFeat ? current.filter((k) => k !== key) : [...current, key];
     localStorage.setItem("encurtidos_destacados_items", JSON.stringify(next));
+    if (isFeat) supabase.from("destacados").delete().eq("item_key", key).catch(() => {});
+    else supabase.from("destacados").upsert({ item_key: key, updated_at: new Date().toISOString() }, { onConflict: "item_key" }).catch(() => {});
     setMenuData((prev) => [...prev]);
   };
 
