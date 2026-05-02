@@ -313,8 +313,8 @@ export default function CartaBase({ titulo, categorias }) {
                         <img src={imagen} alt={item.nombre[lang]} className="w-full h-full object-cover" />
                       </button>
                       {esDestacado && !editMode && (
-                        <div className="absolute inset-0 bg-[#D4A843]/80 flex items-center justify-center">
-                          <span className="text-white text-[10px] font-bold text-center leading-tight px-1">
+                        <div className="absolute top-0 left-0 right-0 bg-[#D4A843]/85 flex items-center justify-center py-0.5">
+                          <span className="text-white text-[8px] font-bold text-center leading-tight">
                             ★ {lang === "es" ? "Destacado" : "Featured"}
                           </span>
                         </div>
