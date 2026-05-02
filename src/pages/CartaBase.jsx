@@ -36,6 +36,24 @@ function compressToDataUrl(file) {
   });
 }
 
+async function sbUpsert(table, data, conflict) {
+  try { const { supabase: s } = await import("../lib/supabase"); await s.from(table).upsert(data, { onConflict: conflict }); } catch (e) {}
+}
+
+async function sbSelect(table, select, filter) {
+  try {
+    const { supabase: s } = await import("../lib/supabase");
+    const q = s.from(table).select(select);
+    if (filter) q.eq(filter.field, filter.value);
+    const { data, error } = await q;
+    return { data, error };
+  } catch (e) { return { data: null, error: e }; }
+}
+
+async function sbDelete(table, field, value) {
+  try { const { supabase: s } = await import("../lib/supabase"); await s.from(table).delete().eq(field, value); } catch (e) {}
+}
+
 function getItemsArray(data, catIdx, subIdx, grpIdx) {
   if (grpIdx != null) return data[catIdx].subcategorias[subIdx].grupos[grpIdx].items;
   if (subIdx != null) return data[catIdx].subcategorias[subIdx].items;
@@ -76,28 +94,25 @@ export default function CartaBase({ titulo, categorias }) {
   useEffect(() => { localStorage.setItem("lang", lang); }, [lang]);
   useEffect(() => {
     localStorage.setItem(menuStorageKey, JSON.stringify(menuData));
-    supabase.from("menu_json").upsert(
-      { location: titulo.es, data: menuData, updated_at: new Date().toISOString() },
-      { onConflict: "location" }
-    ).catch(() => {});
+    sbUpsert("menu_json", { location: titulo.es, data: menuData, updated_at: new Date().toISOString() }, "location");
   }, [menuData, menuStorageKey, titulo.es]);
   useEffect(() => {
-    supabase.from("menu_json").select("data").eq("location", titulo.es).single()
-      .then(({ data, error }) => {
-        if (!error && data?.data) {
-          setMenuData(data.data);
-          localStorage.setItem(menuStorageKey, JSON.stringify(data.data));
-        }
-      }).catch(() => {});
+    (async () => {
+      const { data, error } = await sbSelect("menu_json", "data", { field: "location", value: titulo.es });
+      if (!error && data?.[0]?.data) {
+        setMenuData(data[0].data);
+        localStorage.setItem(menuStorageKey, JSON.stringify(data[0].data));
+      }
+    })();
   }, [titulo.es, menuStorageKey]);
   useEffect(() => {
-    supabase.from("destacados").select("item_key")
-      .then(({ data, error }) => {
-        if (!error && data) {
-          const keys = data.map((r) => r.item_key);
-          localStorage.setItem("encurtidos_destacados_items", JSON.stringify(keys));
-        }
-      }).catch(() => {});
+    (async () => {
+      const { data, error } = await sbSelect("destacados", "item_key");
+      if (!error && data) {
+        const keys = data.map((r) => r.item_key);
+        localStorage.setItem("encurtidos_destacados_items", JSON.stringify(keys));
+      }
+    })();
   }, []);
 
 
@@ -260,8 +275,8 @@ export default function CartaBase({ titulo, categorias }) {
     const isFeat = current.includes(key);
     const next = isFeat ? current.filter((k) => k !== key) : [...current, key];
     localStorage.setItem("encurtidos_destacados_items", JSON.stringify(next));
-    if (isFeat) supabase.from("destacados").delete().eq("item_key", key).catch(() => {});
-    else supabase.from("destacados").upsert({ item_key: key, updated_at: new Date().toISOString() }, { onConflict: "item_key" }).catch(() => {});
+    if (isFeat) sbDelete("destacados", "item_key", key);
+    else sbUpsert("destacados", { item_key: key, updated_at: new Date().toISOString() }, "item_key");
     setMenuData((prev) => [...prev]);
   };
 

@@ -1,6 +1,5 @@
 import { Link } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
-import { supabase } from "../lib/supabase";
 import logoImg from "../assets/logo.png";
 import lasPalmasImg from "../assets/laspalmas.jpg";
 import galdarImg from "../assets/galdar.jpg";
@@ -73,6 +72,23 @@ const puestosBase = [
   },
 ];
 
+async function sbUpsert(table, data, conflict) {
+  try {
+    const { supabase } = await import("../lib/supabase");
+    await supabase.from(table).upsert(data, { onConflict: conflict });
+  } catch (e) {}
+}
+
+async function sbFetch(table, select, filter) {
+  try {
+    const { supabase } = await import("../lib/supabase");
+    const query = supabase.from(table).select(select);
+    if (filter) query.eq(filter.field, filter.value);
+    const { data, error } = await query;
+    return { data, error };
+  } catch (e) { return { data: null, error: e }; }
+}
+
 function EditInputs({ esVal, enVal, setEsVal, setEnVal, onSave, onCancel }) {
   return (
     <div className="flex flex-col gap-1">
@@ -116,25 +132,26 @@ export default function Home() {
 
   useEffect(() => {
     localStorage.setItem("encurtidos_home_textos", JSON.stringify(textos));
-    supabase.from("home_json").upsert({ section: "textos", data: textos, updated_at: new Date().toISOString() }, { onConflict: "section" }).catch(() => {});
+    sbUpsert("home_json", { section: "textos", data: textos, updated_at: new Date().toISOString() }, "section");
   }, [textos]);
   useEffect(() => {
     localStorage.setItem("encurtidos_home_productos", JSON.stringify(productos));
-    supabase.from("home_json").upsert({ section: "productos", data: productos, updated_at: new Date().toISOString() }, { onConflict: "section" }).catch(() => {});
+    sbUpsert("home_json", { section: "productos", data: productos, updated_at: new Date().toISOString() }, "section");
   }, [productos]);
   useEffect(() => {
     localStorage.setItem("encurtidos_home_puestos", JSON.stringify(puestos));
-    supabase.from("home_json").upsert({ section: "puestos", data: puestos, updated_at: new Date().toISOString() }, { onConflict: "section" }).catch(() => {});
+    sbUpsert("home_json", { section: "puestos", data: puestos, updated_at: new Date().toISOString() }, "section");
   }, [puestos]);
   useEffect(() => {
-    supabase.from("home_json").select("section, data").then(({ data, error }) => {
+    (async () => {
+      const { data, error } = await sbFetch("home_json", "section, data");
       if (error || !data) return;
       data.forEach(({ section, data: d }) => {
         if (section === "textos") { setTextos(d); localStorage.setItem("encurtidos_home_textos", JSON.stringify(d)); }
         else if (section === "productos") { setProductos(d); localStorage.setItem("encurtidos_home_productos", JSON.stringify(d)); }
         else if (section === "puestos") { setPuestos(d); localStorage.setItem("encurtidos_home_puestos", JSON.stringify(d)); }
       });
-    }).catch(() => {});
+    })();
   }, []);
 
   const t = textos[lang];
