@@ -362,7 +362,7 @@ export default function Home() {
           {tEdit("contactoTexto") || <p {...editBtn("contactoTexto", textos.es.contactoTexto, textos.en.contactoTexto)} className="text-[#4E3B2A]/70 mb-8">{t.contactoTexto}</p>}
           <div className="grid gap-4">
             <a href="tel:617883822" className="p-4 rounded-2xl bg-[#F7F3EA] border border-[#B78B5A]/20 block hover:opacity-90 transition">{t.telefono}: 617 883 822</a>
-            <a href="mailto:encurtidos@antequeracanarias.com" className="p-4 rounded-2xl bg-[#F7F3EA] border border-[#B78B5A]/20 block hover:opacity-90 transition">{t.correo}: correo@encurtidosantequera.com</a>
+            <a href="mailto:encurtidos@antequeracanarias.com" className="p-4 rounded-2xl bg-[#F7F3EA] border border-[#B78B5A]/20 block hover:opacity-90 transition">{t.correo}: encurtidos@antequeracanarias.com</a>
           </div>
         </div>
       </section>
