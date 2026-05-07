@@ -4,6 +4,7 @@ import espanaImg from "../assets/españa.jpg";
 import inglaterraImg from "../assets/inglaterra.jpg";
 import alergenosImg from "../assets/alergenos.jpg";
 import { imagenesProductos } from "../data/imagenesProductos";
+import { translateProductName, translateProductNameOnline } from "../lib/productTranslation";
 import { supabase, normalizeKey } from "../lib/supabase";
 
 function compressToDataUrl(file) {
@@ -37,7 +38,13 @@ function compressToDataUrl(file) {
 }
 
 async function sbUpsert(table, data, conflict) {
-  try { const { supabase: s } = await import("../lib/supabase"); await s.from(table).upsert(data, { onConflict: conflict }); } catch (e) {}
+  try {
+    const { supabase: s } = await import("../lib/supabase");
+    const { error } = await s.from(table).upsert(data, { onConflict: conflict });
+    return error || null;
+  } catch {
+    return new Error("No se pudo conectar con Supabase");
+  }
 }
 
 async function sbSelect(table, select, filter) {
@@ -51,7 +58,13 @@ async function sbSelect(table, select, filter) {
 }
 
 async function sbDelete(table, field, value) {
-  try { const { supabase: s } = await import("../lib/supabase"); await s.from(table).delete().eq(field, value); } catch (e) {}
+  try {
+    const { supabase: s } = await import("../lib/supabase");
+    const { error } = await s.from(table).delete().eq(field, value);
+    return error || null;
+  } catch {
+    return new Error("No se pudo conectar con Supabase");
+  }
 }
 
 function getItemsArray(data, catIdx, subIdx, grpIdx) {
@@ -80,22 +93,27 @@ export default function CartaBase({ titulo, categorias }) {
 
   const [isAdmin] = useState(() => localStorage.getItem("encurtidos_admin") === "true");
   const [adminEditMode, setAdminEditMode] = useState(false);
+  const [remoteReady, setRemoteReady] = useState(false);
+  const [syncError, setSyncError] = useState("");
   const menuStorageKey = `encurtidos_menu_${titulo.es}`;
   const [menuData, setMenuData] = useState(() => {
     const saved = localStorage.getItem(menuStorageKey);
-    if (saved) { try { return JSON.parse(saved); } catch {} }
+    if (saved) { try { return JSON.parse(saved); } catch { return JSON.parse(JSON.stringify(categorias)); } }
     return JSON.parse(JSON.stringify(categorias));
   });
   const [editingKey, setEditingKey] = useState(null);
   const [editNombreES, setEditNombreES] = useState("");
   const [editNombreEN, setEditNombreEN] = useState("");
   const [editPrecio, setEditPrecio] = useState("");
+  const translationRunRef = useRef(0);
 
   useEffect(() => { localStorage.setItem("lang", lang); }, [lang]);
   useEffect(() => {
     localStorage.setItem(menuStorageKey, JSON.stringify(menuData));
-    sbUpsert("menu_json", { location: titulo.es, data: menuData, updated_at: new Date().toISOString() }, "location");
-  }, [menuData, menuStorageKey, titulo.es]);
+    if (!remoteReady) return;
+    sbUpsert("menu_json", { location: titulo.es, data: menuData, updated_at: new Date().toISOString() }, "location")
+      .then((error) => setSyncError(error ? "No se han podido guardar los cambios en la base de datos. Revisa Supabase o la conexión." : ""));
+  }, [menuData, menuStorageKey, remoteReady, titulo.es]);
   useEffect(() => {
     (async () => {
       const { data, error } = await sbSelect("menu_json", "data", { field: "location", value: titulo.es });
@@ -103,6 +121,7 @@ export default function CartaBase({ titulo, categorias }) {
         setMenuData(data[0].data);
         localStorage.setItem(menuStorageKey, JSON.stringify(data[0].data));
       }
+      setRemoteReady(true);
     })();
   }, [titulo.es, menuStorageKey]);
   useEffect(() => {
@@ -233,6 +252,16 @@ export default function CartaBase({ titulo, categorias }) {
     setEditingKey(mkKey(catIdx, subIdx, grpIdx, itemIdx, field));
   };
 
+  const handleEditNombreESChange = (value) => {
+    setEditNombreES(value);
+    const run = translationRunRef.current + 1;
+    translationRunRef.current = run;
+    setEditNombreEN(translateProductName(value));
+    translateProductNameOnline(value).then((translated) => {
+      if (translationRunRef.current === run) setEditNombreEN(translated);
+    });
+  };
+
   const saveEdit = () => {
     if (!editingKey) return;
     const parts = editingKey.split("|");
@@ -269,14 +298,16 @@ export default function CartaBase({ titulo, categorias }) {
     const saved = localStorage.getItem("encurtidos_destacados_items");
     return saved ? JSON.parse(saved) : [];
   };
-  const toggleDestacado = (item) => {
+  const toggleDestacado = async (item) => {
     const key = destacadoKey(item);
     const current = getDestacados();
     const isFeat = current.includes(key);
     const next = isFeat ? current.filter((k) => k !== key) : [...current, key];
     localStorage.setItem("encurtidos_destacados_items", JSON.stringify(next));
-    if (isFeat) sbDelete("destacados", "item_key", key);
-    else sbUpsert("destacados", { item_key: key, updated_at: new Date().toISOString() }, "item_key");
+    const error = isFeat
+      ? await sbDelete("destacados", "item_key", key)
+      : await sbUpsert("destacados", { item_key: key, updated_at: new Date().toISOString() }, "item_key");
+    setSyncError(error ? "No se ha podido guardar el destacado en la base de datos. Revisa Supabase o la conexión." : "");
     setMenuData((prev) => [...prev]);
   };
 
@@ -356,7 +387,7 @@ export default function CartaBase({ titulo, categorias }) {
               <div className="min-w-0 flex-1">
                 {isEditingName ? (
                   <div className="flex flex-col gap-1">
-                    <input className="border border-[#B78B5A] rounded px-2 py-1 text-sm" value={editNombreES} onChange={(e) => setEditNombreES(e.target.value)} placeholder="ES" autoFocus onKeyDown={(e) => { if (e.key === "Enter") saveEdit(); if (e.key === "Escape") setEditingKey(null); }} />
+                    <input className="border border-[#B78B5A] rounded px-2 py-1 text-sm" value={editNombreES} onChange={(e) => handleEditNombreESChange(e.target.value)} placeholder="ES" autoFocus onKeyDown={(e) => { if (e.key === "Enter") saveEdit(); if (e.key === "Escape") setEditingKey(null); }} />
                     <input className="border border-[#B78B5A] rounded px-2 py-1 text-sm" value={editNombreEN} onChange={(e) => setEditNombreEN(e.target.value)} placeholder="EN" onKeyDown={(e) => { if (e.key === "Enter") saveEdit(); if (e.key === "Escape") setEditingKey(null); }} />
                     <div className="flex gap-1 mt-1">
                       <button onClick={saveEdit} className="text-xs bg-[#7E9F00] text-white px-2 py-0.5 rounded">OK</button>
@@ -420,20 +451,22 @@ export default function CartaBase({ titulo, categorias }) {
             <p className="text-lg font-semibold text-[#7E9F00] truncate">{activeLabel || titulo[lang]}</p>
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            <button onClick={() => setEditMode((v) => !v)} title={editMode ? "Salir de edición" : "Editar fotos"}
-              className={`p-2 rounded-xl border transition ${editMode ? "bg-[#B78B5A] border-[#B78B5A] text-white" : "bg-white border-[#B78B5A]/30 text-[#B78B5A]"}`}>
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-            </button>
             {isAdmin && (
-              <button onClick={() => setAdminEditMode((v) => !v)} title={adminEditMode ? "Salir de edición admin" : "Editar productos"}
-                className={`p-2 rounded-xl border transition ${adminEditMode ? "bg-[#4E3B2A] border-[#4E3B2A] text-white" : "bg-white border-[#B78B5A]/30 text-[#B78B5A]"}`}>
-                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                </svg>
-              </button>
+              <>
+                <button onClick={() => setEditMode((v) => !v)} title={editMode ? "Salir de edición" : "Editar fotos"}
+                  className={`p-2 rounded-xl border transition ${editMode ? "bg-[#B78B5A] border-[#B78B5A] text-white" : "bg-white border-[#B78B5A]/30 text-[#B78B5A]"}`}>
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                </button>
+                <button onClick={() => setAdminEditMode((v) => !v)} title={adminEditMode ? "Salir de edición admin" : "Editar productos"}
+                  className={`p-2 rounded-xl border transition ${adminEditMode ? "bg-[#4E3B2A] border-[#4E3B2A] text-white" : "bg-white border-[#B78B5A]/30 text-[#B78B5A]"}`}>
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                </button>
+              </>
             )}
             <button onClick={() => setLang("es")} className={`p-1 rounded-xl border transition ${lang === "es" ? "bg-[#7E9F00] border-[#7E9F00]" : "bg-white border-[#B78B5A]/30"}`}>
               <img src={espanaImg} alt="Español" className="w-8 h-5 object-cover rounded-sm" />
@@ -442,10 +475,19 @@ export default function CartaBase({ titulo, categorias }) {
               <img src={inglaterraImg} alt="English" className="w-8 h-5 object-cover rounded-sm" />
             </button>
           </div>
-          <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
-          <input ref={cameraInputRef} type="file" accept="image/*" capture className="hidden" onChange={handleFileChange} />
+          {isAdmin && (
+            <>
+              <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
+              <input ref={cameraInputRef} type="file" accept="image/*" capture className="hidden" onChange={handleFileChange} />
+            </>
+          )}
         </div>
       </div>
+      {isAdmin && syncError && (
+        <div className="sticky top-[73px] z-40 bg-[#B85C38] text-white px-4 py-3 text-sm font-medium text-center">
+          {syncError}
+        </div>
+      )}
 
       <div className="max-w-5xl mx-auto px-6 py-6">
         <section className="mb-6">
