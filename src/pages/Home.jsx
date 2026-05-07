@@ -24,7 +24,8 @@ const textosBase = {
     verUbicacion: "Ver ubicación", verCarta: "Ver carta",
     contactoTitulo: "Contacto", contactoTexto: "Escríbenos para más información o consultas.",
     telefono: "Teléfono", correo: "Correo", idioma: "Idioma", menu: "Menú", horario: "Horario", hoy: "Hoy",
-    empleoTitulo: "Buscamos trabajadores", empleoTexto: "Si te apetece formar parte del equipo, envíanos tu currículum por correo y nos pondremos en contacto contigo.",
+    curriculumTitulo: "¿Quieres formar parte del equipo?",
+    curriculumTexto: "Puedes enviarnos tu currículum por correo y lo tendremos en cuenta cuando surjan nuevas oportunidades.",
     enviarCV: "Enviar currículum",
   },
   en: {
@@ -39,7 +40,8 @@ const textosBase = {
     verUbicacion: "View location", verCarta: "View menu",
     contactoTitulo: "Contact", contactoTexto: "Write to us for more information or enquiries.",
     telefono: "Phone", correo: "Email", idioma: "Language", menu: "Menu", horario: "Opening hours", hoy: "Today",
-    empleoTitulo: "We are hiring", empleoTexto: "If you would like to join the team, send us your CV by email and we will get in touch.",
+    curriculumTitulo: "Would you like to join the team?",
+    curriculumTexto: "You can send us your CV by email and we will keep it in mind for future opportunities.",
     enviarCV: "Send CV",
   },
 };
@@ -624,20 +626,13 @@ export default function Home() {
         <div className="max-w-3xl mx-auto text-center">
           {tEdit("contactoTitulo") || <h3 {...editBtn("contactoTitulo", textos.es.contactoTitulo, textos.en.contactoTitulo)} className="text-4xl font-bold mb-4">{t.contactoTitulo}</h3>}
           {tEdit("contactoTexto") || <p {...editBtn("contactoTexto", textos.es.contactoTexto, textos.en.contactoTexto)} className="text-[#4E3B2A]/70 mb-8">{t.contactoTexto}</p>}
-          <div className="mb-10 rounded-3xl bg-[#F7F3EA] border border-[#B78B5A]/25 shadow-sm text-left overflow-hidden">
-            <div className="h-1.5 bg-[#B78B5A]"></div>
-            <div className="p-6 md:p-8">
-              <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6">
-                <div className="max-w-xl">
-                  <p className="text-sm font-semibold text-[#B78B5A] mb-3">{lang === "es" ? "Trabaja con nosotros" : "Work with us"}</p>
-                  {tEdit("empleoTitulo") || <h4 {...editBtn("empleoTitulo", textos.es.empleoTitulo, textos.en.empleoTitulo)} className="text-2xl md:text-3xl font-bold text-[#4E3B2A] mb-3">{t.empleoTitulo}</h4>}
-                  {tEdit("empleoTexto") || <p {...editBtn("empleoTexto", textos.es.empleoTexto, textos.en.empleoTexto)} className="text-[#4E3B2A]/72 leading-7">{t.empleoTexto}</p>}
-                </div>
-                <div className="md:text-right md:pt-2">
-                  <a href="mailto:encurtidos@antequeracanarias.com?subject=Curr%C3%ADculum%20Encurtidos%20Antequera" className="inline-flex items-center justify-center px-5 py-3 rounded-2xl bg-[#B78B5A] text-white font-semibold hover:opacity-90 transition shadow-sm">{t.enviarCV}</a>
-                  <p className="mt-3 text-sm text-[#4E3B2A]/60 break-all">encurtidos@antequeracanarias.com</p>
-                </div>
+          <div className="mb-8 rounded-3xl bg-[#F7F3EA] border border-[#B78B5A]/20 p-6 md:p-7 text-left shadow-sm">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-5">
+              <div className="max-w-xl">
+                {tEdit("curriculumTitulo") || <h4 {...editBtn("curriculumTitulo", textos.es.curriculumTitulo, textos.en.curriculumTitulo)} className="text-2xl font-bold text-[#4E3B2A] mb-2">{t.curriculumTitulo}</h4>}
+                {tEdit("curriculumTexto") || <p {...editBtn("curriculumTexto", textos.es.curriculumTexto, textos.en.curriculumTexto)} className="text-[#4E3B2A]/70 leading-7">{t.curriculumTexto}</p>}
               </div>
+              <a href="mailto:encurtidos@antequeracanarias.com?subject=Curr%C3%ADculum%20Encurtidos%20Antequera" className="inline-flex shrink-0 items-center justify-center px-5 py-3 rounded-2xl bg-[#B78B5A] text-white font-semibold hover:opacity-90 transition shadow-sm">{t.enviarCV}</a>
             </div>
           </div>
           <div className="grid gap-4">
