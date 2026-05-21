@@ -91,7 +91,7 @@ export default function CartaBase({ titulo, categorias }) {
   const cameraInputRef = useRef(null);
   const pendingKeyRef = useRef(null);
 
-  const [isAdmin] = useState(() => localStorage.getItem("encurtidos_admin") === "true");
+  const [isAdmin, setIsAdmin] = useState(() => localStorage.getItem("encurtidos_admin") === "true");
   const [adminEditMode, setAdminEditMode] = useState(false);
   const [remoteReady, setRemoteReady] = useState(false);
   const [syncError, setSyncError] = useState("");
@@ -311,6 +311,13 @@ export default function CartaBase({ titulo, categorias }) {
     setMenuData((prev) => [...prev]);
   };
 
+  const handleExitAdmin = () => {
+    localStorage.removeItem("encurtidos_admin");
+    setIsAdmin(false);
+    setEditMode(false);
+    setAdminEditMode(false);
+  };
+
   const renderItems = (items, catIdx, subIdx, grpIdx, noImages) => (
     <div className="space-y-4">
       {items.map((item, i) => {
@@ -467,6 +474,15 @@ export default function CartaBase({ titulo, categorias }) {
                   </svg>
                 </button>
               </>
+            )}
+            {isAdmin && (
+              <button onClick={handleExitAdmin} title="Salir de admin"
+                className="p-2 rounded-xl border border-[#B85C38]/30 bg-white text-[#B85C38] transition hover:bg-[#B85C38] hover:text-white">
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6A2.25 2.25 0 005.25 5.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M18 15l3-3m0 0l-3-3m3 3H9" />
+                </svg>
+              </button>
             )}
             <button onClick={() => setLang("es")} className={`p-1 rounded-xl border transition ${lang === "es" ? "bg-[#7E9F00] border-[#7E9F00]" : "bg-white border-[#B78B5A]/30"}`}>
               <img src={espanaImg} alt="Español" className="w-8 h-5 object-cover rounded-sm" />

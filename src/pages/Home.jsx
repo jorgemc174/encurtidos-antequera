@@ -117,8 +117,8 @@ const puestosBase = [
     descripcion: { es: "Puesto con nuestra selección de aceitunas, encurtidos y tapas tradicionales.", en: "Stand with our selection of olives, pickles and traditional tapas." },
     mapa: "https://maps.app.goo.gl/R18Khz2ULXaL5vcc7", rutaCarta: "/carta-las-palmas", imagen: lasPalmasImg,
     horario: {
-      es: [{ dia: "Lunes", hora: "11:00 - 16:00" }, { dia: "Martes", hora: "11:00 - 24:00" }, { dia: "Miércoles", hora: "11:00 - 24:00" }, { dia: "Jueves", hora: "11:00 - 24:00" }, { dia: "Viernes", hora: "11:00 - 24:00" }, { dia: "Sábado", hora: "11:00 - 24:00" }, { dia: "Domingo", hora: "11:00 - 17:00" }],
-      en: [{ dia: "Monday", hora: "11:00 - 16:00" }, { dia: "Tuesday", hora: "11:00 - 24:00" }, { dia: "Wednesday", hora: "11:00 - 24:00" }, { dia: "Thursday", hora: "11:00 - 24:00" }, { dia: "Friday", hora: "11:00 - 24:00" }, { dia: "Saturday", hora: "11:00 - 24:00" }, { dia: "Sunday", hora: "11:00 - 17:00" }],
+      es: [{ dia: "Lunes", hora: "11:00 - 16:00" }, { dia: "Martes", hora: "11:00 - 24:00" }, { dia: "Miércoles", hora: "11:00 - 24:00" }, { dia: "Jueves", hora: "11:00 - 24:00" }, { dia: "Viernes", hora: "11:00 - 24:00" }, { dia: "Sábado", hora: "11:00 - 24:00" }, { dia: "Domingo", hora: "12:00 - 17:00" }],
+      en: [{ dia: "Monday", hora: "11:00 - 16:00" }, { dia: "Tuesday", hora: "11:00 - 24:00" }, { dia: "Wednesday", hora: "11:00 - 24:00" }, { dia: "Thursday", hora: "11:00 - 24:00" }, { dia: "Friday", hora: "11:00 - 24:00" }, { dia: "Saturday", hora: "11:00 - 24:00" }, { dia: "Sunday", hora: "12:00 - 17:00" }],
     },
   },
   {
@@ -126,8 +126,8 @@ const puestosBase = [
     descripcion: { es: "Un espacio donde disfrutar del sabor de siempre con producto cercano y cuidado.", en: "A place to enjoy traditional flavour with local and carefully selected products." },
     mapa: "https://maps.app.goo.gl/ACi1i4GrA85HnbZAA", rutaCarta: "/carta-galdar", imagen: galdarImg,
     horario: {
-      es: [{ dia: "Lunes", hora: "Cerrado" }, { dia: "Martes", hora: "11:00 - 22:00" }, { dia: "Miércoles", hora: "11:00 - 22:00" }, { dia: "Jueves", hora: "11:00 - 22:00" }, { dia: "Viernes", hora: "12:00 - 24:00" }, { dia: "Sábado", hora: "12:00 - 24:00" }, { dia: "Domingo", hora: "12:00 - 17:00" }],
-      en: [{ dia: "Monday", hora: "Closed" }, { dia: "Tuesday", hora: "11:00 - 22:00" }, { dia: "Wednesday", hora: "11:00 - 22:00" }, { dia: "Thursday", hora: "11:00 - 22:00" }, { dia: "Friday", hora: "12:00 - 24:00" }, { dia: "Saturday", hora: "12:00 - 24:00" }, { dia: "Sunday", hora: "12:00 - 17:00" }],
+      es: [{ dia: "Lunes", hora: "11:00 - 22:00" }, { dia: "Martes", hora: "11:00 - 22:00" }, { dia: "Miércoles", hora: "11:00 - 22:00" }, { dia: "Jueves", hora: "11:00 - 22:00" }, { dia: "Viernes", hora: "12:00 - 24:00" }, { dia: "Sábado", hora: "12:00 - 24:00" }, { dia: "Domingo", hora: "12:00 - 22:00" }],
+      en: [{ dia: "Monday", hora: "11:00 - 22:00" }, { dia: "Tuesday", hora: "11:00 - 22:00" }, { dia: "Wednesday", hora: "11:00 - 22:00" }, { dia: "Thursday", hora: "11:00 - 22:00" }, { dia: "Friday", hora: "12:00 - 24:00" }, { dia: "Saturday", hora: "12:00 - 24:00" }, { dia: "Sunday", hora: "12:00 - 22:00" }],
     },
   },
   {
@@ -135,8 +135,8 @@ const puestosBase = [
     descripcion: { es: "Nuestra propuesta con el sabor de siempre, ideal para probar nuestras especialidades.", en: "Our traditional selection, ideal for trying our specialties." },
     mapa: "https://maps.app.goo.gl/iRxEPQPSHbNWSf5L6", rutaCarta: "/carta-telde", imagen: teldeImg,
     horario: {
-      es: [{ dia: "Lunes", hora: "10:00 - 23:00" }, { dia: "Martes", hora: "10:00 - 23:00" }, { dia: "Miércoles", hora: "10:00 - 23:00" }, { dia: "Jueves", hora: "10:00 - 23:00" }, { dia: "Viernes", hora: "10:00 - 02:00" }, { dia: "Sábado", hora: "10:00 - 02:00" }, { dia: "Domingo", hora: "12:00 - 22:00" }],
-      en: [{ dia: "Monday", hora: "10:00 - 23:00" }, { dia: "Tuesday", hora: "10:00 - 23:00" }, { dia: "Wednesday", hora: "10:00 - 23:00" }, { dia: "Thursday", hora: "10:00 - 23:00" }, { dia: "Friday", hora: "10:00 - 02:00" }, { dia: "Saturday", hora: "10:00 - 02:00" }, { dia: "Sunday", hora: "12:00 - 22:00" }],
+      es: [{ dia: "Lunes", hora: "11:00 - 01:00" }, { dia: "Martes", hora: "11:00 - 01:00" }, { dia: "Miércoles", hora: "12:00 - 02:00" }, { dia: "Jueves", hora: "12:00 - 02:00" }, { dia: "Viernes", hora: "12:00 - 02:00" }, { dia: "Sábado", hora: "12:00 - 02:00" }, { dia: "Domingo", hora: "11:00 - 01:00" }],
+      en: [{ dia: "Monday", hora: "11:00 - 01:00" }, { dia: "Tuesday", hora: "11:00 - 01:00" }, { dia: "Wednesday", hora: "12:00 - 02:00" }, { dia: "Thursday", hora: "12:00 - 02:00" }, { dia: "Friday", hora: "12:00 - 02:00" }, { dia: "Saturday", hora: "12:00 - 02:00" }, { dia: "Sunday", hora: "11:00 - 01:00" }],
     },
   },
 ];
@@ -202,7 +202,7 @@ export default function Home() {
   const cameraInputRef = useRef(null);
   const pendingImageKeyRef = useRef(null);
 
-  const [isAdmin] = useState(() => localStorage.getItem("encurtidos_admin") === "true");
+  const [isAdmin, setIsAdmin] = useState(() => localStorage.getItem("encurtidos_admin") === "true");
   const [editMode, setEditMode] = useState(false);
   const [editKey, setEditKey] = useState(null);
   const [editES, setEditES] = useState("");
@@ -223,7 +223,7 @@ export default function Home() {
     if (s) {
       try {
         const parsed = JSON.parse(s);
-        return parsed.map((p, i) => ({ ...puestosBase[i], ...p, imagen: puestosBase[i]?.imagen || p.imagen }));
+        return parsed.map((p, i) => ({ ...puestosBase[i], ...p, horario: puestosBase[i]?.horario || p.horario, imagen: puestosBase[i]?.imagen || p.imagen }));
       } catch {
         return JSON.parse(JSON.stringify(puestosBase));
       }
@@ -275,7 +275,7 @@ export default function Home() {
           localStorage.setItem("encurtidos_home_productos", JSON.stringify(normalized));
         }
         else if (section === "puestos") {
-          const conImagenes = d.map((p, i) => ({ ...puestosBase[i], ...p, imagen: puestosBase[i]?.imagen || p.imagen }));
+          const conImagenes = d.map((p, i) => ({ ...puestosBase[i], ...p, horario: puestosBase[i]?.horario || p.horario, imagen: puestosBase[i]?.imagen || p.imagen }));
           setPuestos(conImagenes);
           localStorage.setItem("encurtidos_home_puestos", JSON.stringify(d.map((puesto) => {
             const rest = { ...puesto };
@@ -371,6 +371,13 @@ export default function Home() {
   const editBtn = (key, esVal, enVal) => editMode ? { onClick: () => startEdit(key, esVal, enVal), className: "cursor-text hover:bg-[#B78B5A]/10 px-1 -ml-1 rounded" } : {};
 
   const closeMenu = () => setMenuOpen(false);
+  const handleExitAdmin = () => {
+    localStorage.removeItem("encurtidos_admin");
+    setIsAdmin(false);
+    setEditMode(false);
+    setEditKey(null);
+    setMenuOpen(false);
+  };
 
   const todayIndex = useMemo(() => {
     const jsDay = new Date().getDay();
@@ -398,6 +405,15 @@ export default function Home() {
                   className={`p-2 rounded-xl border transition ${editMode ? "bg-[#4E3B2A] border-[#4E3B2A] text-white" : "bg-white border-[#B78B5A]/30 text-[#B78B5A]"}`}>
                   <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                </button>
+              )}
+              {isAdmin && (
+                <button onClick={handleExitAdmin} title="Salir de admin"
+                  className="p-2 rounded-xl border border-[#B85C38]/30 bg-white text-[#B85C38] transition hover:bg-[#B85C38] hover:text-white">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6A2.25 2.25 0 005.25 5.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M18 15l3-3m0 0l-3-3m3 3H9" />
                   </svg>
                 </button>
               )}
@@ -439,10 +455,14 @@ export default function Home() {
             <a href="#contacto" onClick={closeMenu} className="hover:text-[#7A5530] transition">{t.contacto}</a>
             <div className="pt-4 border-t border-[#B78B5A]/20">
               {isAdmin && (
-                <div className="mb-4">
+                <div className="mb-4 space-y-2">
                   <button onClick={() => { setEditMode((v) => !v); setEditKey(null); setMenuOpen(false); }}
                     className={`w-full py-2 rounded-xl border transition text-sm ${editMode ? "bg-[#4E3B2A] border-[#4E3B2A] text-white" : "bg-white border-[#B78B5A]/30 text-[#B78B5A]"}`}>
                     {editMode ? "Salir de edición" : "Editar página"}
+                  </button>
+                  <button onClick={handleExitAdmin}
+                    className="w-full py-2 rounded-xl border border-[#B85C38]/30 bg-white text-[#B85C38] transition text-sm">
+                    Salir de admin
                   </button>
                 </div>
               )}
@@ -636,6 +656,7 @@ export default function Home() {
             </div>
           </div>
           <div className="grid gap-4">
+            <a href="tel:619818171" className="p-4 rounded-2xl bg-[#F7F3EA] border border-[#B78B5A]/20 block hover:opacity-90 transition">{t.telefono}: 619 81 81 71</a>
             <a href="tel:617883822" className="p-4 rounded-2xl bg-[#F7F3EA] border border-[#B78B5A]/20 block hover:opacity-90 transition">{t.telefono}: 617 883 822</a>
             <a href="mailto:encurtidos@antequeracanarias.com" className="p-4 rounded-2xl bg-[#F7F3EA] border border-[#B78B5A]/20 block hover:opacity-90 transition">{t.correo}: encurtidos@antequeracanarias.com</a>
           </div>
