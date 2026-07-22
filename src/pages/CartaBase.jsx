@@ -793,7 +793,7 @@ export default function CartaBase({ titulo, categorias }) {
                                     <span className="text-2xl font-semibold text-[#B78B5A] leading-none">{isSubOpen ? "−" : "+"}</span>
                                   </button>
                                 </div>
-                                {!isSubOpen && (
+                                {!isSubOpen && normalizeKey(categoria.nombre.es) !== "bebidas" && (
                                   <div className="px-5 pb-5">
                                     {renderSectionImage(subcategoria, categoria)}
                                   </div>
