@@ -13,6 +13,7 @@ const IMAGE_ALIASES = {
   empanadilla: "porcion-de-empanada-gallega",
   "ensalada-crujiente-de-pollo": "ensalada",
   "jamon-iberico": "jamon-serrano",
+  "lagrimas-de-pollo": "pollo-kentucky",
   "pollo-con-crema-de-aguacate": "pollo-guacamole",
   "serrano-con-queso": "jamon-serrano",
   "tabla-de-queso-canario": "quesos-variados",
