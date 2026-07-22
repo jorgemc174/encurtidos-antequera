@@ -9,7 +9,7 @@ import espanaImg from "../assets/españa.jpg";
 import inglaterraImg from "../assets/inglaterra.jpg";
 import { imagenesProductos } from "../data/imagenesProductos";
 import { IMAGENES_SUPABASE_SNAPSHOT_AT, imagenesSupabase } from "../data/imagenesSupabase";
-import { resolveSharedProductImage } from "../lib/productImage";
+import { getSectionProductImageKeys, resolveSharedProductImage } from "../lib/productImage";
 import { translateProductName, translateProductNameOnline } from "../lib/productTranslation";
 import { normalizeKey, supabase } from "../lib/supabase";
 
@@ -549,6 +549,7 @@ export default function Home() {
           <div className="grid md:grid-cols-2 gap-6">
             {productos.map((producto, idx) => {
               const isOpen = openProductos[idx] ?? false;
+              const sectionProductImageKeys = getSectionProductImageKeys(producto.items);
               return (
               <div key={idx} className="bg-white rounded-3xl shadow-sm border border-[#B78B5A]/20 overflow-hidden relative">
                 <div className="flex items-center justify-between gap-4 p-5">
@@ -569,7 +570,7 @@ export default function Home() {
                       {producto.items.map((item, itemIdx) => {
                         const fallbackImg = item.imagen
                           || (item.imagenKey ? availableProductImages[item.imagenKey] : null)
-                          || resolveSharedProductImage(item.nombre.es, availableProductImages);
+                          || resolveSharedProductImage(item.nombre.es, availableProductImages, sectionProductImageKeys);
                         const itemImg = getImage(`producto-${idx}-${itemIdx}`, itemIdx === 0 ? getImage(`producto-${idx}`, fallbackImg) : fallbackImg);
                         const isUploading = uploadingImage === imageKey(`producto-${idx}-${itemIdx}`);
                         return (

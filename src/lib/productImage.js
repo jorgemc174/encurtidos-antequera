@@ -61,16 +61,41 @@ function similarityScore(sourceTokens, candidateTokens) {
   return intersection.length / unionSize;
 }
 
-export function resolveSharedProductImage(name, images) {
+export function getSectionProductImageKeys(section) {
+  const keys = new Set();
+
+  const visit = (entry) => {
+    if (!entry) return;
+    if (Array.isArray(entry)) {
+      entry.forEach(visit);
+      return;
+    }
+
+    const children = [entry.items, entry.subcategorias, entry.grupos].filter(Array.isArray);
+    if (children.length) {
+      children.forEach(visit);
+      return;
+    }
+
+    if (entry.nombre?.es) keys.add(normalizeKey(entry.nombre.es));
+    if (entry.imagenKey) keys.add(normalizeKey(entry.imagenKey));
+  };
+
+  visit(section);
+  return keys;
+}
+
+export function resolveSharedProductImage(name, images, sectionKeys = null) {
   const normalized = normalizeKey(name);
   if (images[normalized]) return images[normalized];
 
   const alias = IMAGE_ALIASES[normalized];
-  if (alias && images[alias]) return images[alias];
+  if (alias && images[alias] && (!sectionKeys || sectionKeys.has(alias))) return images[alias];
 
   const sourceTokens = meaningfulTokens(normalized);
   const candidates = Object.keys(images)
     .filter((key) => !RESERVED_PREFIXES.some((prefix) => key.startsWith(prefix)))
+    .filter((key) => !sectionKeys || sectionKeys.has(key))
     .map((key) => ({ key, score: similarityScore(sourceTokens, meaningfulTokens(key)) }))
     .filter(({ score }) => score >= 0.72)
     .sort((a, b) => b.score - a.score || a.key.localeCompare(b.key));
