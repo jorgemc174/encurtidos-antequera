@@ -108,6 +108,8 @@ export default function CartaBase({ titulo, categorias }) {
   const [editNombreEN, setEditNombreEN] = useState("");
   const [editPrecio, setEditPrecio] = useState("");
   const translationRunRef = useRef(0);
+  const dragRef = useRef(null);
+  const [dragging, setDragging] = useState(null);
 
   useEffect(() => { localStorage.setItem("lang", lang); }, [lang]);
   useEffect(() => {
@@ -147,13 +149,19 @@ export default function CartaBase({ titulo, categorias }) {
   }, []);
 
   const menuDataConId = useMemo(() => {
-    return menuData.map((categoria, index) => ({
-      ...categoria,
-      id: `categoria-${index}`,
-      subcategorias: categoria.subcategorias
-        ? categoria.subcategorias.map((subcategoria, subIndex) => ({ ...subcategoria, id: `categoria-${index}-sub-${subIndex}` }))
-        : undefined,
-    }));
+    return menuData.map((categoria, index) => {
+      const categoryKey = normalizeKey(categoria.nombre.es) || index;
+      return {
+        ...categoria,
+        id: `categoria-${categoryKey}`,
+        subcategorias: categoria.subcategorias
+          ? categoria.subcategorias.map((subcategoria, subIndex) => ({
+              ...subcategoria,
+              id: `categoria-${categoryKey}-sub-${normalizeKey(subcategoria.nombre.es) || subIndex}`,
+            }))
+          : undefined,
+      };
+    });
   }, [menuData]);
 
   const availableProductImages = useMemo(() => ({
@@ -164,16 +172,20 @@ export default function CartaBase({ titulo, categorias }) {
 
   useEffect(() => {
     if (!menuDataConId.length) return;
-    const initialOpenState = {};
-    const initialSubOpenState = {};
-    menuDataConId.forEach((categoria, index) => {
-      initialOpenState[categoria.id] = index === 0;
-      if (categoria.subcategoriasPlegables && categoria.subcategorias) {
-        categoria.subcategorias.forEach((subcategoria) => { initialSubOpenState[subcategoria.id] = false; });
-      }
+    setOpenSections((prev) => {
+      const next = {};
+      menuDataConId.forEach((categoria, index) => { next[categoria.id] = prev[categoria.id] ?? index === 0; });
+      return next;
     });
-    setOpenSections(initialOpenState);
-    setOpenSubsections(initialSubOpenState);
+    setOpenSubsections((prev) => {
+      const next = {};
+      menuDataConId.forEach((categoria) => {
+        if (categoria.subcategoriasPlegables && categoria.subcategorias) {
+          categoria.subcategorias.forEach((subcategoria) => { next[subcategoria.id] = prev[subcategoria.id] ?? false; });
+        }
+      });
+      return next;
+    });
   }, [menuDataConId]);
 
   useEffect(() => {
@@ -210,6 +222,92 @@ export default function CartaBase({ titulo, categorias }) {
 
   const toggleSection = (id) => setOpenSections((prev) => ({ ...prev, [id]: !prev[id] }));
   const toggleSubsection = (id) => setOpenSubsections((prev) => ({ ...prev, [id]: !prev[id] }));
+
+  const reorderEntry = (descriptor, toIndex) => {
+    if (!descriptor || descriptor.index === toIndex || toIndex < 0 || toIndex >= descriptor.total) return;
+    setMenuData((prev) => {
+      const copy = JSON.parse(JSON.stringify(prev));
+      let entries;
+      if (descriptor.type === "category") entries = copy;
+      else if (descriptor.type === "subcategory") entries = copy[descriptor.catIdx]?.subcategorias;
+      else if (descriptor.type === "group") entries = copy[descriptor.catIdx]?.subcategorias?.[descriptor.subIdx]?.grupos;
+      else if (descriptor.type === "item") entries = getItemsArray(copy, descriptor.catIdx, descriptor.subIdx, descriptor.grpIdx);
+      if (!entries?.[descriptor.index] || !entries[toIndex]) return prev;
+      const [moved] = entries.splice(descriptor.index, 1);
+      entries.splice(toIndex, 0, moved);
+      return copy;
+    });
+  };
+
+  const startDrag = (event, descriptor) => {
+    if (event.pointerType === "mouse" && event.button !== 0) return;
+    event.preventDefault();
+    event.stopPropagation();
+    setEditingKey(null);
+    const next = { ...descriptor };
+    dragRef.current = next;
+    setDragging(next);
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+  };
+
+  const moveDrag = (event) => {
+    const current = dragRef.current;
+    if (!current) return;
+    event.preventDefault();
+    const edge = 72;
+    if (event.clientY < edge) window.scrollBy(0, -14);
+    else if (event.clientY > window.innerHeight - edge) window.scrollBy(0, 14);
+
+    let target = document.elementFromPoint(event.clientX, event.clientY);
+    while (target && target.dataset?.reorderContainer !== current.container) target = target.parentElement;
+    if (!target || target.dataset.reorderContainer !== current.container) return;
+    const toIndex = Number(target.dataset.reorderIndex);
+    if (!Number.isInteger(toIndex) || toIndex === current.index) return;
+    reorderEntry(current, toIndex);
+    const next = { ...current, index: toIndex };
+    dragRef.current = next;
+    setDragging(next);
+  };
+
+  const finishDrag = (event) => {
+    if (!dragRef.current) return;
+    event?.preventDefault();
+    dragRef.current = null;
+    setDragging(null);
+  };
+
+  const dragHandle = (descriptor, label) => {
+    const active = dragging?.type === descriptor.type
+      && dragging?.container === descriptor.container
+      && dragging?.index === descriptor.index;
+    return (
+      <button
+        type="button"
+        className={`shrink-0 touch-none select-none rounded-lg p-2 cursor-grab active:cursor-grabbing transition ${active ? "bg-[#B78B5A] text-white scale-105" : "text-[#B78B5A] hover:bg-[#B78B5A]/10"}`}
+        aria-label={label}
+        title={label}
+        onClick={(event) => { event.preventDefault(); event.stopPropagation(); }}
+        onPointerDown={(event) => startDrag(event, descriptor)}
+        onPointerMove={moveDrag}
+        onPointerUp={finishDrag}
+        onPointerCancel={finishDrag}
+        onLostPointerCapture={finishDrag}
+        onKeyDown={(event) => {
+          const offset = event.key === "ArrowUp" ? -1 : event.key === "ArrowDown" ? 1 : 0;
+          if (!offset) return;
+          event.preventDefault();
+          event.stopPropagation();
+          reorderEntry(descriptor, descriptor.index + offset);
+        }}
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+          <circle cx="6" cy="4" r="1.4" /><circle cx="14" cy="4" r="1.4" />
+          <circle cx="6" cy="10" r="1.4" /><circle cx="14" cy="10" r="1.4" />
+          <circle cx="6" cy="16" r="1.4" /><circle cx="14" cy="16" r="1.4" />
+        </svg>
+      </button>
+    );
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -349,17 +447,17 @@ export default function CartaBase({ titulo, categorias }) {
     setAdminEditMode(false);
   };
 
-  const sectionPhotoKey = (catIdx, subIdx = null) => (
-    subIdx == null
-      ? `seccion-${normalizeKey(titulo.es)}-${catIdx}`
-      : `subseccion-${normalizeKey(titulo.es)}-${catIdx}-${subIdx}`
+  const sectionPhotoKey = (section, parentSection = null) => (
+    parentSection
+      ? `subseccion-${normalizeKey(parentSection.nombre.es)}-${normalizeKey(section.nombre.es)}`
+      : `seccion-${normalizeKey(section.nombre.es)}`
   );
 
-  const renderSectionImage = (section, catIdx, subIdx = null) => {
-    const key = sectionPhotoKey(catIdx, subIdx);
+  const renderSectionImage = (section, parentSection = null) => {
+    const key = sectionPhotoKey(section, parentSection);
     const imagen = supabasePhotos[key] || imagenesSupabase[key] || section.imagenSeccion;
     const isUploading = uploading === key;
-    const isSubsection = subIdx != null;
+    const isSubsection = parentSection != null;
     const placeholder = lang === "es"
       ? `Imagen de ${isSubsection ? "subsección" : "sección"}`
       : `${isSubsection ? "Subsection" : "Section"} image`;
@@ -424,10 +522,28 @@ export default function CartaBase({ titulo, categorias }) {
         const isEditingName = editingKey === mkKey(catIdx, subIdx, grpIdx, i, "nombre");
         const isEditingPrice = editingKey === mkKey(catIdx, subIdx, grpIdx, i, "precio");
         const esDestacado = getDestacados().includes(destacadoKey(item));
+        const reorderContainer = `items-${catIdx}-${subIdx ?? "root"}-${grpIdx ?? "root"}`;
+        const isDraggingItem = dragging?.type === "item"
+          && dragging?.container === reorderContainer
+          && dragging?.index === i;
 
         return (
-          <div key={i} className={`flex items-center justify-between gap-3 border-b py-2.5 ${esDestacado ? "border-[#D4A843]/40" : "border-[#B78B5A]/10"}`}>
+          <div
+            key={normalized}
+            data-reorder-container={reorderContainer}
+            data-reorder-index={i}
+            className={`flex items-center justify-between gap-3 border-b py-2.5 transition ${isDraggingItem ? "opacity-55 bg-[#B78B5A]/10" : ""} ${esDestacado ? "border-[#D4A843]/40" : "border-[#B78B5A]/10"}`}
+          >
             <div className="flex items-center gap-3 min-w-0 flex-1">
+              {isAdmin && adminEditMode && dragHandle({
+                type: "item",
+                container: reorderContainer,
+                index: i,
+                total: items.length,
+                catIdx,
+                subIdx,
+                grpIdx,
+              }, lang === "es" ? "Arrastrar producto" : "Drag product")}
               {isAdmin && (
                 <button onClick={() => toggleDestacado(item)}
                   className={`shrink-0 p-1 rounded transition ${esDestacado ? "text-[#D4A843]" : "text-gray-300 hover:text-[#D4A843]"}`}
@@ -601,6 +717,13 @@ export default function CartaBase({ titulo, categorias }) {
       )}
 
       <div className="max-w-5xl mx-auto px-6 py-6">
+        {isAdmin && adminEditMode && (
+          <p className="mb-5 rounded-2xl border border-[#B78B5A]/25 bg-white px-4 py-3 text-sm font-medium text-[#4E3B2A]/75">
+            {lang === "es"
+              ? "Mantén pulsado el tirador de puntos y arrastra para cambiar el orden. También puedes enfocarlo y usar las flechas ↑ y ↓."
+              : "Hold the dotted handle and drag to reorder. You can also focus it and use the ↑ and ↓ arrow keys."}
+          </p>
+        )}
         <section className="mb-6">
           <p className="text-sm md:text-base text-[#4E3B2A]/80 mb-3 leading-6 text-center">
             {lang === "es" ? "Todos nuestros platos, pinchos y banderillas pueden contener trazas de:" : "All our dishes, pinchos and skewers may contain traces of:"}
@@ -611,15 +734,31 @@ export default function CartaBase({ titulo, categorias }) {
         <div className="grid gap-8">
           {menuDataConId.map((categoria, catIdx) => {
             const isOpen = openSections[categoria.id];
+            const reorderContainer = "categories";
+            const isDraggingCategory = dragging?.type === "category" && dragging?.index === catIdx;
             return (
-              <section key={categoria.id} id={!categoria.subcategorias ? categoria.id : undefined} className="scroll-mt-24 bg-white rounded-3xl border border-[#B78B5A]/20 shadow-sm overflow-hidden">
-                <button type="button" onClick={() => toggleSection(categoria.id)} className="w-full flex items-center justify-between gap-4 p-6 text-left">
-                  <h2 className="text-2xl font-bold text-[#7E9F00]">{categoria.nombre[lang]}</h2>
-                  <span className="text-2xl font-semibold text-[#B78B5A] leading-none">{isOpen ? "−" : "+"}</span>
-                </button>
+              <section
+                key={categoria.id}
+                id={!categoria.subcategorias ? categoria.id : undefined}
+                data-reorder-container={reorderContainer}
+                data-reorder-index={catIdx}
+                className={`scroll-mt-24 bg-white rounded-3xl border border-[#B78B5A]/20 shadow-sm overflow-hidden transition ${isDraggingCategory ? "opacity-55 ring-2 ring-[#B78B5A]/40" : ""}`}
+              >
+                <div className="flex items-center px-4 md:px-6">
+                  {isAdmin && adminEditMode && dragHandle({
+                    type: "category",
+                    container: reorderContainer,
+                    index: catIdx,
+                    total: menuDataConId.length,
+                  }, lang === "es" ? "Arrastrar sección" : "Drag section")}
+                  <button type="button" onClick={() => toggleSection(categoria.id)} className="flex-1 flex items-center justify-between gap-4 py-6 pl-2 text-left">
+                    <h2 className="text-2xl font-bold text-[#7E9F00]">{categoria.nombre[lang]}</h2>
+                    <span className="text-2xl font-semibold text-[#B78B5A] leading-none">{isOpen ? "−" : "+"}</span>
+                  </button>
+                </div>
                 {!isOpen && (
                   <div className="px-6 pb-6">
-                    {renderSectionImage(categoria, catIdx)}
+                    {renderSectionImage(categoria)}
                   </div>
                 )}
                 {isOpen && (
@@ -629,27 +768,67 @@ export default function CartaBase({ titulo, categorias }) {
                         <div className="space-y-6">
                           {categoria.subcategorias.map((subcategoria, subIndex) => {
                             const isSubOpen = openSubsections[subcategoria.id];
+                            const subcategoryContainer = `subcategories-${categoria.id}`;
+                            const isDraggingSubcategory = dragging?.type === "subcategory"
+                              && dragging?.container === subcategoryContainer
+                              && dragging?.index === subIndex;
                             return (
-                              <div key={subIndex} id={subcategoria.id} className="scroll-mt-24 rounded-2xl border border-[#B78B5A]/15 bg-[#FCFAF6] overflow-hidden">
-                                <button type="button" onClick={() => toggleSubsection(subcategoria.id)} className="w-full flex items-center justify-between gap-4 p-5 text-left">
-                                  <h3 className="text-xl md:text-2xl font-bold text-[#7E9F00]">{subcategoria.nombre[lang]}</h3>
-                                  <span className="text-2xl font-semibold text-[#B78B5A] leading-none">{isSubOpen ? "−" : "+"}</span>
-                                </button>
+                              <div
+                                key={subcategoria.id}
+                                id={subcategoria.id}
+                                data-reorder-container={subcategoryContainer}
+                                data-reorder-index={subIndex}
+                                className={`scroll-mt-24 rounded-2xl border border-[#B78B5A]/15 bg-[#FCFAF6] overflow-hidden transition ${isDraggingSubcategory ? "opacity-55 ring-2 ring-[#B78B5A]/30" : ""}`}
+                              >
+                                <div className="flex items-center px-3 md:px-5">
+                                  {isAdmin && adminEditMode && dragHandle({
+                                    type: "subcategory",
+                                    container: subcategoryContainer,
+                                    index: subIndex,
+                                    total: categoria.subcategorias.length,
+                                    catIdx,
+                                  }, lang === "es" ? "Arrastrar subsección" : "Drag subsection")}
+                                  <button type="button" onClick={() => toggleSubsection(subcategoria.id)} className="flex-1 flex items-center justify-between gap-4 py-5 pl-2 text-left">
+                                    <h3 className="text-xl md:text-2xl font-bold text-[#7E9F00]">{subcategoria.nombre[lang]}</h3>
+                                    <span className="text-2xl font-semibold text-[#B78B5A] leading-none">{isSubOpen ? "−" : "+"}</span>
+                                  </button>
+                                </div>
                                 {!isSubOpen && (
                                   <div className="px-5 pb-5">
-                                    {renderSectionImage(subcategoria, catIdx, subIndex)}
+                                    {renderSectionImage(subcategoria, categoria)}
                                   </div>
                                 )}
                                 {isSubOpen && (
                                   <div className="px-5 pb-5">
                                     {subcategoria.grupos ? (
                                       <div className="space-y-8">
-                                        {subcategoria.grupos.map((grupo, grupoIndex) => (
-                                          <div key={grupoIndex}>
-                                            <h4 className="text-lg md:text-xl font-bold text-[#7E9F00] mb-4">{grupo.nombre[lang]}</h4>
-                                            {renderItems(grupo.items, catIdx, subIndex, grupoIndex, categoria.noImages)}
-                                          </div>
-                                        ))}
+                                        {subcategoria.grupos.map((grupo, grupoIndex) => {
+                                          const groupContainer = `groups-${catIdx}-${subIndex}`;
+                                          const isDraggingGroup = dragging?.type === "group"
+                                            && dragging?.container === groupContainer
+                                            && dragging?.index === grupoIndex;
+                                          return (
+                                            <div
+                                              key={normalizeKey(grupo.nombre.es)}
+                                              data-reorder-container={groupContainer}
+                                              data-reorder-index={grupoIndex}
+                                              className={`rounded-xl transition ${isDraggingGroup ? "opacity-55 bg-[#B78B5A]/10" : ""}`}
+                                            >
+                                              <div className="flex items-center gap-2 mb-4">
+                                                {isAdmin && adminEditMode && dragHandle({
+                                                  type: "group",
+                                                  container: groupContainer,
+                                                  index: grupoIndex,
+                                                  total: subcategoria.grupos.length,
+                                                  catIdx,
+                                                  subIdx: subIndex,
+                                                }, lang === "es" ? "Arrastrar grupo" : "Drag group")}
+                                                <h4 className="text-lg md:text-xl font-bold text-[#7E9F00]">{grupo.nombre[lang]}</h4>
+                                              </div>
+                                              {renderItems(grupo.items, catIdx, subIndex, grupoIndex, categoria.noImages)}
+                                            </div>
+                                          );
+                                        })}
                                       </div>
                                     ) : renderItems(subcategoria.items, catIdx, subIndex, null, categoria.noImages)}
                                   </div>
@@ -660,12 +839,33 @@ export default function CartaBase({ titulo, categorias }) {
                         </div>
                       ) : (
                         <div className="space-y-8">
-                          {categoria.subcategorias.map((subcategoria, subIndex) => (
-                            <div key={subIndex} id={subcategoria.id} className="scroll-mt-24">
-                              <h3 className="text-xl md:text-2xl font-bold text-[#7E9F00] mb-4">{subcategoria.nombre[lang]}</h3>
-                              {renderItems(subcategoria.items, catIdx, subIndex, null, categoria.noImages)}
-                            </div>
-                          ))}
+                          {categoria.subcategorias.map((subcategoria, subIndex) => {
+                            const subcategoryContainer = `subcategories-${categoria.id}`;
+                            const isDraggingSubcategory = dragging?.type === "subcategory"
+                              && dragging?.container === subcategoryContainer
+                              && dragging?.index === subIndex;
+                            return (
+                              <div
+                                key={subcategoria.id}
+                                id={subcategoria.id}
+                                data-reorder-container={subcategoryContainer}
+                                data-reorder-index={subIndex}
+                                className={`scroll-mt-24 rounded-xl transition ${isDraggingSubcategory ? "opacity-55 bg-[#B78B5A]/10" : ""}`}
+                              >
+                                <div className="flex items-center gap-2 mb-4">
+                                  {isAdmin && adminEditMode && dragHandle({
+                                    type: "subcategory",
+                                    container: subcategoryContainer,
+                                    index: subIndex,
+                                    total: categoria.subcategorias.length,
+                                    catIdx,
+                                  }, lang === "es" ? "Arrastrar subsección" : "Drag subsection")}
+                                  <h3 className="text-xl md:text-2xl font-bold text-[#7E9F00]">{subcategoria.nombre[lang]}</h3>
+                                </div>
+                                {renderItems(subcategoria.items, catIdx, subIndex, null, categoria.noImages)}
+                              </div>
+                            );
+                          })}
                         </div>
                       )
                     ) : renderItems(categoria.items, catIdx, null, null, categoria.noImages)}
