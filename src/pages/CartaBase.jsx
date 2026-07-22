@@ -5,6 +5,7 @@ import inglaterraImg from "../assets/inglaterra.jpg";
 import alergenosImg from "../assets/alergenos.jpg";
 import { imagenesProductos } from "../data/imagenesProductos";
 import { IMAGENES_SUPABASE_SNAPSHOT_AT, imagenesSupabase } from "../data/imagenesSupabase";
+import { resolveSharedProductImage } from "../lib/productImage";
 import { translateProductName, translateProductNameOnline } from "../lib/productTranslation";
 import { supabase, normalizeKey } from "../lib/supabase";
 
@@ -154,6 +155,12 @@ export default function CartaBase({ titulo, categorias }) {
         : undefined,
     }));
   }, [menuData]);
+
+  const availableProductImages = useMemo(() => ({
+    ...imagenesProductos,
+    ...imagenesSupabase,
+    ...supabasePhotos,
+  }), [supabasePhotos]);
 
   useEffect(() => {
     if (!menuDataConId.length) return;
@@ -408,8 +415,11 @@ export default function CartaBase({ titulo, categorias }) {
       {items.map((item, i) => {
         const itemKey = item.nombre.es;
         const normalized = normalizeKey(itemKey);
-        const staticImage = item.imagen || (item.imagenKey ? imagenesProductos[item.imagenKey] : null);
-        const imagen = supabasePhotos[normalized] || imagenesSupabase[normalized] || staticImage;
+        const staticImage = item.imagen || (item.imagenKey ? availableProductImages[item.imagenKey] : null);
+        const imagen = supabasePhotos[normalized]
+          || imagenesSupabase[normalized]
+          || staticImage
+          || resolveSharedProductImage(itemKey, availableProductImages);
         const isUploading = uploading === normalized;
         const isEditingName = editingKey === mkKey(catIdx, subIdx, grpIdx, i, "nombre");
         const isEditingPrice = editingKey === mkKey(catIdx, subIdx, grpIdx, i, "precio");

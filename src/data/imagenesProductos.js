@@ -17,6 +17,7 @@ import ensaladaCangrejoPicar from "../assets/productos/ensalada-cangrejo-picar.j
 import hamburguesa from "../assets/productos/hamburguesa.jpeg";
 import papasBravas from "../assets/productos/papas-bravas.jpeg";
 import alitas from "../assets/productos/alitas.jpeg";
+import ensalada from "../assets/productos/ensalada.jpeg";
 
 export const imagenesProductos = {
   albondigas,
@@ -38,4 +39,5 @@ export const imagenesProductos = {
   "hamburguesa": hamburguesa,
   "papas-bravas": papasBravas,
   "alitas": alitas,
+  ensalada,
 };

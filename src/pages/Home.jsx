@@ -9,6 +9,7 @@ import espanaImg from "../assets/españa.jpg";
 import inglaterraImg from "../assets/inglaterra.jpg";
 import { imagenesProductos } from "../data/imagenesProductos";
 import { IMAGENES_SUPABASE_SNAPSHOT_AT, imagenesSupabase } from "../data/imagenesSupabase";
+import { resolveSharedProductImage } from "../lib/productImage";
 import { translateProductName, translateProductNameOnline } from "../lib/productTranslation";
 import { normalizeKey, supabase } from "../lib/supabase";
 
@@ -299,7 +300,8 @@ export default function Home() {
 
       const changedKeys = metadata
         .filter(({ item_key, updated_at }) => (
-          item_key.startsWith("home-")
+          !item_key.startsWith("seccion-")
+          && !item_key.startsWith("subseccion-")
           && (!imagenesSupabase[item_key] || !updated_at || Date.parse(updated_at) > IMAGENES_SUPABASE_SNAPSHOT_AT)
         ))
         .map(({ item_key }) => item_key);
@@ -320,6 +322,12 @@ export default function Home() {
     })();
     return () => { cancelled = true; };
   }, []);
+
+  const availableProductImages = useMemo(() => ({
+    ...imagenesProductos,
+    ...imagenesSupabase,
+    ...homePhotos,
+  }), [homePhotos]);
 
   const t = textos[lang];
 
@@ -559,7 +567,9 @@ export default function Home() {
                   <div className="px-5 pb-5">
                     <div className="grid sm:grid-cols-2 gap-4">
                       {producto.items.map((item, itemIdx) => {
-                        const fallbackImg = item.imagen || (item.imagenKey ? imagenesProductos[item.imagenKey] : null);
+                        const fallbackImg = item.imagen
+                          || (item.imagenKey ? availableProductImages[item.imagenKey] : null)
+                          || resolveSharedProductImage(item.nombre.es, availableProductImages);
                         const itemImg = getImage(`producto-${idx}-${itemIdx}`, itemIdx === 0 ? getImage(`producto-${idx}`, fallbackImg) : fallbackImg);
                         const isUploading = uploadingImage === imageKey(`producto-${idx}-${itemIdx}`);
                         return (
