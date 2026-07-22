@@ -458,7 +458,7 @@ export default function CartaGaldar() {
                     es: "Copa manzanilla fino",
                     en: "Glass of fino manzanilla",
                   },
-                  precio: "2,90 €",
+                  precio: "3,00 €",
                 },
                 {
                   nombre: {
@@ -483,7 +483,7 @@ export default function CartaGaldar() {
                 },
                 {
                   nombre: { es: "Botella Albariño", en: "Bottle of Albariño" },
-                  precio: "13,80 €",
+                  precio: "13,90 €",
                 },
               ],
             },
@@ -495,7 +495,7 @@ export default function CartaGaldar() {
                     es: "Copa rosado de mi pueblo",
                     en: "Glass of house rosé",
                   },
-                  precio: "2,90 €",
+                  precio: "3,20 €",
                 },
                 {
                   nombre: {
@@ -529,7 +529,7 @@ export default function CartaGaldar() {
                 },
                 {
                   nombre: { es: "Copa tinto de verano", en: "Summer red wine" },
-                  precio: "4,40 €",
+                  precio: "2,00 €",
                 },
                 {
                   nombre: {
@@ -563,17 +563,17 @@ export default function CartaGaldar() {
               nombre: { es: "Jarra sangría", en: "Pitcher of sangria" },
               precio: "9,90 €",
             },
-            { nombre: { es: "Cava", en: "Cava" }, precio: "3,50 €" },
+            { nombre: { es: "Cava", en: "Cava" }, precio: "18,00 €" },
             {
               nombre: {
                 es: "Copa vermouth Izaguirre reserva",
                 en: "Glass of Izaguirre reserve vermouth",
               },
-              precio: "3,40 €",
+              precio: "3,90 €",
             },
             {
               nombre: { es: "Smirnoff Ice", en: "Smirnoff Ice" },
-              precio: "2,50 €",
+              precio: "2,80 €",
             },
             { nombre: { es: "Smirnoff", en: "Smirnoff" }, precio: "4,00 €" },
             {
@@ -595,7 +595,7 @@ export default function CartaGaldar() {
             },
             {
               nombre: { es: "Barceló añejo", en: "Barceló añejo" },
-              precio: "2,80 €",
+              precio: "4,00 €",
             },
             {
               nombre: { es: "Carta Oro", en: "Carta Oro" },
@@ -611,15 +611,15 @@ export default function CartaGaldar() {
             },
             {
               nombre: { es: "Cacique 500", en: "Cacique 500" },
-              precio: "5,95 €",
+              precio: "6,00 €",
             },
             {
               nombre: { es: "Cacique añejo", en: "Cacique añejo" },
-              precio: "4,95 €",
+              precio: "5,00 €",
             },
             {
               nombre: { es: "Santa Teresa", en: "Santa Teresa" },
-              precio: "4,05 €",
+              precio: "4,10 €",
             },
             {
               nombre: {
@@ -633,11 +633,11 @@ export default function CartaGaldar() {
                 es: "Havana Club 7 años",
                 en: "Havana Club 7 years",
               },
-              precio: "4,05 €",
+              precio: "4,10 €",
             },
             {
               nombre: { es: "La Aldea", en: "La Aldea" },
-              precio: "2,85 €",
+              precio: "2,90 €",
             },
             {
               nombre: { es: "Zacapa", en: "Zacapa" },
@@ -661,7 +661,7 @@ export default function CartaGaldar() {
           items: [
             {
               nombre: { es: "Master Mille", en: "Master Mille" },
-              precio: "5,00 €",
+              precio: "5,50 €",
             },
             {
               nombre: { es: "Roco Gin", en: "Roco Gin" },
@@ -689,7 +689,7 @@ export default function CartaGaldar() {
             },
             {
               nombre: { es: "Sheridan's", en: "Sheridan's" },
-              precio: "4,95 €",
+              precio: "5,00 €",
             },
             {
               nombre: { es: "Macaronesia", en: "Macaronesia" },
@@ -712,7 +712,7 @@ export default function CartaGaldar() {
             },
             {
               nombre: { es: "Tanqueray Ten", en: "Tanqueray Ten" },
-              precio: "5,00 €",
+              precio: "6,30 €",
             },
             {
               nombre: { es: "Tanqueray Sevilla", en: "Tanqueray Sevilla" },
@@ -738,11 +738,11 @@ export default function CartaGaldar() {
             { nombre: { es: "J&B", en: "J&B" }, precio: "2,80 €" },
             {
               nombre: { es: "Ballantines", en: "Ballantines" },
-              precio: "3,30 €",
+              precio: "3,80 €",
             },
             {
               nombre: { es: "Jack Daniels", en: "Jack Daniels" },
-              precio: "5,45 €",
+              precio: "6,50 €",
             },
             {
               nombre: { es: "John Haig", en: "John Haig" },
@@ -757,7 +757,7 @@ export default function CartaGaldar() {
                 es: "Johnnie Walker etiqueta roja",
                 en: "Johnnie Walker Red Label",
               },
-              precio: "2,80 €",
+              precio: "3,80 €",
             },
             {
               nombre: {
@@ -775,7 +775,7 @@ export default function CartaGaldar() {
                 es: "Chupito whisky normal",
                 en: "Regular whisky shot",
               },
-              precio: "1,90 €",
+              precio: "2,00 €",
             },
             {
               nombre: {
@@ -789,7 +789,7 @@ export default function CartaGaldar() {
                 es: "Chupito Johnnie Walker etiqueta negra",
                 en: "Johnnie Walker Black Label shot",
               },
-              precio: "2,90 €",
+              precio: "3,50 €",
             },
           ],
         },
@@ -798,31 +798,31 @@ export default function CartaGaldar() {
           items: [
             {
               nombre: { es: "Frangelico", en: "Frangelico" },
-              precio: "4,45 €",
+              precio: "4,50 €",
             },
             {
               nombre: { es: "Baileys", en: "Baileys" },
-              precio: "4,45 €",
+              precio: "4,50 €",
             },
             {
               nombre: { es: "Amaretto", en: "Amaretto" },
-              precio: "4,45 €",
+              precio: "4,50 €",
             },
             {
               nombre: { es: "Mojito", en: "Mojito" },
-              precio: "5,95 €",
+              precio: "7,00 €",
             },
             {
               nombre: { es: "Mojito de frutas", en: "Fruit mojito" },
-              precio: "6,95 €",
+              precio: "7,50 €",
             },
             {
               nombre: { es: "Licor", en: "Liqueur" },
-              precio: "4,40 €",
+              precio: "4,55 €",
             },
             {
               nombre: { es: "D.J. Reposado", en: "D.J. Reposado" },
-              precio: "5,20 €",
+              precio: "9,00 €",
             },
             {
               nombre: { es: "Chupito licor", en: "Liqueur shot" },
