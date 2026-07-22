@@ -8,6 +8,7 @@ import heroImg from "../assets/hero.jpg";
 import espanaImg from "../assets/españa.jpg";
 import inglaterraImg from "../assets/inglaterra.jpg";
 import { imagenesProductos } from "../data/imagenesProductos";
+import { IMAGENES_SUPABASE_SNAPSHOT_AT, imagenesSupabase } from "../data/imagenesSupabase";
 import { translateProductName, translateProductNameOnline } from "../lib/productTranslation";
 import { normalizeKey, supabase } from "../lib/supabase";
 
@@ -289,14 +290,35 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    supabase.from("fotos_carta").select("item_key, photo_data").then(({ data, error }) => {
-      if (error || !data) return;
+    let cancelled = false;
+    (async () => {
+      const { data: metadata, error: metadataError } = await supabase
+        .from("fotos_carta")
+        .select("item_key, updated_at");
+      if (cancelled || metadataError || !metadata) return;
+
+      const changedKeys = metadata
+        .filter(({ item_key, updated_at }) => (
+          item_key.startsWith("home-")
+          && (!imagenesSupabase[item_key] || !updated_at || Date.parse(updated_at) > IMAGENES_SUPABASE_SNAPSHOT_AT)
+        ))
+        .map(({ item_key }) => item_key);
+
+      if (!changedKeys.length) {
+        setHomePhotos({});
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from("fotos_carta")
+        .select("item_key, photo_data")
+        .in("item_key", changedKeys);
+      if (cancelled || error || !data) return;
       const photos = {};
-      data.forEach(({ item_key, photo_data }) => {
-        if (item_key.startsWith("home-")) photos[item_key] = photo_data;
-      });
+      data.forEach(({ item_key, photo_data }) => { photos[item_key] = photo_data; });
       setHomePhotos(photos);
-    });
+    })();
+    return () => { cancelled = true; };
   }, []);
 
   const t = textos[lang];
@@ -332,7 +354,10 @@ export default function Home() {
   };
   const savePuesto = (idx, field) => { setPuestos(p => { const c = JSON.parse(JSON.stringify(p)); c[idx][field] = { es: editES, en: editEN }; return c; }); setEditKey(null); };
   const imageKey = (key) => `home-${normalizeKey(key)}`;
-  const getImage = (key, fallback) => homePhotos[imageKey(key)] || fallback;
+  const getImage = (key, fallback) => {
+    const normalized = imageKey(key);
+    return homePhotos[normalized] || imagenesSupabase[normalized] || fallback;
+  };
   const openImageUpload = (key) => isAdmin && editMode && setUploadMenu(key);
   const handleMenuOption = (type) => {
     pendingImageKeyRef.current = uploadMenu;
@@ -492,7 +517,7 @@ export default function Home() {
             </div>
           </div>
           <div className="relative">
-            <img src={getImage("hero", heroImg)} alt="Encurtidos Antequera" className="w-full h-[420px] rounded-3xl object-cover shadow-lg" />
+            <img src={getImage("hero", heroImg)} alt="Encurtidos Antequera" fetchPriority="high" decoding="async" className="w-full h-[420px] rounded-3xl object-cover shadow-lg" />
             {isAdmin && editMode && (
               <button type="button" onClick={() => openImageUpload("hero")} className="absolute inset-0 rounded-3xl bg-black/35 text-white font-semibold flex items-center justify-center opacity-0 hover:opacity-100 transition">
                 Cambiar foto
@@ -540,7 +565,7 @@ export default function Home() {
                         return (
                           <div key={itemIdx} className="relative h-64 md:h-72 rounded-2xl overflow-hidden bg-[#F7F3EA] border border-[#B78B5A]/15 flex items-center justify-center">
                             {itemImg ? (
-                              <img src={itemImg} alt={item.nombre[lang]} className="w-full h-full object-cover" />
+                              <img src={itemImg} alt={item.nombre[lang]} loading="lazy" decoding="async" className="w-full h-full object-cover" />
                             ) : (
                               <span className="text-sm text-[#4E3B2A]/45">Foto del producto</span>
                             )}
@@ -605,7 +630,7 @@ export default function Home() {
               return (
                 <div key={idx} className="rounded-3xl overflow-hidden bg-[#F7F3EA] border border-[#B78B5A]/20 shadow-sm">
                   <div className="relative h-56">
-                    <img src={getImage(`puesto-${idx}`, puesto.imagen)} alt={puesto.nombre[lang]} className="w-full h-full object-cover" />
+                    <img src={getImage(`puesto-${idx}`, puesto.imagen)} alt={puesto.nombre[lang]} loading="lazy" decoding="async" className="w-full h-full object-cover" />
                     {isAdmin && editMode && (
                       <button type="button" onClick={() => openImageUpload(`puesto-${idx}`)} className="absolute inset-0 bg-black/35 text-white font-semibold flex items-center justify-center opacity-0 hover:opacity-100 transition">
                         Cambiar foto

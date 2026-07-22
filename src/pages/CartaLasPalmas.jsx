@@ -10,7 +10,7 @@ export default function CartaLasPalmas() {
             es: "Queso cabra con cebolla caramelizada",
             en: "Goat cheese with caramelized onion",
           },
-          precio: "2,50 € - 3,50 €",
+          precio: "3,00 €",
           imagenKey: "queso-de-cabra-cebolla-caramelizada",
         },
         {
@@ -18,7 +18,7 @@ export default function CartaLasPalmas() {
             es: "Queso ahumado con arándano",
             en: "Smoked cheese with blueberry",
           },
-          precio: "2,50 € - 3,50 €",
+          precio: "3,00 €",
           imagenKey: "queso-ahumado-arandanos",
         },
         {
@@ -26,32 +26,32 @@ export default function CartaLasPalmas() {
             es: "Chorizo de Teror, queso y miel",
             en: "Teror chorizo, cheese and honey",
           },
-          precio: "2,50 € - 3,50 €",
+          precio: "3,00 €",
         },
         {
           nombre: { es: "Tortilla", en: "Spanish omelette" },
-          precio: "2,50 € - 3,50 €",
+          precio: "3,00 €",
           imagenKey: "tortilla",
         },
         {
           nombre: { es: "Pollo barbacoa", en: "Barbecue chicken" },
-          precio: "2,50 € - 3,50 €",
+          precio: "3,00 €",
           imagenKey: "pollo-mechado",
         },
         {
           nombre: { es: "Ternera mechada", en: "Shredded beef" },
-          precio: "2,50 € - 3,50 €",
+          precio: "3,00 €",
         },
         {
           nombre: {
             es: "Morcilla de Burgos con tomate deshidratado",
             en: "Burgos black pudding with sun-dried tomato",
           },
-          precio: "2,50 € - 3,50 €",
+          precio: "3,00 €",
         },
         {
           nombre: { es: "Albóndigas", en: "Meatballs" },
-          precio: "2,50 € - 3,50 €",
+          precio: "3,00 €",
           imagenKey: "albondigas",
         },
         {
@@ -59,7 +59,7 @@ export default function CartaLasPalmas() {
             es: "Cazón en adobo y mojo",
             en: "Marinated dogfish with mojo",
           },
-          precio: "2,50 € - 3,50 €",
+          precio: "3,00 €",
           imagenKey: "cazon",
         },
         {
@@ -67,51 +67,51 @@ export default function CartaLasPalmas() {
             es: "Solomillo de pollo de mostaza y miel",
             en: "Chicken tenderloin with mustard and honey",
           },
-          precio: "2,50 € - 3,50 €",
+          precio: "3,00 €",
         },
         {
           nombre: {
             es: "Chistorra, papas y huevo",
             en: "Chistorra sausage, potatoes and egg",
           },
-          precio: "2,50 € - 3,50 €",
+          precio: "3,00 €",
         },
         {
           nombre: { es: "Costilla prensada", en: "Pressed ribs" },
-          precio: "2,50 € - 3,50 €",
+          precio: "3,00 €",
         },
         {
           nombre: { es: "Rabas", en: "Fried squid strips" },
-          precio: "2,50 € - 3,50 €",
+          precio: "3,00 €",
         },
         {
           nombre: {
             es: "Serrano con queso azul y tumaca",
             en: "Serrano ham with blue cheese and tomato bread",
           },
-          precio: "2,50 € - 3,50 €",
+          precio: "3,00 €",
         },
         {
           nombre: {
             es: "Jamón york con puerro y queso",
             en: "Ham with leek and cheese",
           },
-          precio: "2,50 € - 3,50 €",
+          precio: "3,00 €",
         },
         {
           nombre: {
             es: "Berros con queso y miel",
             en: "Watercress with cheese and honey",
           },
-          precio: "2,50 € - 3,50 €",
+          precio: "3,00 €",
         },
         {
           nombre: { es: "Pollo guacamole", en: "Chicken with guacamole" },
-          precio: "2,50 € - 3,50 €",
+          precio: "3,00 €",
         },
         {
           nombre: { es: "Filete de merluza", en: "Hake fillet" },
-          precio: "2,50 € - 3,50 €",
+          precio: "3,00 €",
           imagenKey: "merluza",
         },
         {
@@ -119,21 +119,21 @@ export default function CartaLasPalmas() {
             es: "Atún, pimiento y anchoa",
             en: "Tuna, pepper and anchovy",
           },
-          precio: "2,50 € - 3,50 €",
+          precio: "3,00 €",
           imagenKey: "atun-anchoas",
         },
         {
           nombre: { es: "Chatka y gambas", en: "Crab stick and prawns" },
-          precio: "2,50 € - 3,50 €",
+          precio: "3,00 €",
         },
         {
           nombre: { es: "Pollo Kentucky", en: "Kentucky chicken" },
-          precio: "2,50 € - 3,50 €",
+          precio: "3,00 €",
           imagenKey: "pollo-kentucky",
         },
         {
           nombre: { es: "Siempre alguno más", en: "And always more specials" },
-          precio: "2,50 € - 3,50 €",
+          precio: "3,00 €",
         },
         {
           nombre: { es: "Perritos", en: "Hot dogs" },
@@ -141,7 +141,7 @@ export default function CartaLasPalmas() {
         },
         {
           nombre: { es: "Hamburguesas", en: "Burgers" },
-          precio: "3,50 €",
+          precio: "3,00 €",
           imagenKey: "hamburguesa",
         },
         {

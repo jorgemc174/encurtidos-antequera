@@ -4,6 +4,7 @@ import espanaImg from "../assets/españa.jpg";
 import inglaterraImg from "../assets/inglaterra.jpg";
 import alergenosImg from "../assets/alergenos.jpg";
 import { imagenesProductos } from "../data/imagenesProductos";
+import { IMAGENES_SUPABASE_SNAPSHOT_AT, imagenesSupabase } from "../data/imagenesSupabase";
 import { translateProductName, translateProductNameOnline } from "../lib/productTranslation";
 import { supabase, normalizeKey } from "../lib/supabase";
 
@@ -204,12 +205,35 @@ export default function CartaBase({ titulo, categorias }) {
   const toggleSubsection = (id) => setOpenSubsections((prev) => ({ ...prev, [id]: !prev[id] }));
 
   useEffect(() => {
-    supabase.from("fotos_carta").select("item_key, photo_data").then(({ data, error }) => {
-      if (error || !data) return;
+    let cancelled = false;
+    (async () => {
+      const { data: metadata, error: metadataError } = await supabase
+        .from("fotos_carta")
+        .select("item_key, updated_at");
+      if (cancelled || metadataError || !metadata) return;
+
+      const changedKeys = metadata
+        .filter(({ item_key, updated_at }) => (
+          !item_key.startsWith("home-")
+          && (!imagenesSupabase[item_key] || !updated_at || Date.parse(updated_at) > IMAGENES_SUPABASE_SNAPSHOT_AT)
+        ))
+        .map(({ item_key }) => item_key);
+
+      if (!changedKeys.length) {
+        setSupabasePhotos({});
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from("fotos_carta")
+        .select("item_key, photo_data")
+        .in("item_key", changedKeys);
+      if (cancelled || error || !data) return;
       const photos = {};
       data.forEach(({ item_key, photo_data }) => { photos[item_key] = photo_data; });
       setSupabasePhotos(photos);
-    });
+    })();
+    return () => { cancelled = true; };
   }, []);
 
   const openUploadMenu = (itemKey) => setUploadMenu(itemKey);
@@ -318,13 +342,74 @@ export default function CartaBase({ titulo, categorias }) {
     setAdminEditMode(false);
   };
 
+  const sectionPhotoKey = (catIdx, subIdx = null) => (
+    subIdx == null
+      ? `seccion-${normalizeKey(titulo.es)}-${catIdx}`
+      : `subseccion-${normalizeKey(titulo.es)}-${catIdx}-${subIdx}`
+  );
+
+  const renderSectionImage = (section, catIdx, subIdx = null) => {
+    const key = sectionPhotoKey(catIdx, subIdx);
+    const imagen = supabasePhotos[key] || imagenesSupabase[key] || section.imagenSeccion;
+    const isUploading = uploading === key;
+    const isSubsection = subIdx != null;
+    const placeholder = lang === "es"
+      ? `Imagen de ${isSubsection ? "subsección" : "sección"}`
+      : `${isSubsection ? "Subsection" : "Section"} image`;
+
+    return (
+      <div className={`relative w-full ${isSubsection ? "h-40" : "h-48"} rounded-2xl border border-[#B78B5A]/20 bg-[#F7F3EA] overflow-hidden flex items-center justify-center text-sm text-[#4E3B2A]/45`}>
+        {imagen ? (
+          <button
+            type="button"
+            onClick={() => editMode ? openUploadMenu(key) : setSelectedImage({ src: imagen, alt: section.nombre[lang] })}
+            className="relative w-full h-full block"
+            aria-label={editMode ? (lang === "es" ? "Cambiar imagen de sección" : "Change section image") : section.nombre[lang]}
+          >
+            <img src={imagen} alt={section.nombre[lang]} loading="lazy" decoding="async" className="w-full h-full object-cover" />
+            {(editMode || isUploading) && (
+              <span className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black/45 text-white font-medium">
+                {isUploading ? (
+                  <svg className="w-7 h-7 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+                  </svg>
+                ) : (
+                  <>
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    <span>{lang === "es" ? "Cambiar imagen" : "Change image"}</span>
+                  </>
+                )}
+              </span>
+            )}
+          </button>
+        ) : editMode ? (
+          <button
+            type="button"
+            onClick={() => openUploadMenu(key)}
+            className="w-full h-full flex flex-col items-center justify-center gap-2 text-[#B78B5A] hover:bg-[#B78B5A]/10 transition"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            <span>{lang === "es" ? "Añadir imagen" : "Add image"}</span>
+          </button>
+        ) : placeholder}
+      </div>
+    );
+  };
+
   const renderItems = (items, catIdx, subIdx, grpIdx, noImages) => (
     <div className="space-y-4">
       {items.map((item, i) => {
         const itemKey = item.nombre.es;
         const normalized = normalizeKey(itemKey);
         const staticImage = item.imagen || (item.imagenKey ? imagenesProductos[item.imagenKey] : null);
-        const imagen = supabasePhotos[normalized] || staticImage;
+        const imagen = supabasePhotos[normalized] || imagenesSupabase[normalized] || staticImage;
         const isUploading = uploading === normalized;
         const isEditingName = editingKey === mkKey(catIdx, subIdx, grpIdx, i, "nombre");
         const isEditingPrice = editingKey === mkKey(catIdx, subIdx, grpIdx, i, "precio");
@@ -348,7 +433,7 @@ export default function CartaBase({ titulo, categorias }) {
                     <>
                       <button type="button" onClick={() => editMode ? openUploadMenu(itemKey) : setSelectedImage({ src: imagen, alt: item.nombre[lang] })}
                         className="w-full h-full block">
-                        <img src={imagen} alt={item.nombre[lang]} className="w-full h-full object-cover" />
+                        <img src={imagen} alt={item.nombre[lang]} loading="lazy" decoding="async" className="w-full h-full object-cover" />
                       </button>
                       {esDestacado && !editMode && (
                         <div className="absolute top-0 left-0 right-0 bg-[#D4A843]/85 flex items-center justify-center py-0.5">
@@ -524,9 +609,7 @@ export default function CartaBase({ titulo, categorias }) {
                 </button>
                 {!isOpen && (
                   <div className="px-6 pb-6">
-                    <div className="w-full h-48 rounded-2xl border border-[#B78B5A]/20 bg-[#F7F3EA] overflow-hidden flex items-center justify-center text-sm text-[#4E3B2A]/45">
-                      {categoria.imagenSeccion ? <img src={categoria.imagenSeccion} alt={categoria.nombre[lang]} className="w-full h-full object-cover" /> : lang === "es" ? "Imagen de sección" : "Section image"}
-                    </div>
+                    {renderSectionImage(categoria, catIdx)}
                   </div>
                 )}
                 {isOpen && (
@@ -544,9 +627,7 @@ export default function CartaBase({ titulo, categorias }) {
                                 </button>
                                 {!isSubOpen && (
                                   <div className="px-5 pb-5">
-                                    <div className="w-full h-40 rounded-2xl border border-[#B78B5A]/20 bg-[#F7F3EA] overflow-hidden flex items-center justify-center text-sm text-[#4E3B2A]/45">
-                                      {subcategoria.imagenSeccion ? <img src={subcategoria.imagenSeccion} alt={subcategoria.nombre[lang]} className="w-full h-full object-cover" /> : lang === "es" ? "Imagen de subsección" : "Subsection image"}
-                                    </div>
+                                    {renderSectionImage(subcategoria, catIdx, subIndex)}
                                   </div>
                                 )}
                                 {isSubOpen && (
@@ -589,7 +670,7 @@ export default function CartaBase({ titulo, categorias }) {
       {uploadMenu && (
         <div className="fixed inset-0 z-[100] bg-black/50 flex items-end justify-center p-4" onClick={() => setUploadMenu(null)}>
           <div className="bg-white rounded-3xl w-full max-w-sm pb-2 overflow-hidden" onClick={(e) => e.stopPropagation()}>
-            <p className="text-center text-sm font-semibold text-[#4E3B2A] py-4 border-b border-[#B78B5A]/15">{lang === "es" ? "Añadir foto" : "Add photo"}</p>
+            <p className="text-center text-sm font-semibold text-[#4E3B2A] py-4 border-b border-[#B78B5A]/15">{lang === "es" ? "Añadir o cambiar foto" : "Add or change photo"}</p>
             <button type="button" onClick={() => handleMenuOption("camera")} className="w-full flex items-center gap-4 px-6 py-4 text-[#4E3B2A] font-medium border-b border-[#B78B5A]/15 active:bg-[#F7F3EA]">
               <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 text-[#B78B5A] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />

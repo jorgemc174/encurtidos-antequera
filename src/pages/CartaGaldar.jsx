@@ -10,7 +10,7 @@ export default function CartaGaldar() {
             es: "Queso cabra con cebolla caramelizada",
             en: "Goat cheese with caramelized onion",
           },
-          precio: "2,50 € - 3,00 €",
+          precio: "3,00 €",
           imagenKey: "queso-de-cabra-cebolla-caramelizada",
         },
         {
@@ -18,33 +18,33 @@ export default function CartaGaldar() {
             es: "Queso ahumado con arándano",
             en: "Smoked cheese with blueberry",
           },
-          precio: "2,50 € - 3,00 €",
+          precio: "3,00 €",
           imagenKey: "queso-ahumado-arandanos",
         },
         {
           nombre: { es: "Tortilla", en: "Spanish omelette" },
-          precio: "2,50 € - 3,00 €",
+          precio: "3,00 €",
           imagenKey: "tortilla",
         },
         {
           nombre: { es: "Pollo barbacoa", en: "Barbecue chicken" },
-          precio: "2,50 € - 3,00 €",
+          precio: "3,00 €",
           imagenKey: "pollo-mechado",
         },
         {
           nombre: { es: "Ternera mechada", en: "Shredded beef" },
-          precio: "2,50 € - 3,00 €",
+          precio: "3,00 €",
         },
         {
           nombre: {
             es: "Morcilla de Burgos con tomate deshidratado",
             en: "Burgos black pudding with sun-dried tomato",
           },
-          precio: "2,50 € - 3,00 €",
+          precio: "3,00 €",
         },
         {
           nombre: { es: "Albóndigas", en: "Meatballs" },
-          precio: "2,50 € - 3,00 €",
+          precio: "3,00 €",
           imagenKey: "albondigas",
         },
         {
@@ -52,49 +52,49 @@ export default function CartaGaldar() {
             es: "Bacalao con mojo palmero",
             en: "Cod with Palmero mojo",
           },
-          precio: "2,50 € - 3,00 €",
+          precio: "3,00 €",
         },
         {
           nombre: {
             es: "Solomillo de pollo macerado con mojo palmero",
             en: "Marinated chicken tenderloin with Palmero mojo",
           },
-          precio: "2,50 € - 3,00 €",
+          precio: "3,00 €",
         },
         {
           nombre: {
             es: "Chistorra, papas y huevo",
             en: "Chistorra sausage, potatoes and egg",
           },
-          precio: "2,50 € - 3,00 €",
+          precio: "3,00 €",
         },
         {
           nombre: { es: "Costilla prensada", en: "Pressed ribs" },
-          precio: "2,50 € - 3,00 €",
+          precio: "3,00 €",
         },
         {
           nombre: { es: "Rabas", en: "Fried squid strips" },
-          precio: "2,50 € - 3,00 €",
+          precio: "3,00 €",
         },
         {
           nombre: { es: "Chorizos parrillero", en: "Grilled chorizo" },
-          precio: "2,50 € - 3,00 €",
+          precio: "3,00 €",
           imagenKey: "chorizo-parrillero",
         },
         {
           nombre: { es: "Serrano con queso", en: "Serrano ham with cheese" },
-          precio: "2,50 € - 3,00 €",
+          precio: "3,00 €",
         },
         {
           nombre: {
             es: "Pollo con crema de aguacate",
             en: "Chicken with avocado cream",
           },
-          precio: "2,50 € - 3,00 €",
+          precio: "3,00 €",
         },
         {
           nombre: { es: "Vueltas de ternera", en: "Beef strips" },
-          precio: "2,50 € - 3,00 €",
+          precio: "3,00 €",
           imagenKey: "vueltas",
         },
         {
@@ -102,21 +102,21 @@ export default function CartaGaldar() {
             es: "Atún, pimiento y anchoa",
             en: "Tuna, pepper and anchovy",
           },
-          precio: "2,50 € - 3,00 €",
+          precio: "3,00 €",
           imagenKey: "atun-anchoas",
         },
         {
           nombre: { es: "Chatka y gambas", en: "Crab stick and prawns" },
-          precio: "2,50 € - 3,00 €",
+          precio: "3,00 €",
         },
         {
           nombre: { es: "Pollo Kentucky", en: "Kentucky chicken" },
-          precio: "2,50 € - 3,00 €",
+          precio: "3,00 €",
           imagenKey: "pollo-kentucky",
         },
         {
           nombre: { es: "Pollo mechado", en: "Shredded chicken" },
-          precio: "2,50 € - 3,00 €",
+          precio: "3,00 €",
           
         },
         {
@@ -124,12 +124,12 @@ export default function CartaGaldar() {
             es: "Cerdo mechado con queso de cabra",
             en: "Shredded pork with goat cheese",
           },
-          precio: "2,50 € - 3,00 €",
+          precio: "3,00 €",
           imagenKey: "cerdo-mechado",
         },
         {
           nombre: { es: "Siempre alguno más", en: "And always more specials" },
-          precio: "Consultar",
+          precio: "3,00 €",
         },
         {
           nombre: { es: "Perritos", en: "Hot dogs" },
@@ -137,7 +137,7 @@ export default function CartaGaldar() {
         },
         {
           nombre: { es: "Hamburguesas", en: "Burgers" },
-          precio: "3,50 €",
+          precio: "3,00 €",
           imagenKey: "hamburguesa",
         },
         {
