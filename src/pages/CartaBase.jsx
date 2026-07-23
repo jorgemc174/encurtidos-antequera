@@ -170,10 +170,22 @@ export default function CartaBase({ titulo, categorias }) {
     ...supabasePhotos,
   }), [supabasePhotos]);
 
-  const sectionProductImageKeys = useMemo(
-    () => menuDataConId.map((categoria) => getSectionProductImageKeys(categoria)),
-    [menuDataConId]
-  );
+  const { sectionProductImageKeys, duplicatedProductImageKeys } = useMemo(() => {
+    const keysBySection = menuDataConId.map((categoria) => getSectionProductImageKeys(categoria));
+    const sectionCountByKey = new Map();
+    keysBySection.forEach((keys) => {
+      keys.forEach((key) => sectionCountByKey.set(key, (sectionCountByKey.get(key) || 0) + 1));
+    });
+    const duplicatedKeys = new Set(
+      [...sectionCountByKey].filter(([, count]) => count > 1).map(([key]) => key)
+    );
+    return {
+      sectionProductImageKeys: keysBySection.map(
+        (keys) => new Set([...keys].filter((key) => !duplicatedKeys.has(key)))
+      ),
+      duplicatedProductImageKeys: duplicatedKeys,
+    };
+  }, [menuDataConId]);
 
   useEffect(() => {
     if (!menuDataConId.length) return;
@@ -518,12 +530,24 @@ export default function CartaBase({ titulo, categorias }) {
       {items.map((item, i) => {
         const itemKey = item.nombre.es;
         const normalized = normalizeKey(itemKey);
+        const sectionKey = normalizeKey(menuDataConId[catIdx].nombre.es);
+        const scopedImageKey = `producto-${sectionKey}-${normalized}`;
+        const hasSameNameInAnotherSection = duplicatedProductImageKeys.has(normalized);
         const staticImage = item.imagen || (item.imagenKey ? availableProductImages[item.imagenKey] : null);
-        const imagen = supabasePhotos[normalized]
-          || imagenesSupabase[normalized]
+        const legacyImage = hasSameNameInAnotherSection
+          ? null
+          : supabasePhotos[normalized] || imagenesSupabase[normalized];
+        const imagen = supabasePhotos[scopedImageKey]
+          || imagenesSupabase[scopedImageKey]
+          || legacyImage
           || staticImage
-          || resolveSharedProductImage(itemKey, availableProductImages, sectionProductImageKeys[catIdx]);
-        const isUploading = uploading === normalized;
+          || resolveSharedProductImage(
+            itemKey,
+            availableProductImages,
+            sectionProductImageKeys[catIdx],
+            !hasSameNameInAnotherSection
+          );
+        const isUploading = uploading === scopedImageKey;
         const isEditingName = editingKey === mkKey(catIdx, subIdx, grpIdx, i, "nombre");
         const isEditingPrice = editingKey === mkKey(catIdx, subIdx, grpIdx, i, "precio");
         const esDestacado = getDestacados().includes(destacadoKey(item));
@@ -562,7 +586,7 @@ export default function CartaBase({ titulo, categorias }) {
                 <div className="relative w-16 h-16 rounded-xl bg-[#F7F3EA] shrink-0 overflow-hidden flex items-center justify-center text-[10px] text-[#4E3B2A]/40 text-center">
                   {imagen ? (
                     <>
-                      <button type="button" onClick={() => editMode ? openUploadMenu(itemKey) : setSelectedImage({ src: imagen, alt: item.nombre[lang] })}
+                      <button type="button" onClick={() => editMode ? openUploadMenu(scopedImageKey) : setSelectedImage({ src: imagen, alt: item.nombre[lang] })}
                         className="w-full h-full block">
                         <img src={imagen} alt={item.nombre[lang]} loading="lazy" decoding="async" className="w-full h-full object-cover" />
                       </button>
@@ -590,7 +614,7 @@ export default function CartaBase({ titulo, categorias }) {
                       )}
                     </>
                   ) : editMode ? (
-                    <button type="button" onClick={() => openUploadMenu(itemKey)}
+                    <button type="button" onClick={() => openUploadMenu(scopedImageKey)}
                       className="w-full h-full flex flex-col items-center justify-center gap-1 hover:bg-[#B78B5A]/10 transition cursor-pointer">
                       <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 text-[#B78B5A]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />

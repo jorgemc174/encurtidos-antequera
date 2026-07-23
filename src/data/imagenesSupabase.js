@@ -1,17 +1,22 @@
 const base = "/images/supabase";
 
-export const IMAGENES_SUPABASE_SNAPSHOT_AT = Date.parse("2026-07-22T13:30:38.959Z");
+export const IMAGENES_SUPABASE_SNAPSHOT_AT = Date.parse("2026-07-23T18:20:19.565Z");
 
 export const imagenesSupabase = {
   "alcachofa-braseada": `${base}/alcachofa-braseada.jpg`,
   "alitas-de-pollo-a-la-barbacoa": `${base}/alitas-de-pollo-a-la-barbacoa.jpg`,
+  "anchoas-y-boquerones": `${base}/anchoas-y-boquerones.jpg`,
   "boqueron-con-relleno": `${base}/boqueron-con-relleno.jpg`,
   boquerones: `${base}/boquerones.jpg`,
   "boquerones-y-anchoas": `${base}/boquerones-y-anchoas.jpg`,
   cazon: `${base}/cazon.jpg`,
+  "cazon-en-adobo": `${base}/cazon-en-adobo.jpg`,
+  "cazuela-de-albondigas": `${base}/cazuela-de-albondigas.jpg`,
   "cecina-con-queso": `${base}/cecina-con-queso.jpg`,
   "chatka-y-gambas": `${base}/chatka-y-gambas.jpg`,
   "chistorra-papas-y-huevo": `${base}/chistorra-papas-y-huevo.jpg`,
+  chistorras: `${base}/chistorras.jpg`,
+  "chorizo-campus": `${base}/chorizo-campus.jpg`,
   "chorizo-campo": `${base}/chorizo-campo.jpg`,
   "chorizo-de-teror-queso-y-miel": `${base}/chorizo-de-teror-queso-y-miel.jpg`,
   "codillo-al-horno": `${base}/codillo-al-horno.jpg`,
@@ -20,8 +25,10 @@ export const imagenesSupabase = {
   "costilla-prensada": `${base}/costilla-prensada.jpg`,
   "costillas-barbacoa": `${base}/costillas-barbacoa.jpg`,
   "croquetas-variadas-atun-pollo-y-serrano": `${base}/croquetas-variadas-atun-pollo-y-serrano.jpg`,
+  "cuenco-de-aceituna": `${base}/cuenco-de-aceituna.jpg`,
   "cuenco-de-aceitunas": `${base}/cuenco-de-aceitunas.jpg`,
   "cuenco-de-frutos-secos": `${base}/cuenco-de-frutos-secos.jpg`,
+  empanadilla: `${base}/empanadilla.jpg`,
   "ensalada-crujiente-de-pollo": `${base}/ensalada-crujiente-de-pollo.jpg`,
   "home-hero": `${base}/home-hero.jpg`,
   "home-puesto-0": `${base}/home-puesto-0.jpg`,
@@ -44,6 +51,11 @@ export const imagenesSupabase = {
   "pollo-guacamole": `${base}/pollo-guacamole.jpg`,
   "pollo-kentucky": `${base}/pollo-kentucky.jpg`,
   "porcion-de-empanada-gallega": `${base}/porcion-de-empanada-gallega.jpg`,
+  "producto-montaditos-pollo-kentucky": `${base}/producto-montaditos-pollo-kentucky.jpg`,
+  "producto-montaditos-rabas": `${base}/producto-montaditos-rabas.jpg`,
+  "producto-montaditos-siempre-alguno-mas": `${base}/producto-montaditos-siempre-alguno-mas.jpg`,
+  "producto-para-picar-pollo-kentucky": `${base}/producto-para-picar-pollo-kentucky.jpg`,
+  "producto-para-picar-rabas": `${base}/producto-para-picar-rabas.jpg`,
   "pulpo-a-la-gallega": `${base}/pulpo-a-la-gallega.jpg`,
   "queso-con-anchoa": `${base}/queso-con-anchoa.jpg`,
   "quesos-variados": `${base}/quesos-variados.jpg`,

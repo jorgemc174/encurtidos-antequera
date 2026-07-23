@@ -24,7 +24,7 @@ const IGNORED_TOKENS = new Set([
   "los", "para", "porcion", "su", "tabla", "un", "una", "y",
 ]);
 
-const RESERVED_PREFIXES = ["home-", "seccion-", "subseccion-"];
+const RESERVED_PREFIXES = ["home-", "producto-", "seccion-", "subseccion-"];
 
 function singularize(token) {
   if (token.endsWith("ces") && token.length > 5) return `${token.slice(0, -3)}z`;
@@ -85,9 +85,9 @@ export function getSectionProductImageKeys(section) {
   return keys;
 }
 
-export function resolveSharedProductImage(name, images, sectionKeys = null) {
+export function resolveSharedProductImage(name, images, sectionKeys = null, allowExact = true) {
   const normalized = normalizeKey(name);
-  if (images[normalized]) return images[normalized];
+  if (allowExact && images[normalized]) return images[normalized];
 
   const alias = IMAGE_ALIASES[normalized];
   if (alias && images[alias] && (!sectionKeys || sectionKeys.has(alias))) return images[alias];
@@ -95,6 +95,7 @@ export function resolveSharedProductImage(name, images, sectionKeys = null) {
   const sourceTokens = meaningfulTokens(normalized);
   const candidates = Object.keys(images)
     .filter((key) => !RESERVED_PREFIXES.some((prefix) => key.startsWith(prefix)))
+    .filter((key) => allowExact || key !== normalized)
     .filter((key) => !sectionKeys || sectionKeys.has(key))
     .map((key) => ({ key, score: similarityScore(sourceTokens, meaningfulTokens(key)) }))
     .filter(({ score }) => score >= 0.72)
