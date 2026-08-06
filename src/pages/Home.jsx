@@ -26,6 +26,7 @@ const textosBase = {
     verUbicacion: "Ver ubicación", verCarta: "Ver carta",
     contactoTitulo: "Contacto", contactoTexto: "Escríbenos para más información o consultas.",
     telefono: "Teléfono", correo: "Correo", idioma: "Idioma", menu: "Menú", horario: "Horario", hoy: "Hoy",
+    mercadoPuertoCerrado: "Cerrado hasta el 12 de agosto",
     curriculumTitulo: "¿Quieres formar parte del equipo?",
     curriculumTexto: "Puedes enviarnos tu currículum por correo y lo tendremos en cuenta cuando surjan nuevas oportunidades.",
     enviarCV: "Enviar currículum",
@@ -42,6 +43,7 @@ const textosBase = {
     verUbicacion: "View location", verCarta: "View menu",
     contactoTitulo: "Contact", contactoTexto: "Write to us for more information or enquiries.",
     telefono: "Phone", correo: "Email", idioma: "Language", menu: "Menu", horario: "Opening hours", hoy: "Today",
+    mercadoPuertoCerrado: "Closed until 12 August",
     curriculumTitulo: "Would you like to join the team?",
     curriculumTexto: "You can send us your CV by email and we will keep it in mind for future opportunities.",
     enviarCV: "Send CV",
@@ -112,6 +114,9 @@ function normalizeTextos(data) {
     en: { ...textosBase.en, ...(data?.en || {}) },
   };
 }
+
+// El horario habitual vuelve a mostrarse al comenzar el 12 de agosto en Canarias.
+const FIN_CIERRE_MERCADO_DEL_PUERTO = Date.parse("2026-08-11T23:00:00Z");
 
 const puestosBase = [
   {
@@ -209,6 +214,9 @@ export default function Home() {
   const [editKey, setEditKey] = useState(null);
   const [editES, setEditES] = useState("");
   const [editEN, setEditEN] = useState("");
+  const [mercadoDelPuertoCerrado, setMercadoDelPuertoCerrado] = useState(
+    () => Date.now() < FIN_CIERRE_MERCADO_DEL_PUERTO,
+  );
 
   const [textos, setTextos] = useState(() => {
     const s = localStorage.getItem("encurtidos_home_textos");
@@ -234,6 +242,16 @@ export default function Home() {
   });
 
   useEffect(() => { localStorage.setItem("lang", lang); }, [lang]);
+
+  useEffect(() => {
+    if (!mercadoDelPuertoCerrado) return undefined;
+    const tiempoRestante = FIN_CIERRE_MERCADO_DEL_PUERTO - Date.now();
+    const timer = window.setTimeout(
+      () => setMercadoDelPuertoCerrado(Date.now() < FIN_CIERRE_MERCADO_DEL_PUERTO),
+      Math.min(tiempoRestante + 1000, 2_147_483_647),
+    );
+    return () => window.clearTimeout(timer);
+  }, [mercadoDelPuertoCerrado]);
 
   useEffect(() => {
     localStorage.setItem("encurtidos_home_textos", JSON.stringify(textos));
@@ -661,10 +679,14 @@ export default function Home() {
                     )}
                     <div className="mb-5">
                       <p className="text-sm font-bold text-[#7E9f00] mb-1">{t.horario}</p>
-                      <div className="flex justify-between gap-4 text-sm text-[#4E3B2A]/80">
-                        <span className="font-medium">{t.hoy}: {hoy.dia}</span>
-                        <span className={`text-right ${hoy.hora === "Cerrado" || hoy.hora === "Closed" ? "text-[#B85C38] font-semibold" : ""}`}>{hoy.hora}</span>
-                      </div>
+                      {idx === 0 && mercadoDelPuertoCerrado ? (
+                        <p className="text-sm font-semibold text-[#B85C38]">{t.mercadoPuertoCerrado}</p>
+                      ) : (
+                        <div className="flex justify-between gap-4 text-sm text-[#4E3B2A]/80">
+                          <span className="font-medium">{t.hoy}: {hoy.dia}</span>
+                          <span className={`text-right ${hoy.hora === "Cerrado" || hoy.hora === "Closed" ? "text-[#B85C38] font-semibold" : ""}`}>{hoy.hora}</span>
+                        </div>
+                      )}
                     </div>
                     <div className="flex justify-between items-center">
                       <a href={puesto.mapa} target="_blank" rel="noreferrer" className="inline-block px-5 py-3 rounded-2xl bg-[#B78B5A] text-white font-semibold hover:opacity-90 transition">{t.verUbicacion}</a>
