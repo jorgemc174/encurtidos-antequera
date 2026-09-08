@@ -5,6 +5,9 @@ declare
   admin_email text := 'CAMBIA_ESTO_POR_TU_CORREO';
   admin_id uuid;
 begin
+  if to_regclass('public.admin_users') is null then
+    raise exception 'Primero ejecuta completo el archivo 202609090001_admin_assistant.sql en SQL Editor. Cuando termine correctamente, vuelve a ejecutar este alta de administrador.';
+  end if;
   select id into admin_id from auth.users where lower(email) = lower(admin_email);
   if admin_id is null then
     raise exception 'No existe ese usuario. Créalo primero en Authentication > Users y comprueba el correo.';
