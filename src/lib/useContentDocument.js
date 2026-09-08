@@ -3,12 +3,31 @@ import { supabase } from "./supabase";
 
 const identity = (value) => value;
 const clone = (value) => JSON.parse(JSON.stringify(value));
+export const CONTENT_CACHE_VERSION = "encurtidos-content-cache-v2";
+
+export function ensureContentCacheVersion() {
+  if (typeof localStorage === "undefined") return;
+  const current = localStorage.getItem("encurtidos_content_cache_version");
+  if (current === CONTENT_CACHE_VERSION) return;
+  const keys = [];
+  for (let index = 0; index < localStorage.length; index++) {
+    const key = localStorage.key(index);
+    if (key) keys.push(key);
+  }
+  for (const key of keys) {
+    if (key.startsWith("encurtidos_menu_") || key.startsWith("encurtidos_home_") || key === "encurtidos_destacados_items") {
+      localStorage.removeItem(key);
+    }
+  }
+  localStorage.setItem("encurtidos_content_cache_version", CONTENT_CACHE_VERSION);
+}
 
 // Leer nunca guarda. Solo una edición explícita del administrador inicia una
 // escritura; el servidor compara con la última versión que este editor leyó.
 export function useContentDocument({ table, documentKey, storageKey, fallback, isAdmin, normalize = identity, serialize = identity }) {
   const options = useRef({ fallback, normalize, serialize });
   const [data, setData] = useState(() => {
+    ensureContentCacheVersion();
     try {
       const saved = localStorage.getItem(storageKey);
       return normalize(saved ? JSON.parse(saved) : clone(fallback));

@@ -32,6 +32,31 @@ test("una aclaración o un precio ya coincidente no generan escrituras", () => {
   assert.equal(prepare([]).documents.length, 0);
   assert.equal(prepare([{ field_id: price.id, value: "1,90 €" }]).changes.length, 0);
 });
+
+test("la caché del menú se invalida cuando cambia la versión de datos", async () => {
+  const store = new Map();
+  const stub = {
+    get length() { return store.size; },
+    getItem: (key) => (store.has(key) ? store.get(key) : null),
+    setItem: (key, value) => store.set(key, String(value)),
+    removeItem: (key) => store.delete(key),
+    clear: () => store.clear(),
+    key: (index) => Array.from(store.keys())[index] ?? null,
+  };
+  const previous = globalThis.localStorage;
+  Object.defineProperty(globalThis, "localStorage", { value: stub, configurable: true, writable: true });
+  try {
+    stub.setItem("encurtidos_menu_Carta - Gáldar", JSON.stringify({ old: true }));
+    stub.setItem("encurtidos_content_cache_version", "v1");
+    const { ensureContentCacheVersion } = await import("../src/lib/useContentDocument.js");
+    ensureContentCacheVersion();
+    assert.equal(stub.getItem("encurtidos_menu_Carta - Gáldar"), null);
+    assert.equal(stub.getItem("encurtidos_content_cache_version"), "encurtidos-content-cache-v2");
+  } finally {
+    if (previous) Object.defineProperty(globalThis, "localStorage", { value: previous, configurable: true, writable: true });
+    else delete globalThis.localStorage;
+  }
+});
 test("el catálogo incluye horarios e idiomas, pero no enlaces de administración", () => {
   const catalog = buildCatalog([{ table: "home_json", key: "puestos", data: [{ nombre: { es: "Gáldar" }, mapa: "https://example.com", horario: { es: [{ dia: "Lunes", hora: "11:00 - 22:00" }] } }] }]);
   assert.ok(catalog.some((field) => field.label.includes("Lunes")));
