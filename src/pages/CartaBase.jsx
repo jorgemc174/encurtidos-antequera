@@ -1,4 +1,6 @@
 import { Link } from "react-router-dom";
+import { signOutAdmin, useAdmin } from "../lib/useAdmin";
+import { useContentDocument } from "../lib/useContentDocument";
 import { useEffect, useMemo, useRef, useState } from "react";
 import espanaImg from "../assets/españa.jpg";
 import inglaterraImg from "../assets/inglaterra.jpg";
@@ -93,16 +95,16 @@ export default function CartaBase({ titulo, categorias }) {
   const cameraInputRef = useRef(null);
   const pendingKeyRef = useRef(null);
 
-  const [isAdmin, setIsAdmin] = useState(() => localStorage.getItem("encurtidos_admin") === "true");
+  const { isAdmin } = useAdmin();
   const [adminEditMode, setAdminEditMode] = useState(false);
-  const [remoteReady, setRemoteReady] = useState(false);
   const [syncError, setSyncError] = useState("");
   const menuStorageKey = `encurtidos_menu_${titulo.es}`;
-  const [menuData, setMenuData] = useState(() => {
-    const saved = localStorage.getItem(menuStorageKey);
-    if (saved) { try { return JSON.parse(saved); } catch { return JSON.parse(JSON.stringify(categorias)); } }
-    return JSON.parse(JSON.stringify(categorias));
+  const menuDocument = useContentDocument({
+    table: "menu_json", documentKey: titulo.es, storageKey: menuStorageKey,
+    fallback: categorias, isAdmin,
   });
+  const menuData = menuDocument.data;
+  const setMenuData = menuDocument.edit;
   const [editingKey, setEditingKey] = useState(null);
   const [editNombreES, setEditNombreES] = useState("");
   const [editNombreEN, setEditNombreEN] = useState("");
@@ -112,22 +114,6 @@ export default function CartaBase({ titulo, categorias }) {
   const [dragging, setDragging] = useState(null);
 
   useEffect(() => { localStorage.setItem("lang", lang); }, [lang]);
-  useEffect(() => {
-    localStorage.setItem(menuStorageKey, JSON.stringify(menuData));
-    if (!remoteReady) return;
-    sbUpsert("menu_json", { location: titulo.es, data: menuData, updated_at: new Date().toISOString() }, "location")
-      .then((error) => setSyncError(error ? "No se han podido guardar los cambios en la base de datos. Revisa Supabase o la conexión." : ""));
-  }, [menuData, menuStorageKey, remoteReady, titulo.es]);
-  useEffect(() => {
-    (async () => {
-      const { data, error } = await sbSelect("menu_json", "data", { field: "location", value: titulo.es });
-      if (!error && data?.[0]?.data) {
-        setMenuData(data[0].data);
-        localStorage.setItem(menuStorageKey, JSON.stringify(data[0].data));
-      }
-      setRemoteReady(true);
-    })();
-  }, [titulo.es, menuStorageKey]);
   useEffect(() => {
     (async () => {
       const { data, error } = await sbSelect("destacados", "item_key");
@@ -459,7 +445,7 @@ export default function CartaBase({ titulo, categorias }) {
 
   const handleExitAdmin = () => {
     localStorage.removeItem("encurtidos_admin");
-    setIsAdmin(false);
+    void signOutAdmin();
     setEditMode(false);
     setAdminEditMode(false);
   };
@@ -688,6 +674,7 @@ export default function CartaBase({ titulo, categorias }) {
             {lang === "es" ? "Volver" : "Back"}
           </Link>
         </div>
+        {isAdmin && <Link to="/admin/asistente" className="inline-block mb-5 px-5 py-4 rounded-xl bg-[#4E3B2A] text-white text-lg font-semibold">Pedir cambios con el asistente</Link>}
         <h1 className="text-4xl md:text-5xl font-bold mb-6">{titulo[lang]}</h1>
       </div>
 
@@ -739,9 +726,9 @@ export default function CartaBase({ titulo, categorias }) {
           )}
         </div>
       </div>
-      {isAdmin && syncError && (
+      {isAdmin && (syncError || menuDocument.error || menuDocument.saving) && (
         <div className="sticky top-[73px] z-40 bg-[#B85C38] text-white px-4 py-3 text-sm font-medium text-center">
-          {syncError}
+          {syncError || menuDocument.error || "Guardando cambios…"}
         </div>
       )}
 

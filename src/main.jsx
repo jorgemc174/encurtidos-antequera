@@ -8,6 +8,7 @@ import CartaLasPalmas from "./pages/CartaLasPalmas";
 import CartaGaldar from "./pages/CartaGaldar";
 import CartaTelde from "./pages/CartaTelde";
 import Admin from "./pages/Admin";
+import AdminAssistant from "./pages/AdminAssistant";
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
@@ -19,6 +20,7 @@ createRoot(document.getElementById("root")).render(
         <Route path="/carta-galdar" element={<CartaGaldar />} />
         <Route path="/carta-telde" element={<CartaTelde />} />
         <Route path="/admin" element={<Admin />} />
+        <Route path="/admin/asistente" element={<AdminAssistant />} />
       </Routes>
     </BrowserRouter>
   </StrictMode>

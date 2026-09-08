@@ -1,5 +1,14 @@
 # React + Vite
 
+## Asistente de administración
+
+Para activar el asistente de precios y textos, sigue
+[la guía de instalación](docs/activar-asistente.md).
+La clave de OpenAI se configura en Supabase, nunca en el código del navegador.
+
+Comprobaciones: `npm test`, `npm run lint` y `npm run build`.
+El archivo único para el editor de Supabase se genera con `npm run build:assistant`.
+
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
 Currently, two official plugins are available:

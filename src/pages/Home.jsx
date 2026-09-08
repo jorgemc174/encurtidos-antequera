@@ -1,4 +1,6 @@
 import { Link } from "react-router-dom";
+import { signOutAdmin, useAdmin } from "../lib/useAdmin";
+import { useContentDocument } from "../lib/useContentDocument";
 import { useEffect, useMemo, useRef, useState } from "react";
 import logoImg from "../assets/logo.png";
 import lasPalmasImg from "../assets/laspalmas.jpg";
@@ -148,26 +150,6 @@ const puestosBase = [
   },
 ];
 
-async function sbUpsert(table, data, conflict) {
-  try {
-    const { supabase } = await import("../lib/supabase");
-    const { error } = await supabase.from(table).upsert(data, { onConflict: conflict });
-    return error || null;
-  } catch {
-    return new Error("No se pudo conectar con Supabase");
-  }
-}
-
-async function sbFetch(table, select, filter) {
-  try {
-    const { supabase } = await import("../lib/supabase");
-    const query = supabase.from(table).select(select);
-    if (filter) query.eq(filter.field, filter.value);
-    const { data, error } = await query;
-    return { data, error };
-  } catch (e) { return { data: null, error: e }; }
-}
-
 function EditInputs({ esVal, enVal, setEsVal, setEnVal, onSave, onCancel, autoTranslate = false }) {
   const translationRunRef = useRef(0);
   const handleEsChange = (value) => {
@@ -203,13 +185,11 @@ export default function Home() {
   const [homePhotos, setHomePhotos] = useState({});
   const [uploadingImage, setUploadingImage] = useState(null);
   const [uploadMenu, setUploadMenu] = useState(null);
-  const [remoteReady, setRemoteReady] = useState(false);
-  const [syncError, setSyncError] = useState("");
   const fileInputRef = useRef(null);
   const cameraInputRef = useRef(null);
   const pendingImageKeyRef = useRef(null);
 
-  const [isAdmin, setIsAdmin] = useState(() => localStorage.getItem("encurtidos_admin") === "true");
+  const { isAdmin } = useAdmin();
   const [editMode, setEditMode] = useState(false);
   const [editKey, setEditKey] = useState(null);
   const [editES, setEditES] = useState("");
@@ -218,28 +198,35 @@ export default function Home() {
     () => Date.now() < FIN_CIERRE_MERCADO_DEL_PUERTO,
   );
 
-  const [textos, setTextos] = useState(() => {
-    const s = localStorage.getItem("encurtidos_home_textos");
-    if (s) { try { return normalizeTextos(JSON.parse(s)); } catch { return JSON.parse(JSON.stringify(textosBase)); } }
-    return JSON.parse(JSON.stringify(textosBase));
+  const textsDocument = useContentDocument({
+    table: "home_json", documentKey: "textos", storageKey: "encurtidos_home_textos",
+    fallback: textosBase, isAdmin, normalize: normalizeTextos,
   });
-  const [productos, setProductos] = useState(() => {
-    const s = localStorage.getItem("encurtidos_home_productos");
-    if (s) { try { return normalizeProductos(JSON.parse(s)); } catch { return JSON.parse(JSON.stringify(productosBase)); } }
-    return JSON.parse(JSON.stringify(productosBase));
+  const productsDocument = useContentDocument({
+    table: "home_json", documentKey: "productos", storageKey: "encurtidos_home_productos",
+    fallback: productosBase, isAdmin, normalize: normalizeProductos,
   });
-  const [puestos, setPuestos] = useState(() => {
-    const s = localStorage.getItem("encurtidos_home_puestos");
-    if (s) {
-      try {
-        const parsed = JSON.parse(s);
-        return parsed.map((p, i) => ({ ...puestosBase[i], ...p, horario: puestosBase[i]?.horario || p.horario, imagen: puestosBase[i]?.imagen || p.imagen }));
-      } catch {
-        return JSON.parse(JSON.stringify(puestosBase));
-      }
-    }
-    return JSON.parse(JSON.stringify(puestosBase));
+  const standsDocument = useContentDocument({
+    table: "home_json", documentKey: "puestos", storageKey: "encurtidos_home_puestos",
+    fallback: puestosBase, isAdmin,
+    normalize: (rows) => rows.map((p, i) => ({
+      ...puestosBase[i], ...p, horario: p.horario || puestosBase[i]?.horario,
+      imagen: puestosBase[i]?.imagen || p.imagen,
+    })),
+    serialize: (rows) => rows.map((puesto) => {
+      const copy = { ...puesto };
+      delete copy.imagen;
+      return copy;
+    }),
   });
+  const textos = textsDocument.data;
+  const setTextos = textsDocument.edit;
+  const productos = productsDocument.data;
+  const setProductos = productsDocument.edit;
+  const puestos = standsDocument.data;
+  const setPuestos = standsDocument.edit;
+  const documentError = textsDocument.error || productsDocument.error || standsDocument.error;
+  const savingContent = textsDocument.saving || productsDocument.saving || standsDocument.saving;
 
   useEffect(() => { localStorage.setItem("lang", lang); }, [lang]);
 
@@ -252,61 +239,6 @@ export default function Home() {
     );
     return () => window.clearTimeout(timer);
   }, [mercadoDelPuertoCerrado]);
-
-  useEffect(() => {
-    localStorage.setItem("encurtidos_home_textos", JSON.stringify(textos));
-    if (!remoteReady) return;
-    sbUpsert("home_json", { section: "textos", data: textos, updated_at: new Date().toISOString() }, "section")
-      .then((error) => setSyncError(error ? "No se han podido guardar los cambios en la web pública. Revisa Supabase o la conexión." : ""));
-  }, [textos, remoteReady]);
-  useEffect(() => {
-    localStorage.setItem("encurtidos_home_productos", JSON.stringify(productos));
-    if (!remoteReady) return;
-    sbUpsert("home_json", { section: "productos", data: productos, updated_at: new Date().toISOString() }, "section")
-      .then((error) => setSyncError(error ? "No se han podido guardar los productos en la web pública. Revisa Supabase o la conexión." : ""));
-  }, [productos, remoteReady]);
-  useEffect(() => {
-    const sinImagenes = puestos.map((puesto) => {
-      const rest = { ...puesto };
-      delete rest.imagen;
-      return rest;
-    });
-    localStorage.setItem("encurtidos_home_puestos", JSON.stringify(sinImagenes));
-    if (!remoteReady) return;
-    sbUpsert("home_json", { section: "puestos", data: sinImagenes, updated_at: new Date().toISOString() }, "section")
-      .then((error) => setSyncError(error ? "No se han podido guardar los puestos en la web pública. Revisa Supabase o la conexión." : ""));
-  }, [puestos, remoteReady]);
-  useEffect(() => {
-    (async () => {
-      const { data, error } = await sbFetch("home_json", "section, data");
-      if (error || !data) {
-        setRemoteReady(true);
-        return;
-      }
-      data.forEach(({ section, data: d }) => {
-        if (section === "textos") {
-          const normalized = normalizeTextos(d);
-          setTextos(normalized);
-          localStorage.setItem("encurtidos_home_textos", JSON.stringify(normalized));
-        }
-        else if (section === "productos") {
-          const normalized = normalizeProductos(d);
-          setProductos(normalized);
-          localStorage.setItem("encurtidos_home_productos", JSON.stringify(normalized));
-        }
-        else if (section === "puestos") {
-          const conImagenes = d.map((p, i) => ({ ...puestosBase[i], ...p, horario: puestosBase[i]?.horario || p.horario, imagen: puestosBase[i]?.imagen || p.imagen }));
-          setPuestos(conImagenes);
-          localStorage.setItem("encurtidos_home_puestos", JSON.stringify(d.map((puesto) => {
-            const rest = { ...puesto };
-            delete rest.imagen;
-            return rest;
-          })));
-        }
-      });
-      setRemoteReady(true);
-    })();
-  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -424,7 +356,7 @@ export default function Home() {
   const closeMenu = () => setMenuOpen(false);
   const handleExitAdmin = () => {
     localStorage.removeItem("encurtidos_admin");
-    setIsAdmin(false);
+    void signOutAdmin();
     setEditMode(false);
     setEditKey(null);
     setMenuOpen(false);
@@ -485,9 +417,10 @@ export default function Home() {
           </button>
         </nav>
       </header>
-      {isAdmin && editMode && syncError && (
+      {isAdmin && <div className="max-w-6xl mx-auto px-4 py-3"><Link to="/admin/asistente" className="inline-block px-5 py-4 rounded-xl bg-[#4E3B2A] text-white text-lg font-semibold">Pedir cambios con el asistente</Link></div>}
+      {isAdmin && (documentError || savingContent) && (
         <div className="sticky top-24 md:top-28 z-40 bg-[#B85C38] text-white px-4 py-3 text-sm font-medium text-center">
-          {syncError}
+          {documentError || "Guardando cambios…"}
         </div>
       )}
 

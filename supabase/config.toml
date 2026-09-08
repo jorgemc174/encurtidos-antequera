@@ -1,0 +1,4 @@
+[functions.admin-assistant]
+# El handler verifica el JWT con auth.getUser y exige admin_users.
+# Compatible también con proyectos que usan claves de firma asimétricas.
+verify_jwt = false
