@@ -1,5 +1,9 @@
 # Activar el asistente de los dueños
 
+**Actualización del acceso:** para entrar sin escribir correo, completa también
+[la guía de acceso solo con contraseña](activar-acceso-simple.md). La cuenta
+de administrador sigue existiendo en Supabase, aunque el formulario solo pida contraseña.
+
 El código está preparado. Guardar `OPENAI_API_KEY` no instala por sí solo la
 función, las tablas ni el nuevo acceso. Esta guía completa esos pasos.
 

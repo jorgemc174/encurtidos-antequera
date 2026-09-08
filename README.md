@@ -5,6 +5,7 @@
 Para activar el asistente de precios y textos, sigue
 [la guía de instalación](docs/activar-asistente.md).
 La clave de OpenAI se configura en Supabase, nunca en el código del navegador.
+Para el acceso sin correo, sigue [la activación del acceso solo con contraseña](docs/activar-acceso-simple.md).
 
 Comprobaciones: `npm test`, `npm run lint` y `npm run build`.
 El archivo único para el editor de Supabase se genera con `npm run build:assistant`.

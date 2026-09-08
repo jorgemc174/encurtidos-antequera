@@ -2,3 +2,7 @@
 # El handler verifica el JWT con auth.getUser y exige admin_users.
 # Compatible también con proyectos que usan claves de firma asimétricas.
 verify_jwt = false
+
+[functions.admin-login]
+# El formulario aún no tiene sesión. Supabase Auth valida la contraseña.
+verify_jwt = false

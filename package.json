@@ -10,7 +10,9 @@
     "preview": "vite preview",
     "test": "node --experimental-strip-types --test tests/assistant.test.mjs",
     "check:assistant": "node scripts/check-assistant.mjs",
-    "build:assistant": "node scripts/build-assistant.mjs"
+    "build:assistant": "node scripts/build-assistant.mjs",
+    "build:login": "node scripts/build-admin-login.mjs",
+    "test:login": "node --experimental-strip-types --test tests/admin-login.test.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.104.1",
