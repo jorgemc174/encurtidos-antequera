@@ -120,4 +120,4 @@ base de datos local en memoria y simulan las respuestas de OpenAI.
 
 Referencias de la integración: [secretos de Supabase](https://supabase.com/docs/guides/functions/secrets),
 [publicar funciones desde el panel](https://supabase.com/docs/guides/functions/quickstart-dashboard),
-[respuestas estructuradas de OpenAI](https://developers.openai.com/api/docs/guides/structured-outputs).
+[respuestas estructuradas de OpenAI](https://developers.openai.com/api/docs/guides/structured-outputs).g
