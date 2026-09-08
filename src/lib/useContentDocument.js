@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { supabase } from "./supabase";
+import { supabase } from "./supabase.js";
 
 const identity = (value) => value;
 const clone = (value) => JSON.parse(JSON.stringify(value));
