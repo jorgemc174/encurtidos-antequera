@@ -348,18 +348,18 @@ export default function CartaGaldar() {
           nombre: { es: "Cervezas", en: "Beers" },
           items: [
             { nombre: { es: "Jarra", en: "Large beer" }, precio: "3,50 €" },
-            { nombre: { es: "Caña", en: "Draft beer" }, precio: "1,90 €" },
+            { nombre: { es: "Caña", en: "Draft beer" }, precio: "1,80 €" },
             {
               nombre: { es: "Copa de cerveza", en: "Glass of beer" },
-              precio: "2,30 €",
+              precio: "2,40 €",
             },
             {
               nombre: { es: "Alhambra 1925", en: "Alhambra 1925" },
-              precio: "2,70 €",
+              precio: "2,80 €",
             },
             {
               nombre: { es: "Alhambra roja", en: "Alhambra red" },
-              precio: "3,00 €",
+              precio: "3,10 €",
             },
             {
               nombre: {
@@ -373,7 +373,7 @@ export default function CartaGaldar() {
                 es: "Alhambra Radler limón",
                 en: "Alhambra lemon Radler",
               },
-              precio: "2,50 €",
+              precio: "2,60 €",
             },
             {
               nombre: { es: "Alhambra IPA", en: "Alhambra IPA" },
@@ -381,18 +381,18 @@ export default function CartaGaldar() {
             },
             {
               nombre: { es: "Mahou Radler", en: "Mahou Radler" },
-              precio: "2,50 €",
+              precio: "2,60 €",
             },
             {
               nombre: {
                 es: "Mahou sin gluten",
                 en: "Gluten-free Mahou",
               },
-              precio: "2,60 €",
+              precio: "2,70 €",
             },
             {
               nombre: { es: "Mahou tostada", en: "Mahou toasted" },
-              precio: "2,60 €",
+              precio: "2,70 €",
             },
             {
               nombre: { es: "Mahou maestra", en: "Mahou Maestra" },
@@ -400,7 +400,7 @@ export default function CartaGaldar() {
             },
             {
               nombre: { es: "Dorada especial", en: "Dorada special" },
-              precio: "2,50 €",
+              precio: "2,60 €",
             },
             {
               nombre: {
@@ -414,7 +414,7 @@ export default function CartaGaldar() {
                 es: "Dorada sin alcohol limón",
                 en: "Alcohol-free Dorada lemon",
               },
-              precio: "2,20 €",
+              precio: "2,30 €",
             },
             {
               nombre: { es: "Tropical limón", en: "Tropical lemon" },
