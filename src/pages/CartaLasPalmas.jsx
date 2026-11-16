@@ -323,11 +323,11 @@ export default function CartaLasPalmas() {
             {
               nombre: { es: "Cervezas", en: "Beers" },
               items: [
-                { nombre: { es: "Jarra", en: "Large beer" }, precio: "3,50 €" },
-                { nombre: { es: "Caña", en: "Draft beer" }, precio: "1,90 €" },
+                { nombre: { es: "Jarra", en: "Large beer" }, precio: "3,70 €" },
+                { nombre: { es: "Caña", en: "Draft beer" }, precio: "2,00 €" },
                 {
                   nombre: { es: "Copa de cerveza", en: "Glass of beer" },
-                  precio: "2,40 €",
+                  precio: "2,50 €",
                 },
                 {
                   nombre: { es: "Alhambra 1925", en: "Alhambra 1925" },
@@ -349,7 +349,7 @@ export default function CartaLasPalmas() {
                     es: "Alhambra Radler limón",
                     en: "Alhambra lemon Radler",
                   },
-                  precio: "2,60 €",
+                  precio: "2,90 €",
                 },
                 {
                   nombre: { es: "Alhambra IPA", en: "Alhambra IPA" },
@@ -357,7 +357,7 @@ export default function CartaLasPalmas() {
                 },
                 {
                   nombre: { es: "Mahou Radler", en: "Mahou Radler" },
-                  precio: "2,60 €",
+                  precio: "2,90 €",
                 },
                 {
                   nombre: {
@@ -376,7 +376,7 @@ export default function CartaLasPalmas() {
                 },
                 {
                   nombre: { es: "Dorada especial", en: "Dorada special" },
-                  precio: "2,60 €",
+                  precio: "2,70 €",
                 },
                 {
                   nombre: {
