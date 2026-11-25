@@ -5,9 +5,9 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Lightbox from "yet-another-react-lightbox";
 import "yet-another-react-lightbox/styles.css";
 import { ArrowLeft, Camera, ChevronDown, GripVertical, Image as ImageIcon, LoaderCircle, LogOut, MapPin, Pencil, Star, Trash2 } from "lucide-react";
-import logoImg from "../assets/logo-web.png";
-import logoClaroImg from "../assets/logo-claro.png";
-import { imagenesProductos } from "../data/imagenesProductos";
+import logoImg from "../assets/logo-web.webp";
+import logoClaroImg from "../assets/logo-claro.webp";
+import { imagenesProductos, miniaturaDeImagen } from "../data/imagenesProductos";
 import { IMAGENES_SUPABASE_SNAPSHOT_AT, imagenesSupabase } from "../data/imagenesSupabase";
 import { getSectionProductImageKeys, resolveSharedProductImage } from "../lib/productImage";
 import { translateProductName, translateProductNameOnline } from "../lib/productTranslation";
@@ -27,11 +27,8 @@ const ALERGENOS = [
   ["Sulfitos", "Sulphites"], ["Altramuces", "Lupin"], ["Moluscos", "Molluscs"],
 ];
 
-// Las fotos de la carta que vienen del repositorio tienen una miniatura de 216 px
-// en /images/supabase/min/: en la lista se usa esa y la grande solo al ampliar.
-const miniatura = (src) => (typeof src === "string" && src.startsWith("/images/supabase/") && !src.includes("/min/")
-  ? src.replace("/images/supabase/", "/images/supabase/min/")
-  : src);
+// En la lista se usa la miniatura (~5–11 KB) y la foto completa solo al ampliar.
+const miniatura = miniaturaDeImagen;
 
 const fechaCorta = (ms, lang) => new Intl.DateTimeFormat(lang === "en" ? "en-GB" : "es-ES", { day: "numeric", month: "long", year: "numeric" }).format(new Date(ms));
 

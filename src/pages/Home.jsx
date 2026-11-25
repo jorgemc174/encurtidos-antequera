@@ -5,30 +5,30 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Lightbox from "yet-another-react-lightbox";
 import "yet-another-react-lightbox/styles.css";
 import { Camera, ChevronLeft, ChevronRight, Image as ImageIcon, LogOut, Mail, MapPin, Menu, Pencil, Phone, Plus, Trash2, X } from "lucide-react";
-import logoImg from "../assets/logo-web.png";
-import logoClaroImg from "../assets/logo-claro.png";
-import encurtidosVasitos from "../assets/eventos/encurtidos-vasitos.jpg";
-import lasPalmasImg from "../assets/laspalmas.jpg";
-import galdarImg from "../assets/galdar.jpg";
-import teldeImg from "../assets/telde.jpg";
+import logoImg from "../assets/logo-web.webp";
+import logoClaroImg from "../assets/logo-claro.webp";
+import encurtidosVasitos from "../assets/eventos/encurtidos-vasitos.webp";
+import lasPalmasImg from "../assets/laspalmas.webp";
+import galdarImg from "../assets/galdar.webp";
+import teldeImg from "../assets/telde.webp";
 import heroImg from "../assets/hero.jpg";
-import gastroPuesto from "../assets/eventos/gastro-ingenio-puesto.jpg";
-import gastroPuestoSm from "../assets/eventos/gastro-ingenio-puesto-sm.jpg";
-import gastroNoche from "../assets/eventos/gastro-ingenio-noche.jpg";
-import gastroNocheSm from "../assets/eventos/gastro-ingenio-noche-sm.jpg";
-import gastroBarra from "../assets/eventos/gastro-ingenio-barra.jpg";
-import gastroBarraSm from "../assets/eventos/gastro-ingenio-barra-sm.jpg";
-import gastroVitrina from "../assets/eventos/gastro-ingenio-vitrina.jpg";
-import gastroVitrinaSm from "../assets/eventos/gastro-ingenio-vitrina-sm.jpg";
-import gastroEquipo from "../assets/eventos/gastro-ingenio-equipo.jpg";
-import gastroEquipoSm from "../assets/eventos/gastro-ingenio-equipo-sm.jpg";
-import gastroCarpa from "../assets/eventos/gastro-ingenio-carpa.jpg";
-import gastroCarpaSm from "../assets/eventos/gastro-ingenio-carpa-sm.jpg";
-import gastroAmbiente from "../assets/eventos/gastro-ingenio-ambiente.jpg";
-import gastroAmbienteSm from "../assets/eventos/gastro-ingenio-ambiente-sm.jpg";
-import gastroDia from "../assets/eventos/gastro-ingenio-dia.jpg";
-import gastroDiaSm from "../assets/eventos/gastro-ingenio-dia-sm.jpg";
-import { imagenesProductos } from "../data/imagenesProductos";
+import gastroPuesto from "../assets/eventos/gastro-ingenio-puesto.webp";
+import gastroPuestoSm from "../assets/eventos/gastro-ingenio-puesto-sm.webp";
+import gastroNoche from "../assets/eventos/gastro-ingenio-noche.webp";
+import gastroNocheSm from "../assets/eventos/gastro-ingenio-noche-sm.webp";
+import gastroBarra from "../assets/eventos/gastro-ingenio-barra.webp";
+import gastroBarraSm from "../assets/eventos/gastro-ingenio-barra-sm.webp";
+import gastroVitrina from "../assets/eventos/gastro-ingenio-vitrina.webp";
+import gastroVitrinaSm from "../assets/eventos/gastro-ingenio-vitrina-sm.webp";
+import gastroEquipo from "../assets/eventos/gastro-ingenio-equipo.webp";
+import gastroEquipoSm from "../assets/eventos/gastro-ingenio-equipo-sm.webp";
+import gastroCarpa from "../assets/eventos/gastro-ingenio-carpa.webp";
+import gastroCarpaSm from "../assets/eventos/gastro-ingenio-carpa-sm.webp";
+import gastroAmbiente from "../assets/eventos/gastro-ingenio-ambiente.webp";
+import gastroAmbienteSm from "../assets/eventos/gastro-ingenio-ambiente-sm.webp";
+import gastroDia from "../assets/eventos/gastro-ingenio-dia.webp";
+import gastroDiaSm from "../assets/eventos/gastro-ingenio-dia-sm.webp";
+import { imagenesProductos, miniaturaDeImagen } from "../data/imagenesProductos";
 import { IMAGENES_SUPABASE_SNAPSHOT_AT, imagenesSupabase } from "../data/imagenesSupabase";
 import { getSectionProductImageKeys, resolveSharedProductImage } from "../lib/productImage";
 import { translateProductName, translateProductNameOnline } from "../lib/productTranslation";
@@ -651,6 +651,9 @@ export default function Home() {
 
   const heroSrc = getImage("hero", heroImg);
   const heroEsEstatica = typeof heroSrc === "string" && heroSrc.endsWith("/images/supabase/home-hero.jpg");
+  const webpEstatica = (src) => (typeof src === "string" && src.startsWith("/images/supabase/home-") && src.endsWith(".jpg")
+    ? src.replace(/\.jpg$/, ".webp")
+    : src);
 
   return (
     <div className="min-h-screen bg-pared text-tinta">
@@ -739,7 +742,8 @@ export default function Home() {
                 {tEdit("tituloPortada") || <h1 {...editable("tituloPortada", "ancho-titular equilibrado text-[2.6rem] font-extrabold leading-[0.98] tracking-[-0.03em] sm:text-6xl lg:text-[5.25rem]")}>{t.tituloPortada}</h1>}
               </div>
               <figure className="relative m-0 mt-5 lg:col-span-4 lg:col-start-9 lg:row-span-2 lg:row-start-1 lg:mt-0">
-                <img src={heroSrc} srcSet={heroEsEstatica ? "/images/supabase/home-hero-800.jpg 800w, /images/supabase/home-hero.jpg 1200w" : undefined}
+                <img src={heroEsEstatica ? "/images/supabase/home-hero-800.webp" : heroSrc}
+                  srcSet={heroEsEstatica ? "/images/supabase/home-hero-600.webp 600w, /images/supabase/home-hero-800.webp 800w, /images/supabase/home-hero.webp 1200w" : undefined}
                   sizes="(min-width: 1024px) 33vw, 100vw" alt={t.vitrinaAlt} fetchPriority="high" decoding="async" width="1200" height="900"
                   className="aspect-[16/10] w-full rounded-md object-cover lg:aspect-[4/3]" />
                 {isAdmin && editMode && (
@@ -782,7 +786,7 @@ export default function Home() {
                 {fotoPlato && platoPos && (
                   <figure id="plato-pared" key={palabraActiva} className="plato-entra absolute z-10 m-0 overflow-hidden rounded-md bg-pared shadow-[0_18px_40px_-12px_rgba(0,0,0,0.45)]"
                     style={{ left: platoPos.left, top: platoPos.top, width: platoPos.ancho }}>
-                    <img src={fotoPlato} alt={palabras[palabraActiva][lang]} className="aspect-[4/3] w-full object-cover" decoding="async" />
+                    <img src={platoPos.ancho < 260 ? miniaturaDeImagen(fotoPlato) : fotoPlato} alt={palabras[palabraActiva][lang]} className="aspect-[4/3] w-full object-cover" decoding="async" />
                     <figcaption className="flex items-center justify-between gap-2 py-1 pl-3 pr-1 text-sm font-semibold">
                       {palabras[palabraActiva][lang]}
                       <button type="button" onClick={() => cerrarPlato(true)} className="inline-flex size-9 shrink-0 items-center justify-center rounded-full hover:bg-cal" aria-label={t.cerrarFoto}>
@@ -915,11 +919,11 @@ export default function Home() {
                       </div>
                       {portada && unico && (
                         <button type="button" onClick={() => setFotoAmpliada({ src: portada, alt: producto.items[0].nombre[lang] })} className="shrink-0 cursor-zoom-in overflow-hidden rounded-md focus-visible:outline-offset-[-3px]" aria-label={`${t.ampliarFoto}: ${producto.items[0].nombre[lang]}`}>
-                          <img src={portada} alt="" loading="lazy" decoding="async" className="h-16 w-24 object-cover transition-transform duration-500 hover:scale-105 md:h-20 md:w-28" />
+                          <img src={miniaturaDeImagen(portada)} alt="" loading="lazy" decoding="async" className="h-16 w-24 object-cover transition-transform duration-500 hover:scale-105 md:h-20 md:w-28" />
                         </button>
                       )}
                       {portada && !unico && !isOpen && (
-                        <img src={portada} alt="" loading="lazy" decoding="async" className="hidden h-16 w-24 shrink-0 rounded-md object-cover sm:block md:h-20 md:w-28" />
+                        <img src={miniaturaDeImagen(portada)} alt="" loading="lazy" decoding="async" className="hidden h-16 w-24 shrink-0 rounded-md object-cover sm:block md:h-20 md:w-28" />
                       )}
                       {!editMode && !unico && (
                         <button type="button" onClick={() => setOpenProductos((prev) => ({ ...prev, [idx]: !isOpen }))} aria-expanded={isOpen} aria-controls={panelId}
@@ -1009,7 +1013,7 @@ export default function Home() {
                 return (
                   <article key={idx} id={`puesto-${idx}`} className="scroll-mt-24">
                     <div className="relative">
-                      <img src={getImage(`puesto-${idx}`, puesto.imagen)} alt={puesto.nombre[lang]} loading="lazy" decoding="async" className="aspect-[4/3] w-full rounded-md object-cover" />
+                      <img src={webpEstatica(getImage(`puesto-${idx}`, puesto.imagen))} alt={puesto.nombre[lang]} loading="lazy" decoding="async" className="aspect-[4/3] w-full rounded-md object-cover" />
                       {isAdmin && editMode && (
                         <button type="button" onClick={() => openImageUpload(`puesto-${idx}`)} className="absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full bg-tinta/80 px-3 py-1.5 text-xs font-semibold text-pared">
                           <Camera className="size-3.5" aria-hidden="true" strokeWidth={2} />Cambiar foto
