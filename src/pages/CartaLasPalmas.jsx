@@ -494,7 +494,7 @@ export default function CartaLasPalmas() {
                         es: "Copa Figuero 4 D.O. Ribera del Duero Roble",
                         en: "Glass of Figuero 4 D.O. Ribera del Duero Roble",
                       },
-                      precio: "3,50 €",
+                      precio: "3,80 €",
                     },
                     {
                       nombre: {
