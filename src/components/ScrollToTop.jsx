@@ -14,7 +14,9 @@ export default function ScrollToTop() {
     let intentos = 0;
     let timer;
     const buscar = () => {
-      const destino = document.getElementById(decodeURIComponent(hash.slice(1)));
+      let id = hash.slice(1);
+      try { id = decodeURIComponent(id); } catch { /* ancla mal formada: se usa tal cual */ }
+      const destino = document.getElementById(id);
       if (destino) {
         destino.scrollIntoView({ block: "start" });
         return;

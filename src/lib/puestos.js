@@ -1,13 +1,11 @@
 // Datos y horario de los tres puestos, compartidos por la portada y las cartas.
 // La versión publicada vive en Supabase (home_json → puestos); esto es el respaldo.
 
-// El horario habitual vuelve a mostrarse al comenzar el 12 de agosto en Canarias.
-export const FIN_CIERRE_MERCADO_DEL_PUERTO = Date.parse("2026-08-11T23:00:00Z");
-
 export const puestosDatos = [
   {
     nombre: { es: "Las Palmas", en: "Las Palmas" },
     descripcion: { es: "Puesto con nuestra selección de aceitunas, encurtidos y tapas tradicionales.", en: "Stand with our selection of olives, pickles and traditional tapas." },
+    lugar: { es: "Dentro del Mercado del Puerto.", en: "Inside the Mercado del Puerto." },
     mapa: "https://maps.app.goo.gl/R18Khz2ULXaL5vcc7", rutaCarta: "/carta-las-palmas",
     horario: {
       es: [{ dia: "Lunes", hora: "11:00 - 16:00" }, { dia: "Martes", hora: "11:00 - 24:00" }, { dia: "Miércoles", hora: "11:00 - 24:00" }, { dia: "Jueves", hora: "11:00 - 24:00" }, { dia: "Viernes", hora: "11:00 - 24:00" }, { dia: "Sábado", hora: "11:00 - 24:00" }, { dia: "Domingo", hora: "12:00 - 17:00" }],
@@ -17,6 +15,7 @@ export const puestosDatos = [
   {
     nombre: { es: "Gáldar", en: "Gáldar" },
     descripcion: { es: "Un espacio donde disfrutar del sabor de siempre con producto cercano y cuidado.", en: "A place to enjoy traditional flavour with local and carefully selected products." },
+    lugar: { es: "", en: "" },
     mapa: "https://maps.app.goo.gl/ACi1i4GrA85HnbZAA", rutaCarta: "/carta-galdar",
     horario: {
       es: [{ dia: "Lunes", hora: "11:00 - 22:00" }, { dia: "Martes", hora: "11:00 - 22:00" }, { dia: "Miércoles", hora: "11:00 - 22:00" }, { dia: "Jueves", hora: "11:00 - 22:00" }, { dia: "Viernes", hora: "12:00 - 24:00" }, { dia: "Sábado", hora: "12:00 - 24:00" }, { dia: "Domingo", hora: "12:00 - 22:00" }],
@@ -26,6 +25,7 @@ export const puestosDatos = [
   {
     nombre: { es: "Telde", en: "Telde" },
     descripcion: { es: "Nuestra propuesta con el sabor de siempre, ideal para probar nuestras especialidades.", en: "Our traditional selection, ideal for trying our specialties." },
+    lugar: { es: "", en: "" },
     mapa: "https://maps.app.goo.gl/iRxEPQPSHbNWSf5L6", rutaCarta: "/carta-telde",
     horario: {
       es: [{ dia: "Lunes", hora: "11:00 - 01:00" }, { dia: "Martes", hora: "11:00 - 01:00" }, { dia: "Miércoles", hora: "12:00 - 02:00" }, { dia: "Jueves", hora: "12:00 - 02:00" }, { dia: "Viernes", hora: "12:00 - 02:00" }, { dia: "Sábado", hora: "12:00 - 02:00" }, { dia: "Domingo", hora: "11:00 - 01:00" }],
@@ -47,31 +47,68 @@ export function ahoraEnCanarias(date = new Date()) {
   return { dia: DIAS_SEMANA[get("weekday")] ?? 0, minutos: Number(get("hour")) * 60 + Number(get("minute")) };
 }
 
-function parseTramo(hora) {
-  const m = /(\d{1,2})[:.](\d{2})\s*[-–a]+\s*(\d{1,2})[:.](\d{2})/.exec(hora || "");
-  if (!m) return null;
-  const inicio = Number(m[1]) * 60 + Number(m[2]);
-  let fin = Number(m[3]) * 60 + Number(m[4]);
-  if (fin <= inicio) fin += 1440;
-  return { inicio, fin, textoInicio: `${m[1].padStart(2, "0")}:${m[2]}`, textoFin: `${m[3].padStart(2, "0")}:${m[4]}` };
+const pad = (n) => String(n).padStart(2, "0");
+const textoMinutos = (m) => (m === 1440 ? "24:00" : `${pad(Math.floor((m % 1440) / 60))}:${pad(m % 60)}`);
+
+// Lee un día del horario. Admite varios tramos («11:00 - 16:00 / 19:00 - 23:00»)
+// y «Cerrado». Devuelve null si no se entiende, para no inventar el estado.
+export function parseDia(hora) {
+  const texto = String(hora || "").trim();
+  if (!texto) return null;
+  if (/^(cerrado|closed)$/i.test(texto)) return { cerrado: true, tramos: [] };
+  // Toda la cadena tiene que ser tramos «HH:MM - HH:MM» separados por «/», «,», «;» o «y».
+  const partes = texto.split(/\s*(?:\/|,|;|\by\b|\band\b)\s*/i);
+  const tramos = [];
+  for (const parte of partes) {
+    const m = /^(\d{1,2})[:.h](\d{2})\s*(?:-|–|—|a|to)\s*(\d{1,2})[:.h](\d{2})$/i.exec(parte);
+    if (!m) return null;
+    const [h1, m1, h2, m2] = m.slice(1).map(Number);
+    if (h1 > 23 || h2 > 24 || m1 > 59 || m2 > 59 || (h2 === 24 && m2 !== 0)) return null;
+    const inicio = h1 * 60 + m1;
+    let fin = h2 * 60 + m2;
+    if (fin === inicio) return null; // ¿24 h o error? No se adivina.
+    if (fin < inicio) fin += 1440; // cierra pasada la medianoche
+    tramos.push({ inicio, fin });
+  }
+  if (!tramos.length) return null;
+  tramos.sort((x, y) => x.inicio - y.inicio);
+  for (let i = 1; i < tramos.length; i++) if (tramos[i].inicio < tramos[i - 1].fin) return null; // solapados
+  return { cerrado: false, tramos };
 }
 
 export function estadoDelPuesto(horario, ahora) {
-  if (!Array.isArray(horario) || horario.length < 7) return null;
-  const hoy = parseTramo(horario[ahora.dia]?.hora);
-  const ayer = parseTramo(horario[(ahora.dia + 6) % 7]?.hora);
-  if (ayer && ayer.fin > 1440 && ahora.minutos < ayer.fin - 1440) return { abierto: true, hasta: ayer.textoFin };
-  if (hoy && ahora.minutos >= hoy.inicio && ahora.minutos < hoy.fin) return { abierto: true, hasta: hoy.textoFin };
-  if (hoy && ahora.minutos < hoy.inicio) return { abierto: false, abre: hoy.textoInicio };
+  if (!Array.isArray(horario) || horario.length !== 7) return { porConfirmar: true };
+  const dias = horario.map((d) => parseDia(d?.hora));
+  const hoy = dias[ahora.dia];
+  const ayer = dias[(ahora.dia + 6) % 7];
+  if (!hoy || !ayer) return { porConfirmar: true };
+  const deAyer = ayer.tramos.find((t) => t.fin > 1440 && ahora.minutos < t.fin - 1440);
+  if (deAyer) return { abierto: true, hasta: textoMinutos(deAyer.fin - 1440) };
+  const ahoraMismo = hoy.tramos.find((t) => ahora.minutos >= t.inicio && ahora.minutos < t.fin);
+  if (ahoraMismo) return { abierto: true, hasta: textoMinutos(ahoraMismo.fin) };
+  const siguiente = hoy.tramos.find((t) => ahora.minutos < t.inicio);
+  if (siguiente) return { abierto: false, abre: textoMinutos(siguiente.inicio) };
   return { abierto: false };
 }
 
 // Texto del estado para mostrar: «Abierto hasta las 24:00», «Cerrado. Abre hoy a las 11:00»…
-export function textoEstadoPuesto(puesto, idx, ahora, textos, mercadoCerrado) {
-  if (idx === 0 && mercadoCerrado) return { abierto: false, texto: textos.mercadoPuertoCerrado };
+export function textoEstadoPuesto(puesto, ahora, textos) {
   const estado = estadoDelPuesto(puesto?.horario?.es, ahora);
-  if (!estado) return null;
+  if (estado.porConfirmar) return { abierto: false, porConfirmar: true, texto: textos.horarioPorConfirmar };
   if (estado.abierto) return { abierto: true, texto: String(textos.abiertoHasta || "").replace("{h}", estado.hasta) };
   if (estado.abre) return { abierto: false, texto: String(textos.cerradoAbreA || "").replace("{h}", estado.abre) };
   return { abierto: false, texto: textos.cerradoAhora };
+}
+
+// Normaliza la ruta para encontrar el puesto aunque llegue con barra final.
+export const rutaLimpia = (ruta) => (String(ruta || "/").replace(/\/+$/, "") || "/");
+
+// Solo se aceptan los dos idiomas de la web; cualquier otro valor guardado vuelve a español.
+export function idiomaGuardado() {
+  try {
+    const guardado = localStorage.getItem("lang");
+    return guardado === "en" ? "en" : "es";
+  } catch {
+    return "es";
+  }
 }

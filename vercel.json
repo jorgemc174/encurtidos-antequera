@@ -1,6 +1,18 @@
 {
   "rewrites": [
     {
+      "source": "/carta-las-palmas",
+      "destination": "/carta-las-palmas/index.html"
+    },
+    {
+      "source": "/carta-galdar",
+      "destination": "/carta-galdar/index.html"
+    },
+    {
+      "source": "/carta-telde",
+      "destination": "/carta-telde/index.html"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }

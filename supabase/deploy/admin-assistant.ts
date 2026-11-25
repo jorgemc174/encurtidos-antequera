@@ -6,14 +6,86 @@ import { createClient } from "npm:@supabase/supabase-js@2.104.1";
 
 // supabase/functions/admin-assistant/catalog.ts
 var locations = ["Carta - G\xE1ldar", "Carta - Telde", "Carta - Las Palmas"];
+var homeTextDefaults = {
+  es: {
+    tituloPortada: "Tapas, aceitunas y ca\xF1as",
+    entradaPortada: "En el Mercado del Puerto (Las Palmas), en G\xE1ldar y en Telde.",
+    novedadTituloV2: "Antequera en Gastro Ingenio",
+    novedadTextoV2: "Nuestra barra en el Mercado Gastron\xF3mico Navide\xF1o de Ingenio: montaditos, perritos, minihamburguesas, banderillas y aceitunas.",
+    novedadLugar: "Ingenio, Gran Canaria",
+    productosTitulo: "Aceitunas, encurtidos y tapas",
+    dondeTitulo: "D\xF3nde estamos",
+    equipoTitulo: "El equipo",
+    equipoPie: "El equipo de Antequera Encurtidos en Gastro Ingenio.",
+    contactoTitulo: "Contacto",
+    trabajaTitulo: "Trabaja con nosotros",
+    trabajaTexto: "Env\xEDanos tu curr\xEDculum por correo.",
+    enviarCV: "Enviar curr\xEDculum",
+    cartaCompleta: "Carta completa de cada puesto:",
+    verCartas: "Cartas",
+    verCarta: "Ver carta",
+    comoLlegar: "C\xF3mo llegar",
+    horarioSemana: "Horario de la semana",
+    horarioPorConfirmar: "Horario por confirmar",
+    abiertoHasta: "Abierto hasta las {h}",
+    cerradoAbreA: "Cerrado. Abre hoy a las {h}",
+    cerradoAhora: "Cerrado ahora",
+    ayudaToque: "Toca una tapa para ver su foto. La carta cambia seg\xFAn el puesto.",
+    ayudaRaton: "Pasa el rat\xF3n por una tapa para ver su foto. La carta cambia seg\xFAn el puesto.",
+    inicio: "Inicio",
+    novedades: "Novedades",
+    productos: "Productos",
+    horario: "Horario",
+    contacto: "Contacto",
+    hoy: "Hoy"
+  },
+  en: {
+    tituloPortada: "Tapas, olives and draught beer",
+    entradaPortada: "At the Mercado del Puerto in Las Palmas, in G\xE1ldar and in Telde.",
+    novedadTituloV2: "Antequera at Gastro Ingenio",
+    novedadTextoV2: "Our bar at the Ingenio Christmas food market: montaditos, hot dogs, mini burgers, pickle skewers and olives.",
+    novedadLugar: "Ingenio, Gran Canaria",
+    productosTitulo: "Olives, pickles and tapas",
+    dondeTitulo: "Where to find us",
+    equipoTitulo: "The team",
+    equipoPie: "The Antequera Encurtidos team at Gastro Ingenio.",
+    contactoTitulo: "Contact",
+    trabajaTitulo: "Work with us",
+    trabajaTexto: "Email us your CV.",
+    enviarCV: "Send CV",
+    cartaCompleta: "Full menu for each location:",
+    verCartas: "Menus",
+    verCarta: "View menu",
+    comoLlegar: "Directions",
+    horarioSemana: "Weekly opening hours",
+    horarioPorConfirmar: "Opening hours to be confirmed",
+    abiertoHasta: "Open until {h}",
+    cerradoAbreA: "Closed. Opens today at {h}",
+    cerradoAhora: "Closed now",
+    ayudaToque: "Tap a dish to see its photo. Menus vary by location.",
+    ayudaRaton: "Hover over a dish to see its photo. Menus vary by location.",
+    inicio: "Home",
+    novedades: "News",
+    productos: "Products",
+    horario: "Opening hours",
+    contacto: "Contact",
+    hoy: "Today"
+  }
+};
+var standLugarDefaults = {
+  0: { es: "Dentro del Mercado del Puerto.", en: "Inside the Mercado del Puerto." },
+  1: { es: "", en: "" },
+  2: { es: "", en: "" }
+};
 function buildCatalog(documents) {
   const fields = [];
   for (const document of documents) {
-    const add = (path, label, value, kind) => {
+    const add = (path, label, value, kind, seeded = false) => {
       if (typeof value === "string" && value.length <= 6e3) {
-        fields.push({ id: `f${fields.length}`, table: document.table, key: document.key, path, label, value, kind });
+        fields.push({ id: `f${fields.length}`, table: document.table, key: document.key, path, label, value, kind, ...seeded ? { seeded: true } : {} });
       }
     };
+    const isPuestos = document.table === "home_json" && document.key === "puestos";
     const visit = (value, path, trail) => {
       if (!value || typeof value !== "object") return;
       if (Array.isArray(value)) {
@@ -23,9 +95,18 @@ function buildCatalog(documents) {
       const context = value.nombre?.es ? [...trail, value.nombre.es] : trail;
       const label = [document.key, ...context].join(" \xB7 ");
       if (typeof value.precio === "string") add([...path, "precio"], `${label} \xB7 Precio`, value.precio, "price");
-      for (const field of ["nombre", "descripcion"]) {
+      const textFields = isPuestos && path.length === 1 ? ["nombre", "lugar"] : ["nombre", "descripcion", "lugar"];
+      for (const field of textFields) {
+        const nombreCampo = field === "nombre" ? "Nombre" : field === "lugar" ? "Lugar" : "Descripci\xF3n";
         for (const lang of ["es", "en"]) {
-          add([...path, field, lang], `${label} \xB7 ${field === "nombre" ? "Nombre" : "Descripci\xF3n"} (${lang})`, value[field]?.[lang], "text");
+          const existing = value[field]?.[lang];
+          if (typeof existing === "string") {
+            add([...path, field, lang], `${label} \xB7 ${nombreCampo} (${lang})`, existing, "text");
+          } else if (isPuestos && path.length === 1 && field === "lugar") {
+            const idx = Number(path[0]);
+            const fallback = standLugarDefaults[idx]?.[lang] ?? "";
+            add([...path, field, lang], `${label} \xB7 ${nombreCampo} (${lang})`, fallback, "text", true);
+          }
         }
       }
       if (typeof value.hora === "string") add([...path, "hora"], `${label} \xB7 ${value.dia || "Horario"}`, value.hora, "text");
@@ -37,8 +118,11 @@ function buildCatalog(documents) {
     };
     if (document.table === "home_json" && document.key === "textos") {
       for (const lang of ["es", "en"]) {
-        for (const [key, value] of Object.entries(document.data?.[lang] || {})) {
-          add([lang, key], `P\xE1gina de inicio \xB7 ${key} (${lang})`, value, "text");
+        const current = document.data?.[lang] || {};
+        for (const [key, fallback] of Object.entries(homeTextDefaults[lang])) {
+          const existing = current[key];
+          if (typeof existing === "string") add([lang, key], `P\xE1gina de inicio \xB7 ${key} (${lang})`, existing, "text");
+          else add([lang, key], `P\xE1gina de inicio \xB7 ${key} (${lang})`, fallback, "text", true);
         }
       }
     } else visit(document.data, [], []);
@@ -72,12 +156,23 @@ function prepareProposal(documents, fields, output) {
       modified.set(documentId, { table: source.table, key: source.key, before: source.data, after: structuredClone(source.data) });
     }
     let target = modified.get(documentId).after;
-    for (const part of field.path.slice(0, -1)) {
-      if (["__proto__", "prototype", "constructor"].includes(part) || !Object.hasOwn(target, part)) throw new Error("Campo no permitido.");
+    for (let i = 0; i < field.path.length - 1; i++) {
+      const part = field.path[i];
+      if (["__proto__", "prototype", "constructor"].includes(part)) throw new Error("Campo no permitido.");
+      if (!Object.hasOwn(target, part)) {
+        if (!field.seeded) throw new Error("Campo no permitido.");
+        if (field.table === "home_json" && field.key === "puestos" && part === "lugar") {
+          const idx = Number(field.path[0]);
+          target[part] = { ...standLugarDefaults[idx] || { es: "", en: "" } };
+        } else {
+          target[part] = {};
+        }
+      }
       target = target[part];
     }
     const last = field.path.at(-1);
-    if (["__proto__", "prototype", "constructor"].includes(last) || !Object.hasOwn(target, last)) throw new Error("Campo no permitido.");
+    if (["__proto__", "prototype", "constructor"].includes(last)) throw new Error("Campo no permitido.");
+    if (!field.seeded && !Object.hasOwn(target, last)) throw new Error("Campo no permitido.");
     target[last] = value;
     return { table: field.table, key: field.key, path: field.path, label: field.label, before: field.value, after: value };
   }).filter(Boolean);

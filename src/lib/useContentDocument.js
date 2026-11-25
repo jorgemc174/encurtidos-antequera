@@ -3,7 +3,24 @@ import { supabase } from "./supabase.js";
 
 const identity = (value) => value;
 const clone = (value) => JSON.parse(JSON.stringify(value));
-export const CONTENT_CACHE_VERSION = "encurtidos-content-cache-v2";
+export const CONTENT_CACHE_VERSION = "encurtidos-content-cache-v3";
+
+// Copia local de lo último que Supabase CONFIRMÓ (por lectura con datos o por una
+// escritura aceptada), con su fecha. Cualquier otra cosa en el almacenamiento se
+// trata como inexistente: nunca se enseña como vigente.
+function leerCopiaConfirmada(storageKey) {
+  try {
+    const raw = localStorage.getItem(storageKey);
+    if (!raw) return null;
+    const copia = JSON.parse(raw);
+    if (!copia || copia.v !== 3 || typeof copia.at !== "number" || !("data" in copia) || copia.data == null) return null;
+    return copia;
+  } catch { return null; }
+}
+
+function guardarCopiaConfirmada(storageKey, data, at) {
+  try { localStorage.setItem(storageKey, JSON.stringify({ v: 3, at, data })); } catch { /* sin almacenamiento */ }
+}
 
 export function ensureContentCacheVersion() {
   if (typeof localStorage === "undefined") return;
@@ -26,14 +43,20 @@ export function ensureContentCacheVersion() {
 // escritura; el servidor compara con la última versión que este editor leyó.
 export function useContentDocument({ table, documentKey, storageKey, fallback, isAdmin, normalize = identity, serialize = identity }) {
   const options = useRef({ fallback, normalize, serialize });
+  // De dónde salen los datos que se ven: «remote» (Supabase, al día), «cache»
+  // (última copia que llegó de Supabase en este navegador) o «fallback» (copia
+  // del código, que puede estar desfasada: no debe enseñarse como vigente).
+  const [copiaInicial] = useState(() => {
+    try { ensureContentCacheVersion(); } catch { /* sin almacenamiento */ }
+    return leerCopiaConfirmada(storageKey);
+  });
+  const [source, setSource] = useState(copiaInicial ? "cache" : "fallback");
+  const [savedAt, setSavedAt] = useState(copiaInicial?.at ?? null);
   const [data, setData] = useState(() => {
-    ensureContentCacheVersion();
-    try {
-      const saved = localStorage.getItem(storageKey);
-      return normalize(saved ? JSON.parse(saved) : clone(fallback));
-    } catch { return clone(fallback); }
+    try { return normalize(copiaInicial ? copiaInicial.data : clone(fallback)); } catch { return normalize(clone(fallback)); }
   });
   const [ready, setReady] = useState(false);
+  const [failed, setFailed] = useState(false);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const remote = useRef(null);
@@ -48,16 +71,33 @@ export function useContentDocument({ table, documentKey, storageKey, fallback, i
     alive.current = true;
     const keyColumn = table === "menu_json" ? "location" : "section";
     (async () => {
-      const { data: row, error: readError } = await supabase.from(table).select("data").eq(keyColumn, documentKey).maybeSingle();
+      let row = null;
+      let readError = null;
+      try {
+        ({ data: row, error: readError } = await supabase.from(table).select("data").eq(keyColumn, documentKey).maybeSingle());
+      } catch (err) {
+        readError = err; // sin red o servicio caído
+      }
       if (cancelled) return;
       if (readError) {
         setError("No se han podido cargar los datos actuales. Recarga la página antes de editar.");
+        setFailed(true);
         return;
       }
       remote.current = row?.data ?? null;
       const loaded = options.current.normalize(row?.data ?? clone(options.current.fallback));
       setData(loaded);
-      localStorage.setItem(storageKey, JSON.stringify(options.current.serialize(loaded)));
+      if (row?.data) {
+        const now = Date.now();
+        guardarCopiaConfirmada(storageKey, options.current.serialize(loaded), now);
+        setSource("remote");
+        setSavedAt(now);
+      } else {
+        // Supabase no tiene este documento: no hay datos confirmados que enseñar.
+        try { localStorage.removeItem(storageKey); } catch { /* sin almacenamiento */ }
+        setSource("fallback");
+        setSavedAt(null);
+      }
       setReady(true);
     })();
     return () => { cancelled = true; alive.current = false; };
@@ -73,7 +113,6 @@ export function useContentDocument({ table, documentKey, storageKey, fallback, i
     if (!ready || !isAdmin || revision.current === queuedRevision.current) return;
     queuedRevision.current = revision.current;
     const value = clone(options.current.serialize(data));
-    localStorage.setItem(storageKey, JSON.stringify(value));
     queue.current = queue.current.then(async () => {
       if (blocked.current || JSON.stringify(value) === JSON.stringify(remote.current)) return;
       if (alive.current) setSaving(true);
@@ -85,7 +124,9 @@ export function useContentDocument({ table, documentKey, storageKey, fallback, i
         if (alive.current) setError("No se ha guardado esta edición. Puede haber cambios en otra ventana o un problema de conexión. Copia tu texto y recarga la página.");
       } else {
         remote.current = value;
-        if (alive.current) setError("");
+        const now = Date.now();
+        guardarCopiaConfirmada(storageKey, value, now);
+        if (alive.current) { setError(""); setSource("remote"); setSavedAt(now); }
       }
       if (alive.current) setSaving(false);
     }).catch(() => {
@@ -93,5 +134,5 @@ export function useContentDocument({ table, documentKey, storageKey, fallback, i
       if (alive.current) { setSaving(false); setError("No se ha guardado esta edición. Copia tu texto y recarga la página."); }
     });
   }, [data, ready, isAdmin, table, documentKey, storageKey]);
-  return { data, edit, error, saving, ready };
+  return { data, edit, error, saving, ready, source, savedAt, failed };
 }

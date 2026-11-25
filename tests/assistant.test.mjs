@@ -48,19 +48,50 @@ test("la caché del menú se invalida cuando cambia la versión de datos", async
   try {
     stub.setItem("encurtidos_menu_Carta - Gáldar", JSON.stringify({ old: true }));
     stub.setItem("encurtidos_content_cache_version", "v1");
-    const { ensureContentCacheVersion } = await import("../src/lib/useContentDocument.js");
+    const { CONTENT_CACHE_VERSION, ensureContentCacheVersion } = await import("../src/lib/useContentDocument.js");
     ensureContentCacheVersion();
     assert.equal(stub.getItem("encurtidos_menu_Carta - Gáldar"), null);
-    assert.equal(stub.getItem("encurtidos_content_cache_version"), "encurtidos-content-cache-v2");
+    assert.equal(stub.getItem("encurtidos_content_cache_version"), CONTENT_CACHE_VERSION);
   } finally {
     if (previous) Object.defineProperty(globalThis, "localStorage", { value: previous, configurable: true, writable: true });
     else delete globalThis.localStorage;
   }
 });
-test("el catálogo incluye horarios e idiomas, pero no enlaces de administración", () => {
-  const catalog = buildCatalog([{ table: "home_json", key: "puestos", data: [{ nombre: { es: "Gáldar" }, mapa: "https://example.com", horario: { es: [{ dia: "Lunes", hora: "11:00 - 22:00" }] } }] }]);
+test("el catálogo incluye horarios, lugar y textos visibles nuevos, omitiendo claves obsoletas", () => {
+  const puestosLegacy = [
+    { nombre: { es: "Las Palmas", en: "Las Palmas" }, descripcion: { es: "Vieja", en: "Old" }, mapa: "https://example.com", horario: { es: [{ dia: "Lunes", hora: "11:00 - 16:00" }] } },
+    { nombre: { es: "Gáldar", en: "Gáldar" }, descripcion: { es: "Vieja", en: "Old" }, mapa: "https://example.com", horario: { es: [{ dia: "Lunes", hora: "11:00 - 22:00" }] } },
+  ];
+  const textosLegacy = {
+    es: { titulo: "Antiguo", descripcionPortada: "Viejo folleto", novedadTitulo: "Viejo evento", inicio: "Inicio" },
+    en: { titulo: "Old", descripcionPortada: "Old brochure", novedadTitulo: "Old event", inicio: "Home" },
+  };
+  const docs = [
+    { table: "home_json", key: "puestos", data: puestosLegacy },
+    { table: "home_json", key: "textos", data: textosLegacy },
+  ];
+  const catalog = buildCatalog(docs);
   assert.ok(catalog.some((field) => field.label.includes("Lunes")));
   assert.equal(catalog.some((field) => field.path.includes("mapa")), false);
+  assert.equal(catalog.some((field) => field.path.includes("descripcion")), false);
+  assert.equal(catalog.some((field) => field.path.includes("novedadTitulo") || field.path.includes("descripcionPortada")), false);
+  const tituloPortada = catalog.find((field) => field.key === "textos" && field.path[0] === "es" && field.path[1] === "tituloPortada");
+  const galdarLugar = catalog.find((field) => field.key === "puestos" && field.path[0] === "1" && field.path[1] === "lugar" && field.path[2] === "es");
+  assert.ok(tituloPortada);
+  assert.ok(galdarLugar);
+  const proposal = prepareProposal(docs, catalog, {
+    message: "Actualiza titular y lugar de Gáldar",
+    changes: [
+      { field_id: tituloPortada.id, value: "Tapas en la barra" },
+      { field_id: galdarLugar.id, value: "Plaza de Santiago" },
+    ],
+  });
+  const textosDoc = proposal.documents.find((d) => d.key === "textos");
+  const puestosDoc = proposal.documents.find((d) => d.key === "puestos");
+  assert.equal(textosDoc.before.es.tituloPortada, undefined);
+  assert.equal(textosDoc.after.es.tituloPortada, "Tapas en la barra");
+  assert.equal(puestosDoc.before[1].lugar, undefined);
+  assert.deepEqual(puestosDoc.after[1].lugar, { es: "Plaza de Santiago", en: "" });
 });
 
 test("handler del servidor: autenticación, respuestas de IA y guardado exclusivo de borradores", async (t) => {

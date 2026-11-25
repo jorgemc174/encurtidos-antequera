@@ -6,18 +6,34 @@ import Lightbox from "yet-another-react-lightbox";
 import "yet-another-react-lightbox/styles.css";
 import { ArrowLeft, Camera, ChevronDown, GripVertical, Image as ImageIcon, LoaderCircle, LogOut, MapPin, Pencil, Star, Trash2 } from "lucide-react";
 import logoImg from "../assets/logo-web.png";
-import alergenosImg from "../assets/alergenos.jpg";
+import logoClaroImg from "../assets/logo-claro.png";
 import { imagenesProductos } from "../data/imagenesProductos";
 import { IMAGENES_SUPABASE_SNAPSHOT_AT, imagenesSupabase } from "../data/imagenesSupabase";
 import { getSectionProductImageKeys, resolveSharedProductImage } from "../lib/productImage";
 import { translateProductName, translateProductNameOnline } from "../lib/productTranslation";
 import { supabase, normalizeKey } from "../lib/supabase";
-import { FIN_CIERRE_MERCADO_DEL_PUERTO, ahoraEnCanarias, puestosDatos, textoEstadoPuesto } from "../lib/puestos";
+import { ahoraEnCanarias, idiomaGuardado, puestosDatos, rutaLimpia, textoEstadoPuesto } from "../lib/puestos";
 
 const textosEstado = {
-  es: { abiertoHasta: "Abierto hasta las {h}", cerradoAbreA: "Cerrado. Abre hoy a las {h}", cerradoAhora: "Cerrado ahora", mercadoPuertoCerrado: "Cerrado temporalmente" },
-  en: { abiertoHasta: "Open until {h}", cerradoAbreA: "Closed. Opens today at {h}", cerradoAhora: "Closed now", mercadoPuertoCerrado: "Temporarily closed" },
+  es: { abiertoHasta: "Abierto hasta las {h}", cerradoAbreA: "Cerrado. Abre hoy a las {h}", cerradoAhora: "Cerrado ahora", horarioPorConfirmar: "Horario por confirmar" },
+  en: { abiertoHasta: "Open until {h}", cerradoAbreA: "Closed. Opens today at {h}", cerradoAhora: "Closed now", horarioPorConfirmar: "Opening hours to be confirmed" },
 };
+
+// Los 14 alérgenos de declaración obligatoria (Reglamento UE 1169/2011).
+const ALERGENOS = [
+  ["Cereales con gluten", "Cereals containing gluten"], ["Crustáceos", "Crustaceans"], ["Huevos", "Eggs"],
+  ["Pescado", "Fish"], ["Cacahuetes", "Peanuts"], ["Soja", "Soybeans"], ["Leche", "Milk"],
+  ["Frutos de cáscara", "Nuts"], ["Apio", "Celery"], ["Mostaza", "Mustard"], ["Sésamo", "Sesame"],
+  ["Sulfitos", "Sulphites"], ["Altramuces", "Lupin"], ["Moluscos", "Molluscs"],
+];
+
+// Las fotos de la carta que vienen del repositorio tienen una miniatura de 216 px
+// en /images/supabase/min/: en la lista se usa esa y la grande solo al ampliar.
+const miniatura = (src) => (typeof src === "string" && src.startsWith("/images/supabase/") && !src.includes("/min/")
+  ? src.replace("/images/supabase/", "/images/supabase/min/")
+  : src);
+
+const fechaCorta = (ms, lang) => new Intl.DateTimeFormat(lang === "en" ? "en-GB" : "es-ES", { day: "numeric", month: "long", year: "numeric" }).format(new Date(ms));
 
 function compressToDataUrl(file) {
   return new Promise((resolve, reject) => {
@@ -90,12 +106,15 @@ function getItem(data, catIdx, subIdx, grpIdx, itemIdx) {
 }
 
 export default function CartaBase({ titulo, categorias }) {
-  const [lang, setLang] = useState(() => {
-    try { return localStorage.getItem("lang") || "es"; } catch { return "es"; }
-  });
+  const [lang, setLang] = useState(idiomaGuardado);
   const [activeCategoryId, setActiveCategoryId] = useState("");
   const [openSubsections, setOpenSubsections] = useState({});
   const [selectedImage, setSelectedImage] = useState(null);
+  const [destacados, setDestacados] = useState(() => {
+    try { return JSON.parse(localStorage.getItem("encurtidos_destacados_items") || "[]"); } catch { return []; }
+  });
+  const [horarioAbierto, setHorarioAbierto] = useState(false);
+  const [altoPestanas, setAltoPestanas] = useState(64);
   const [editMode, setEditMode] = useState(false);
   const [supabasePhotos, setSupabasePhotos] = useState({});
   const [uploading, setUploading] = useState(null);
@@ -119,16 +138,25 @@ export default function CartaBase({ titulo, categorias }) {
     fallback: puestosDatos, isAdmin: false,
     normalize: (rows) => rows.map((p, i) => ({ ...puestosDatos[i], ...p, horario: p.horario || puestosDatos[i]?.horario })),
   });
-  const puestoIdx = puestosDocument.data.findIndex((p) => p.rutaCarta === location.pathname);
+  const puestoIdx = puestosDocument.data.findIndex((p) => rutaLimpia(p.rutaCarta) === rutaLimpia(location.pathname));
   const puesto = puestoIdx >= 0 ? puestosDocument.data[puestoIdx] : null;
   const [ahora, setAhora] = useState(() => ahoraEnCanarias());
   useEffect(() => {
     const timer = window.setInterval(() => setAhora(ahoraEnCanarias()), 60_000);
     return () => window.clearInterval(timer);
   }, []);
-  const estadoPuesto = puesto
-    ? textoEstadoPuesto(puesto, puestoIdx, ahora, textosEstado[lang], Date.now() < FIN_CIERRE_MERCADO_DEL_PUERTO)
-    : null;
+  const estadoPuesto = puesto ? textoEstadoPuesto(puesto, ahora, textosEstado[lang]) : null;
+  // Precios: solo se enseñan si vienen de Supabase o de la última copia que llegó
+  // de Supabase a este móvil. Los del código pueden estar desfasados.
+  const preciosOcultos = !isAdmin && menuDocument.source === "fallback";
+  const avisoPrecios = isAdmin ? null
+    : menuDocument.source === "fallback" && (menuDocument.failed || menuDocument.ready)
+      ? (lang === "es" ? "No hemos podido cargar los precios actuales. Confírmalos en el puesto." : "We couldn't load current prices. Please check at the stand.")
+      : menuDocument.source === "cache" && menuDocument.failed && menuDocument.savedAt
+        ? (lang === "es" ? `Precios guardados el ${fechaCorta(menuDocument.savedAt, "es")}. Confírmalos en el puesto.` : `Prices saved on ${fechaCorta(menuDocument.savedAt, "en")}. Please check at the stand.`)
+        : menuDocument.source === "fallback"
+          ? (lang === "es" ? "Cargando precios…" : "Loading prices…")
+          : null;
   const setMenuData = menuDocument.edit;
   const [editingKey, setEditingKey] = useState(null);
   const [editNombreES, setEditNombreES] = useState("");
@@ -147,7 +175,8 @@ export default function CartaBase({ titulo, categorias }) {
       const { data, error } = await sbSelect("destacados", "item_key");
       if (!error && data) {
         const keys = data.map((r) => r.item_key);
-        localStorage.setItem("encurtidos_destacados_items", JSON.stringify(keys));
+        setDestacados(keys);
+        try { localStorage.setItem("encurtidos_destacados_items", JSON.stringify(keys)); } catch { /* sin almacenamiento */ }
       }
     })();
   }, []);
@@ -207,7 +236,7 @@ export default function CartaBase({ titulo, categorias }) {
       const next = {};
       menuDataConId.forEach((categoria) => {
         if (categoria.subcategoriasPlegables && categoria.subcategorias) {
-          categoria.subcategorias.forEach((subcategoria) => { next[subcategoria.id] = prev[subcategoria.id] ?? false; });
+          categoria.subcategorias.forEach((subcategoria) => { next[subcategoria.id] = prev[subcategoria.id] ?? normalizeKey(subcategoria.nombre.es) === "cervezas"; });
         }
       });
       return next;
@@ -442,16 +471,14 @@ export default function CartaBase({ titulo, categorias }) {
   };
 
   const destacadoKey = (item) => `${titulo.es}::${normalizeKey(item.nombre.es)}`;
-  const getDestacados = () => {
-    const saved = localStorage.getItem("encurtidos_destacados_items");
-    return saved ? JSON.parse(saved) : [];
-  };
+  const getDestacados = () => destacados;
   const toggleDestacado = async (item) => {
     const key = destacadoKey(item);
     const current = getDestacados();
     const isFeat = current.includes(key);
     const next = isFeat ? current.filter((k) => k !== key) : [...current, key];
-    localStorage.setItem("encurtidos_destacados_items", JSON.stringify(next));
+    setDestacados(next);
+    try { localStorage.setItem("encurtidos_destacados_items", JSON.stringify(next)); } catch { /* sin almacenamiento */ }
     const error = isFeat
       ? await sbDelete("destacados", "item_key", key)
       : await sbUpsert("destacados", { item_key: key, updated_at: new Date().toISOString() }, "item_key");
@@ -487,6 +514,14 @@ export default function CartaBase({ titulo, categorias }) {
 
   // Pestañas: lleva la pestaña activa a la vista sin mover la página.
   const pestanasRef = useRef(null);
+  const navRef = useRef(null);
+  useEffect(() => {
+    const nav = navRef.current;
+    if (!nav || typeof ResizeObserver === "undefined") return undefined;
+    const medir = new ResizeObserver(([entrada]) => setAltoPestanas(Math.round(entrada.contentRect.height)));
+    medir.observe(nav);
+    return () => medir.disconnect();
+  }, []);
   useEffect(() => {
     const barra = pestanasRef.current;
     const pestana = barra?.querySelector(`[data-pestana="${activeCategoryId}"]`);
@@ -504,10 +539,10 @@ export default function CartaBase({ titulo, categorias }) {
         {imagen ? (
           <button type="button" onClick={() => editMode ? openUploadMenu(key) : setSelectedImage({ src: imagen, alt: section.nombre[lang] })}
             className="block w-full cursor-zoom-in" aria-label={editMode ? (lang === "es" ? "Cambiar imagen de sección" : "Change section image") : section.nombre[lang]}>
-            <img src={imagen} alt={section.nombre[lang]} loading="lazy" decoding="async" className="aspect-[5/2] max-h-72 w-full object-cover" />
+            <img src={imagen} alt={section.nombre[lang]} loading="lazy" decoding="async" className="aspect-[3/1] max-h-72 w-full object-cover md:aspect-[5/2]" />
           </button>
         ) : (
-          <button type="button" onClick={() => openUploadMenu(key)} className="flex aspect-[5/2] max-h-72 w-full flex-col items-center justify-center gap-2 text-sm font-semibold text-grafito hover:bg-tinta/5">
+          <button type="button" onClick={() => openUploadMenu(key)} className="flex aspect-[3/1] max-h-72 w-full flex-col md:aspect-[5/2] items-center justify-center gap-2 text-sm font-semibold text-grafito hover:bg-tinta/5">
             <Camera className="size-6" aria-hidden="true" strokeWidth={2} />{lang === "es" ? "Añadir imagen" : "Add image"}
           </button>
         )}
@@ -570,12 +605,12 @@ export default function CartaBase({ titulo, categorias }) {
                   <Star className="size-4" fill={esDestacado ? "currentColor" : "none"} aria-hidden="true" strokeWidth={2} />
                 </button>
               )}
-              {!noImages && (
+              {!noImages && (imagen || editMode || isUploading) && (
                 <div className="relative size-[4.5rem] shrink-0 overflow-hidden rounded-md bg-cal">
                   {imagen ? (
                     <button type="button" onClick={() => editMode ? openUploadMenu(scopedImageKey) : setSelectedImage({ src: imagen, alt: item.nombre[lang] })}
-                      className="block size-full cursor-zoom-in" aria-label={editMode ? (lang === "es" ? "Cambiar foto" : "Change photo") : `${lang === "es" ? "Ver foto" : "View photo"}: ${item.nombre[lang]}`}>
-                      <img src={imagen} alt="" loading="lazy" decoding="async" className="size-full object-cover" />
+                      className="block size-full cursor-zoom-in focus-visible:outline-offset-[-3px]" aria-label={editMode ? (lang === "es" ? "Cambiar foto" : "Change photo") : `${lang === "es" ? "Ver foto" : "View photo"}: ${item.nombre[lang]}`}>
+                      <img src={miniatura(imagen)} alt="" loading="lazy" decoding="async" width="216" height="216" className="size-full object-cover" />
                     </button>
                   ) : editMode ? (
                     <button type="button" onClick={() => openUploadMenu(scopedImageKey)} className="flex size-full flex-col items-center justify-center gap-1 text-[0.7rem] font-semibold text-grafito hover:bg-tinta/5">
@@ -608,9 +643,7 @@ export default function CartaBase({ titulo, categorias }) {
                   <p className="break-words font-medium leading-snug">{item.nombre[lang]}</p>
                 )}
                 {esDestacado && !isEditingName && (
-                  <p className="mt-1 inline-flex items-center gap-1 text-sm font-semibold text-oliva-hondo">
-                    <Star className="size-3.5" fill="currentColor" aria-hidden="true" strokeWidth={2} />{lang === "es" ? "Recomendado" : "Recommended"}
-                  </p>
+                  <p className="mt-0.5 text-sm font-semibold text-oliva-hondo">{lang === "es" ? "Te recomendamos" : "We recommend"}</p>
                 )}
               </div>
 
@@ -620,7 +653,7 @@ export default function CartaBase({ titulo, categorias }) {
                 ) : adminEditing ? (
                   <button type="button" onClick={() => startEdit(catIdx, subIdx, grpIdx, i, "precio")} className={`cifras whitespace-nowrap font-bold ${textoEditable}`}>{item.precio}</button>
                 ) : (
-                  <span className="cifras whitespace-nowrap font-bold">{item.precio}</span>
+                  !preciosOcultos && <span className="cifras whitespace-nowrap font-bold">{item.precio}</span>
                 )}
                 {adminEditing && !isEditingName && !isEditingPrice && (
                   <button type="button" onClick={() => handleDeleteItem(catIdx, subIdx, grpIdx, i)}
@@ -737,6 +770,7 @@ export default function CartaBase({ titulo, categorias }) {
     <div role="group" aria-label={lang === "es" ? "Idioma" : "Language"} className="inline-flex rounded-full border border-tinta/15 p-0.5 text-sm font-semibold">
       {["es", "en"].map((codigo) => (
         <button key={codigo} type="button" onClick={() => setLang(codigo)} aria-pressed={lang === codigo}
+          aria-label={codigo === "en" ? "EN — English" : "ES — Español"}
           className={`min-w-11 rounded-full px-3 py-1.5 transition-colors ${lang === codigo ? "bg-tinta text-pared" : "text-grafito hover:text-tinta"}`}>
           {codigo.toUpperCase()}
         </button>
@@ -746,6 +780,9 @@ export default function CartaBase({ titulo, categorias }) {
 
   return (
     <div className="min-h-screen bg-pared text-tinta">
+      <a href="#carta" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[80] focus:rounded-full focus:bg-tinta focus:px-4 focus:py-2 focus:text-pared">
+        {lang === "es" ? "Ir a la carta" : "Skip to menu"}
+      </a>
       <header className="border-b border-tinta/10">
         <div className="relative mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4 md:h-20 md:px-8">
           <Link to="/" className="inline-flex items-center gap-2 rounded-full py-2 pr-3 text-sm font-semibold text-tinta no-underline hover:text-oliva-hondo">
@@ -774,37 +811,53 @@ export default function CartaBase({ titulo, categorias }) {
         )}
       </header>
 
-      <div className="mx-auto max-w-6xl px-4 pb-6 pt-8 md:px-8 md:pt-12">
-        <h1 className="ancho-titular equilibrado text-[2.6rem] font-extrabold leading-[0.98] tracking-[-0.03em] md:text-7xl">{tituloCarta}</h1>
-        <p className="mt-4 max-w-[60ch] text-grafito">
-          {lang === "es" ? "Todos nuestros platos, pinchos y banderillas pueden contener trazas de alérgenos." : "All our dishes, pinchos and skewers may contain traces of allergens."}{" "}
-          <a href="#alergenos" className="font-semibold text-oliva-hondo underline">{lang === "es" ? "Ver tabla de alérgenos" : "See allergen chart"}</a>
-        </p>
+      <main id="carta">
+      <div className="mx-auto max-w-6xl px-4 pb-2 pt-3 md:px-8 md:pb-6 md:pt-12">
+        <h1 className="ancho-titular equilibrado text-[2.1rem] font-extrabold leading-[0.98] tracking-[-0.03em] md:text-7xl">{tituloCarta}</h1>
+        {puesto?.lugar?.[lang] && <p className="mt-1 text-base font-semibold md:mt-2 md:text-lg">{puesto.lugar[lang]}</p>}
         {puesto && (
-          <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3">
+          <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-0 md:mt-3 md:gap-x-4">
             {estadoPuesto && (
-              <p className="flex items-center gap-2.5 font-semibold">
-                <span className={`size-2.5 rounded-full ${estadoPuesto.abierto ? "bg-oliva" : "bg-banderilla"}`} aria-hidden="true"></span>
+              <p className="flex basis-full items-center gap-2.5 text-sm font-semibold md:text-base">
+                <span className={`size-2.5 rounded-full ${estadoPuesto.abierto ? "bg-oliva" : "border-2 border-grafito/45"}`} aria-hidden="true"></span>
                 {estadoPuesto.texto}
               </p>
             )}
-            <a href={puesto.mapa} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-full border border-tinta/20 px-4 py-2 text-sm font-semibold text-tinta no-underline transition-colors hover:border-tinta">
+            <a href={puesto.mapa} target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold text-tinta underline decoration-tinta/30 hover:decoration-tinta">
               <MapPin className="size-4" aria-hidden="true" strokeWidth={2} />{lang === "es" ? "Cómo llegar" : "Directions"}
             </a>
-            <Link to={`/#puesto-${puestoIdx}`} className="text-sm font-semibold text-grafito underline decoration-tinta/30 hover:text-tinta">
-              {lang === "es" ? "Horario de la semana" : "Weekly opening hours"}
-            </Link>
+            <details className="group open:basis-full" open={horarioAbierto} onToggle={(e) => setHorarioAbierto(e.currentTarget.open)}>
+              <summary className="inline-flex min-h-11 cursor-pointer items-center text-sm font-semibold text-tinta underline decoration-tinta/30 hover:decoration-tinta">
+                <span className="sm:hidden">{lang === "es" ? "Horario" : "Hours"}</span>
+                <span className="hidden sm:inline">{lang === "es" ? "Horario de la semana" : "Weekly opening hours"}</span>
+              </summary>
+              <table className="cifras mb-2 w-full max-w-md text-[0.95rem]">
+                <tbody>
+                  {(puesto.horario?.[lang] || []).map((franja, dia) => (
+                    <tr key={dia} className={`border-b border-tinta/10 ${dia === ahora.dia ? "font-bold" : "text-grafito"}`}>
+                      <th scope="row" className="py-1.5 text-left font-[inherit]">{franja.dia}{dia === ahora.dia && <span className="ml-2 rounded-full bg-hoja/40 px-2 py-0.5 text-xs font-semibold text-tinta">{lang === "es" ? "Hoy" : "Today"}</span>}</th>
+                      <td className="py-1.5 text-right">{franja.hora}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </details>
+            <a href="#alergenos" className="inline-flex min-h-11 items-center text-sm font-semibold text-tinta underline decoration-tinta/30 hover:decoration-tinta">
+              <span className="sm:hidden">{lang === "es" ? "Alérgenos" : "Allergens"}</span>
+              <span className="hidden sm:inline">{lang === "es" ? "Alérgenos y trazas" : "Allergens and traces"}</span>
+            </a>
           </div>
         )}
+        {avisoPrecios && <p role="status" className="mt-3 rounded-md border border-tinta/20 bg-cal px-4 py-3 text-sm font-semibold">{avisoPrecios}</p>}
       </div>
 
-      <nav aria-label={lang === "es" ? "Secciones de la carta" : "Menu sections"} className="sticky top-0 z-40 border-y border-tinta/10 bg-pared/95 backdrop-blur-sm">
-        <div ref={pestanasRef} className="mx-auto flex max-w-6xl gap-2 overflow-x-auto px-4 py-3 [scrollbar-width:none] md:px-8">
+      <nav ref={navRef} aria-label={lang === "es" ? "Secciones de la carta" : "Menu sections"} className="sticky top-0 z-40 border-y border-tinta/10 bg-pared/95 backdrop-blur-sm">
+        <div ref={pestanasRef} className="mx-auto flex max-w-6xl flex-wrap gap-2 px-4 py-2.5 md:flex-nowrap md:overflow-x-auto md:px-8 md:py-3 md:[scrollbar-width:none]">
           {menuDataConId.map((categoria) => {
             const activa = activeCategoryId === categoria.id;
             return (
               <a key={categoria.id} href={`#${categoria.id}`} data-pestana={categoria.id} aria-current={activa ? "true" : undefined}
-                className={`shrink-0 whitespace-nowrap rounded-full px-4 py-2 text-[0.95rem] font-semibold no-underline transition-colors ${activa ? "bg-tinta text-pared" : "bg-cal text-tinta hover:bg-tinta/10"}`}>
+                className={`inline-flex min-h-11 shrink-0 items-center whitespace-nowrap rounded-full px-4 text-[0.95rem] font-semibold no-underline transition-colors ${activa ? "bg-tinta text-pared" : "bg-cal text-tinta hover:bg-tinta/10"}`}>
                 {categoria.nombre[lang]}
               </a>
             );
@@ -812,7 +865,7 @@ export default function CartaBase({ titulo, categorias }) {
         </div>
       </nav>
 
-      <main className="mx-auto max-w-6xl px-4 pb-20 md:px-8">
+      <div className="mx-auto max-w-6xl px-4 pb-20 md:px-8">
         {adminEditing && (
           <p className="mt-6 rounded-md border border-tinta/15 bg-cal px-4 py-3 text-sm font-medium text-grafito">
             {lang === "es"
@@ -825,9 +878,9 @@ export default function CartaBase({ titulo, categorias }) {
           const isDraggingCategory = dragging?.type === "category" && dragging?.index === catIdx;
           return (
             <section key={categoria.id} id={categoria.id} data-reorder-container="categories" data-reorder-index={catIdx}
-              aria-labelledby={`${categoria.id}-titulo`}
-              className={`scroll-mt-20 pt-12 transition md:pt-16 ${isDraggingCategory ? "opacity-60" : ""}`}>
-              <div className="mb-5 flex items-center gap-2 border-b-2 border-tinta pb-3">
+              aria-labelledby={`${categoria.id}-titulo`} style={{ scrollMarginTop: altoPestanas + 8 }}
+              className={`pt-4 transition md:pt-16 ${isDraggingCategory ? "opacity-60" : ""}`}>
+              <div className="mb-3 flex items-center gap-2 border-b-2 border-tinta pb-2 md:mb-5 md:pb-3">
                 {adminEditing && dragHandle({
                   type: "category", container: "categories", index: catIdx, total: menuDataConId.length,
                 }, lang === "es" ? "Arrastrar sección" : "Drag section")}
@@ -849,18 +902,24 @@ export default function CartaBase({ titulo, categorias }) {
           );
         })}
 
-        <section id="alergenos" className="scroll-mt-20 pt-16" aria-labelledby="alergenos-titulo">
+        <section id="alergenos" className="pt-16" style={{ scrollMarginTop: altoPestanas + 8 }} aria-labelledby="alergenos-titulo">
           <h2 id="alergenos-titulo" className="ancho-pared border-b-2 border-tinta pb-3 text-3xl font-semibold md:text-4xl">{lang === "es" ? "Alérgenos" : "Allergens"}</h2>
           <p className="mt-4 max-w-[60ch] text-grafito">
             {lang === "es" ? "Todos nuestros platos, pinchos y banderillas pueden contener trazas de:" : "All our dishes, pinchos and skewers may contain traces of:"}
           </p>
-          <img src={alergenosImg} alt={lang === "es" ? "Tabla de alérgenos" : "Allergen chart"} loading="lazy" decoding="async" className="mt-4 w-full max-w-3xl" />
+          <ul className="mt-4 grid grid-cols-2 gap-x-6 sm:grid-cols-3 lg:grid-cols-4">
+            {ALERGENOS.map(([es, en]) => (
+              <li key={es} className="border-b border-tinta/10 py-2 font-medium">{lang === "es" ? es : en}</li>
+            ))}
+          </ul>
+          <p className="mt-4 text-sm text-grafito">{lang === "es" ? "Si tienes alguna alergia, pregunta en la barra antes de pedir." : "If you have an allergy, please ask at the bar before ordering."}</p>
         </section>
+      </div>
       </main>
 
       <footer className="bg-tinta text-pared">
         <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-10 md:flex-row md:items-center md:justify-between md:px-8">
-          <img src={logoImg} alt="Antequera Encurtidos" width="900" height="201" className="h-8 w-auto brightness-0 invert" />
+          <img src={logoClaroImg} alt="Antequera Encurtidos" width="900" height="201" className="h-9 w-auto" />
           <Link to="/#puestos" className="font-semibold text-pared underline decoration-pared/30 hover:decoration-pared">
             {lang === "es" ? "Horarios y cómo llegar" : "Opening hours and directions"}
           </Link>
