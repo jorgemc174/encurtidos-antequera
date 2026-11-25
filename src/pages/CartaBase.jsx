@@ -1,15 +1,23 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { signOutAdmin, useAdmin } from "../lib/useAdmin";
 import { useContentDocument } from "../lib/useContentDocument";
 import { useEffect, useMemo, useRef, useState } from "react";
-import espanaImg from "../assets/españa.jpg";
-import inglaterraImg from "../assets/inglaterra.jpg";
+import Lightbox from "yet-another-react-lightbox";
+import "yet-another-react-lightbox/styles.css";
+import { ArrowLeft, Camera, ChevronDown, GripVertical, Image as ImageIcon, LoaderCircle, LogOut, MapPin, Pencil, Star, Trash2 } from "lucide-react";
+import logoImg from "../assets/logo-web.png";
 import alergenosImg from "../assets/alergenos.jpg";
 import { imagenesProductos } from "../data/imagenesProductos";
 import { IMAGENES_SUPABASE_SNAPSHOT_AT, imagenesSupabase } from "../data/imagenesSupabase";
 import { getSectionProductImageKeys, resolveSharedProductImage } from "../lib/productImage";
 import { translateProductName, translateProductNameOnline } from "../lib/productTranslation";
 import { supabase, normalizeKey } from "../lib/supabase";
+import { FIN_CIERRE_MERCADO_DEL_PUERTO, ahoraEnCanarias, puestosDatos, textoEstadoPuesto } from "../lib/puestos";
+
+const textosEstado = {
+  es: { abiertoHasta: "Abierto hasta las {h}", cerradoAbreA: "Cerrado. Abre hoy a las {h}", cerradoAhora: "Cerrado ahora", mercadoPuertoCerrado: "Cerrado temporalmente" },
+  en: { abiertoHasta: "Open until {h}", cerradoAbreA: "Closed. Opens today at {h}", cerradoAhora: "Closed now", mercadoPuertoCerrado: "Temporarily closed" },
+};
 
 function compressToDataUrl(file) {
   return new Promise((resolve, reject) => {
@@ -82,9 +90,10 @@ function getItem(data, catIdx, subIdx, grpIdx, itemIdx) {
 }
 
 export default function CartaBase({ titulo, categorias }) {
-  const [lang, setLang] = useState(() => localStorage.getItem("lang") || "es");
-  const [activeLabel, setActiveLabel] = useState("");
-  const [openSections, setOpenSections] = useState({});
+  const [lang, setLang] = useState(() => {
+    try { return localStorage.getItem("lang") || "es"; } catch { return "es"; }
+  });
+  const [activeCategoryId, setActiveCategoryId] = useState("");
   const [openSubsections, setOpenSubsections] = useState({});
   const [selectedImage, setSelectedImage] = useState(null);
   const [editMode, setEditMode] = useState(false);
@@ -104,6 +113,22 @@ export default function CartaBase({ titulo, categorias }) {
     fallback: categorias, isAdmin,
   });
   const menuData = menuDocument.data;
+  const location = useLocation();
+  const puestosDocument = useContentDocument({
+    table: "home_json", documentKey: "puestos", storageKey: "encurtidos_home_puestos",
+    fallback: puestosDatos, isAdmin: false,
+    normalize: (rows) => rows.map((p, i) => ({ ...puestosDatos[i], ...p, horario: p.horario || puestosDatos[i]?.horario })),
+  });
+  const puestoIdx = puestosDocument.data.findIndex((p) => p.rutaCarta === location.pathname);
+  const puesto = puestoIdx >= 0 ? puestosDocument.data[puestoIdx] : null;
+  const [ahora, setAhora] = useState(() => ahoraEnCanarias());
+  useEffect(() => {
+    const timer = window.setInterval(() => setAhora(ahoraEnCanarias()), 60_000);
+    return () => window.clearInterval(timer);
+  }, []);
+  const estadoPuesto = puesto
+    ? textoEstadoPuesto(puesto, puestoIdx, ahora, textosEstado[lang], Date.now() < FIN_CIERRE_MERCADO_DEL_PUERTO)
+    : null;
   const setMenuData = menuDocument.edit;
   const [editingKey, setEditingKey] = useState(null);
   const [editNombreES, setEditNombreES] = useState("");
@@ -113,7 +138,10 @@ export default function CartaBase({ titulo, categorias }) {
   const dragRef = useRef(null);
   const [dragging, setDragging] = useState(null);
 
-  useEffect(() => { localStorage.setItem("lang", lang); }, [lang]);
+  useEffect(() => {
+    try { localStorage.setItem("lang", lang); } catch { /* sin almacenamiento */ }
+    document.documentElement.lang = lang;
+  }, [lang]);
   useEffect(() => {
     (async () => {
       const { data, error } = await sbSelect("destacados", "item_key");
@@ -175,11 +203,6 @@ export default function CartaBase({ titulo, categorias }) {
 
   useEffect(() => {
     if (!menuDataConId.length) return;
-    setOpenSections((prev) => {
-      const next = {};
-      menuDataConId.forEach((categoria, index) => { next[categoria.id] = prev[categoria.id] ?? index === 0; });
-      return next;
-    });
     setOpenSubsections((prev) => {
       const next = {};
       menuDataConId.forEach((categoria) => {
@@ -196,10 +219,9 @@ export default function CartaBase({ titulo, categorias }) {
     const elementsToObserve = [];
     menuDataConId.forEach((categoria) => {
       if (categoria.subcategorias?.length) {
-        categoria.subcategorias.forEach((subcategoria) => { elementsToObserve.push({ id: subcategoria.id, label: subcategoria.nombre }); });
-      } else {
-        elementsToObserve.push({ id: categoria.id, label: categoria.nombre });
+        categoria.subcategorias.forEach((subcategoria) => { elementsToObserve.push({ id: subcategoria.id, catId: categoria.id }); });
       }
+      elementsToObserve.push({ id: categoria.id, catId: categoria.id });
     });
     const observer = new IntersectionObserver(
       (entries) => {
@@ -210,7 +232,7 @@ export default function CartaBase({ titulo, categorias }) {
         }
         if (bestEntry) {
           const found = elementsToObserve.find((el) => el.id === bestEntry.target.id);
-          if (found) setActiveLabel(found.label[lang]);
+          if (found) setActiveCategoryId(found.catId);
         }
       },
       { root: null, rootMargin: "-90px 0px -70% 0px", threshold: 0 }
@@ -219,11 +241,9 @@ export default function CartaBase({ titulo, categorias }) {
       const el = document.getElementById(element.id);
       if (el) observer.observe(el);
     });
-    if (!activeLabel && elementsToObserve.length > 0) setActiveLabel(elementsToObserve[0].label[lang]);
     return () => observer.disconnect();
-  }, [menuDataConId, lang, activeLabel]);
+  }, [menuDataConId]);
 
-  const toggleSection = (id) => setOpenSections((prev) => ({ ...prev, [id]: !prev[id] }));
   const toggleSubsection = (id) => setOpenSubsections((prev) => ({ ...prev, [id]: !prev[id] }));
 
   const reorderEntry = (descriptor, toIndex) => {
@@ -286,7 +306,7 @@ export default function CartaBase({ titulo, categorias }) {
     return (
       <button
         type="button"
-        className={`shrink-0 touch-none select-none rounded-lg p-2 cursor-grab active:cursor-grabbing transition ${active ? "bg-[#B78B5A] text-white scale-105" : "text-[#B78B5A] hover:bg-[#B78B5A]/10"}`}
+        className={`shrink-0 touch-none select-none rounded-md p-2 cursor-grab active:cursor-grabbing transition ${active ? "bg-tinta text-pared scale-105" : "text-grafito hover:bg-tinta/10"}`}
         aria-label={label}
         title={label}
         onClick={(event) => { event.preventDefault(); event.stopPropagation(); }}
@@ -303,11 +323,7 @@ export default function CartaBase({ titulo, categorias }) {
           reorderEntry(descriptor, descriptor.index + offset);
         }}
       >
-        <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-          <circle cx="6" cy="4" r="1.4" /><circle cx="14" cy="4" r="1.4" />
-          <circle cx="6" cy="10" r="1.4" /><circle cx="14" cy="10" r="1.4" />
-          <circle cx="6" cy="16" r="1.4" /><circle cx="14" cy="16" r="1.4" />
-        </svg>
+        <GripVertical className="size-5" aria-hidden="true" strokeWidth={2} />
       </button>
     );
   };
@@ -444,7 +460,7 @@ export default function CartaBase({ titulo, categorias }) {
   };
 
   const handleExitAdmin = () => {
-    localStorage.removeItem("encurtidos_admin");
+    try { localStorage.removeItem("encurtidos_admin"); } catch { /* sin almacenamiento */ }
     void signOutAdmin();
     setEditMode(false);
     setAdminEditMode(false);
@@ -455,472 +471,428 @@ export default function CartaBase({ titulo, categorias }) {
       ? `subseccion-${normalizeKey(parentSection.nombre.es)}-${normalizeKey(section.nombre.es)}`
       : `seccion-${normalizeKey(section.nombre.es)}`
   );
-
-  const renderSectionImage = (section, parentSection = null) => {
+  const sectionImage = (section, parentSection = null) => {
     const key = sectionPhotoKey(section, parentSection);
-    const imagen = supabasePhotos[key] || imagenesSupabase[key] || section.imagenSeccion;
-    const isUploading = uploading === key;
-    const isSubsection = parentSection != null;
-    const placeholder = lang === "es"
-      ? `Imagen de ${isSubsection ? "subsección" : "sección"}`
-      : `${isSubsection ? "Subsection" : "Section"} image`;
+    return { key, imagen: supabasePhotos[key] || imagenesSupabase[key] || section.imagenSeccion || null };
+  };
 
+  const puestoNombre = (titulo[lang] || "").split(/\s+-\s+/).pop();
+  const tituloCarta = lang === "es" ? `Carta de ${puestoNombre}` : `${puestoNombre} menu`;
+  const adminEditing = isAdmin && adminEditMode;
+  useEffect(() => {
+    document.title = `${tituloCarta} · Antequera Encurtidos`;
+    return () => { document.title = "Antequera Encurtidos"; };
+  }, [tituloCarta]);
+  const textoEditable = "cursor-text rounded-sm outline-2 outline-dashed outline-oliva/50 hover:bg-hoja/20";
+
+  // Pestañas: lleva la pestaña activa a la vista sin mover la página.
+  const pestanasRef = useRef(null);
+  useEffect(() => {
+    const barra = pestanasRef.current;
+    const pestana = barra?.querySelector(`[data-pestana="${activeCategoryId}"]`);
+    if (!barra || !pestana) return;
+    const destino = pestana.offsetLeft - (barra.clientWidth - pestana.offsetWidth) / 2;
+    barra.scrollTo({ left: Math.max(0, destino), behavior: "smooth" });
+  }, [activeCategoryId]);
+
+  const renderSectionBanner = (section, parentSection = null) => {
+    const { key, imagen } = sectionImage(section, parentSection);
+    const isUploading = uploading === key;
+    if (!imagen && !editMode) return null;
     return (
-      <div className={`relative w-full ${isSubsection ? "h-40" : "h-48"} rounded-2xl border border-[#B78B5A]/20 bg-[#F7F3EA] overflow-hidden flex items-center justify-center text-sm text-[#4E3B2A]/45`}>
+      <div className="relative mb-6 overflow-hidden rounded-md bg-cal">
         {imagen ? (
-          <button
-            type="button"
-            onClick={() => editMode ? openUploadMenu(key) : setSelectedImage({ src: imagen, alt: section.nombre[lang] })}
-            className="relative w-full h-full block"
-            aria-label={editMode ? (lang === "es" ? "Cambiar imagen de sección" : "Change section image") : section.nombre[lang]}
-          >
-            <img src={imagen} alt={section.nombre[lang]} loading="lazy" decoding="async" className="w-full h-full object-cover" />
-            {(editMode || isUploading) && (
-              <span className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black/45 text-white font-medium">
-                {isUploading ? (
-                  <svg className="w-7 h-7 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
-                  </svg>
-                ) : (
-                  <>
-                    <svg xmlns="http://www.w3.org/2000/svg" className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                    <span>{lang === "es" ? "Cambiar imagen" : "Change image"}</span>
-                  </>
-                )}
-              </span>
-            )}
+          <button type="button" onClick={() => editMode ? openUploadMenu(key) : setSelectedImage({ src: imagen, alt: section.nombre[lang] })}
+            className="block w-full cursor-zoom-in" aria-label={editMode ? (lang === "es" ? "Cambiar imagen de sección" : "Change section image") : section.nombre[lang]}>
+            <img src={imagen} alt={section.nombre[lang]} loading="lazy" decoding="async" className="aspect-[5/2] max-h-72 w-full object-cover" />
           </button>
-        ) : editMode ? (
-          <button
-            type="button"
-            onClick={() => openUploadMenu(key)}
-            className="w-full h-full flex flex-col items-center justify-center gap-2 text-[#B78B5A] hover:bg-[#B78B5A]/10 transition"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
-            <span>{lang === "es" ? "Añadir imagen" : "Add image"}</span>
+        ) : (
+          <button type="button" onClick={() => openUploadMenu(key)} className="flex aspect-[5/2] max-h-72 w-full flex-col items-center justify-center gap-2 text-sm font-semibold text-grafito hover:bg-tinta/5">
+            <Camera className="size-6" aria-hidden="true" strokeWidth={2} />{lang === "es" ? "Añadir imagen" : "Add image"}
           </button>
-        ) : placeholder}
+        )}
+        {(editMode && imagen) || isUploading ? (
+          <span className="pointer-events-none absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full bg-tinta/80 px-3 py-1.5 text-xs font-semibold text-pared">
+            {isUploading ? <LoaderCircle className="size-3.5 animate-spin" aria-hidden="true" /> : <Camera className="size-3.5" aria-hidden="true" strokeWidth={2} />}
+            {isUploading ? (lang === "es" ? "Guardando…" : "Saving…") : (lang === "es" ? "Cambiar imagen" : "Change image")}
+          </span>
+        ) : null}
       </div>
     );
   };
 
   const renderItems = (items, catIdx, subIdx, grpIdx, noImages) => (
-    <div className="space-y-4">
-      {items.map((item, i) => {
-        const itemKey = item.nombre.es;
-        const normalized = normalizeKey(itemKey);
-        const sectionKey = normalizeKey(menuDataConId[catIdx].nombre.es);
-        const scopedImageKey = `producto-${sectionKey}-${normalized}`;
-        const hasSameNameInAnotherSection = duplicatedProductImageKeys.has(normalized);
-        const staticImage = item.imagen || (item.imagenKey ? availableProductImages[item.imagenKey] : null);
-        const legacyImage = hasSameNameInAnotherSection
-          ? null
-          : supabasePhotos[normalized] || imagenesSupabase[normalized];
-        const imagen = supabasePhotos[scopedImageKey]
-          || imagenesSupabase[scopedImageKey]
-          || legacyImage
-          || staticImage
-          || resolveSharedProductImage(
-            itemKey,
-            availableProductImages,
-            sectionProductImageKeys[catIdx],
-            !hasSameNameInAnotherSection
-          );
-        const isUploading = uploading === scopedImageKey;
-        const isEditingName = editingKey === mkKey(catIdx, subIdx, grpIdx, i, "nombre");
-        const isEditingPrice = editingKey === mkKey(catIdx, subIdx, grpIdx, i, "precio");
-        const esDestacado = getDestacados().includes(destacadoKey(item));
-        const reorderContainer = `items-${catIdx}-${subIdx ?? "root"}-${grpIdx ?? "root"}`;
-        const isDraggingItem = dragging?.type === "item"
-          && dragging?.container === reorderContainer
-          && dragging?.index === i;
+    <div>
+      <ul className={`grid gap-x-10 ${noImages ? "" : "lg:grid-cols-2"}`}>
+        {items.map((item, i) => {
+          const itemKey = item.nombre.es;
+          const normalized = normalizeKey(itemKey);
+          const sectionKey = normalizeKey(menuDataConId[catIdx].nombre.es);
+          const scopedImageKey = `producto-${sectionKey}-${normalized}`;
+          const hasSameNameInAnotherSection = duplicatedProductImageKeys.has(normalized);
+          const staticImage = item.imagen || (item.imagenKey ? availableProductImages[item.imagenKey] : null);
+          const legacyImage = hasSameNameInAnotherSection
+            ? null
+            : supabasePhotos[normalized] || imagenesSupabase[normalized];
+          const imagen = supabasePhotos[scopedImageKey]
+            || imagenesSupabase[scopedImageKey]
+            || legacyImage
+            || staticImage
+            || resolveSharedProductImage(
+              itemKey,
+              availableProductImages,
+              sectionProductImageKeys[catIdx],
+              !hasSameNameInAnotherSection
+            );
+          const isUploading = uploading === scopedImageKey;
+          const isEditingName = editingKey === mkKey(catIdx, subIdx, grpIdx, i, "nombre");
+          const isEditingPrice = editingKey === mkKey(catIdx, subIdx, grpIdx, i, "precio");
+          const esDestacado = getDestacados().includes(destacadoKey(item));
+          const reorderContainer = `items-${catIdx}-${subIdx ?? "root"}-${grpIdx ?? "root"}`;
+          const isDraggingItem = dragging?.type === "item"
+            && dragging?.container === reorderContainer
+            && dragging?.index === i;
 
-        return (
-          <div
-            key={normalized}
-            data-reorder-container={reorderContainer}
-            data-reorder-index={i}
-            className={`flex items-center justify-between gap-3 border-b py-2.5 transition ${isDraggingItem ? "opacity-55 bg-[#B78B5A]/10" : ""} ${esDestacado ? "border-[#D4A843]/40" : "border-[#B78B5A]/10"}`}
-          >
-            <div className="flex items-center gap-3 min-w-0 flex-1">
-              {isAdmin && adminEditMode && dragHandle({
-                type: "item",
-                container: reorderContainer,
-                index: i,
-                total: items.length,
-                catIdx,
-                subIdx,
-                grpIdx,
+          return (
+            <li
+              key={normalized}
+              data-reorder-container={reorderContainer}
+              data-reorder-index={i}
+              className={`flex items-center gap-3 border-b border-tinta/10 ${noImages ? "py-2.5" : "py-3"} transition ${isDraggingItem ? "bg-hoja/20 opacity-60" : ""}`}
+            >
+              {adminEditing && dragHandle({
+                type: "item", container: reorderContainer, index: i, total: items.length, catIdx, subIdx, grpIdx,
               }, lang === "es" ? "Arrastrar producto" : "Drag product")}
               {isAdmin && (
-                <button onClick={() => toggleDestacado(item)}
-                  className={`shrink-0 p-1 rounded transition ${esDestacado ? "text-[#D4A843]" : "text-gray-300 hover:text-[#D4A843]"}`}
-                  title={esDestacado ? (lang === "es" ? "Quitar destacado" : "Unfeature") : (lang === "es" ? "Destacar" : "Feature")}>
-                  <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 20 20" fill={esDestacado ? "currentColor" : "none"} stroke="currentColor" strokeWidth={1.5}>
-                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                  </svg>
+                <button type="button" onClick={() => toggleDestacado(item)}
+                  className={`shrink-0 rounded p-1 transition ${esDestacado ? "text-oliva-hondo" : "text-grafito/35 hover:text-oliva-hondo"}`}
+                  title={esDestacado ? (lang === "es" ? "Quitar recomendado" : "Remove recommendation") : (lang === "es" ? "Recomendar" : "Recommend")}>
+                  <Star className="size-4" fill={esDestacado ? "currentColor" : "none"} aria-hidden="true" strokeWidth={2} />
                 </button>
               )}
               {!noImages && (
-                <div className="relative w-16 h-16 rounded-xl bg-[#F7F3EA] shrink-0 overflow-hidden flex items-center justify-center text-[10px] text-[#4E3B2A]/40 text-center">
+                <div className="relative size-[4.5rem] shrink-0 overflow-hidden rounded-md bg-cal">
                   {imagen ? (
-                    <>
-                      <button type="button" onClick={() => editMode ? openUploadMenu(scopedImageKey) : setSelectedImage({ src: imagen, alt: item.nombre[lang] })}
-                        className="w-full h-full block">
-                        <img src={imagen} alt={item.nombre[lang]} loading="lazy" decoding="async" className="w-full h-full object-cover" />
-                      </button>
-                      {esDestacado && !editMode && (
-                        <div className="absolute top-0 left-0 right-0 bg-[#D4A843]/85 flex items-center justify-center py-0.5">
-                          <span className="text-white text-[8px] font-bold text-center leading-tight">
-                            ★ {lang === "es" ? "Destacado" : "Featured"}
-                          </span>
-                        </div>
-                      )}
-                      {(editMode || isUploading) && (
-                        <div className="absolute inset-0 flex items-center justify-center bg-black/40 pointer-events-none">
-                          {isUploading ? (
-                            <svg className="w-6 h-6 text-white animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
-                            </svg>
-                          ) : (
-                            <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                            </svg>
-                          )}
-                        </div>
-                      )}
-                    </>
+                    <button type="button" onClick={() => editMode ? openUploadMenu(scopedImageKey) : setSelectedImage({ src: imagen, alt: item.nombre[lang] })}
+                      className="block size-full cursor-zoom-in" aria-label={editMode ? (lang === "es" ? "Cambiar foto" : "Change photo") : `${lang === "es" ? "Ver foto" : "View photo"}: ${item.nombre[lang]}`}>
+                      <img src={imagen} alt="" loading="lazy" decoding="async" className="size-full object-cover" />
+                    </button>
                   ) : editMode ? (
-                    <button type="button" onClick={() => openUploadMenu(scopedImageKey)}
-                      className="w-full h-full flex flex-col items-center justify-center gap-1 hover:bg-[#B78B5A]/10 transition cursor-pointer">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 text-[#B78B5A]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                      </svg>
-                      <span className="text-[9px] text-[#B78B5A]">Añadir</span>
+                    <button type="button" onClick={() => openUploadMenu(scopedImageKey)} className="flex size-full flex-col items-center justify-center gap-1 text-[0.7rem] font-semibold text-grafito hover:bg-tinta/5">
+                      <Camera className="size-5" aria-hidden="true" strokeWidth={2} />{lang === "es" ? "Añadir" : "Add"}
                     </button>
                   ) : null}
+                  {(editMode && imagen) || isUploading ? (
+                    <span className="pointer-events-none absolute inset-0 flex items-center justify-center bg-tinta/45 text-pared">
+                      {isUploading ? <LoaderCircle className="size-5 animate-spin" aria-hidden="true" /> : <Camera className="size-5" aria-hidden="true" strokeWidth={2} />}
+                    </span>
+                  ) : null}
                 </div>
-              )}
-              {noImages && esDestacado && !isEditingName && (
-                <span className="text-[10px] text-[#D4A843] font-medium whitespace-nowrap shrink-0">
-                  ★ {lang === "es" ? "Destacado" : "Featured"}
-                </span>
               )}
 
               <div className="min-w-0 flex-1">
                 {isEditingName ? (
                   <div className="flex flex-col gap-1">
-                    <input className="border border-[#B78B5A] rounded px-2 py-1 text-sm" value={editNombreES} onChange={(e) => handleEditNombreESChange(e.target.value)} placeholder="ES" autoFocus onKeyDown={(e) => { if (e.key === "Enter") saveEdit(); if (e.key === "Escape") setEditingKey(null); }} />
-                    <input className="border border-[#B78B5A] rounded px-2 py-1 text-sm" value={editNombreEN} onChange={(e) => setEditNombreEN(e.target.value)} placeholder="EN" onKeyDown={(e) => { if (e.key === "Enter") saveEdit(); if (e.key === "Escape") setEditingKey(null); }} />
-                    <div className="flex gap-1 mt-1">
-                      <button onClick={saveEdit} className="text-xs bg-[#7E9F00] text-white px-2 py-0.5 rounded">OK</button>
-                      <button onClick={() => setEditingKey(null)} className="text-xs bg-gray-300 text-gray-700 px-2 py-0.5 rounded">×</button>
+                    <input className="rounded border border-tinta/30 px-2 py-1 text-sm" value={editNombreES} onChange={(e) => handleEditNombreESChange(e.target.value)} placeholder="ES" autoFocus onKeyDown={(e) => { if (e.key === "Enter") saveEdit(); if (e.key === "Escape") setEditingKey(null); }} />
+                    <input className="rounded border border-tinta/30 px-2 py-1 text-sm" value={editNombreEN} onChange={(e) => setEditNombreEN(e.target.value)} placeholder="EN" onKeyDown={(e) => { if (e.key === "Enter") saveEdit(); if (e.key === "Escape") setEditingKey(null); }} />
+                    <div className="mt-1 flex gap-1">
+                      <button type="button" onClick={saveEdit} className="rounded bg-oliva-hondo px-2 py-0.5 text-xs font-semibold text-pared">OK</button>
+                      <button type="button" onClick={() => setEditingKey(null)} className="rounded bg-cal px-2 py-0.5 text-xs">×</button>
                     </div>
                   </div>
-                ) : (
-                  <button onClick={isAdmin && adminEditMode ? () => startEdit(catIdx, subIdx, grpIdx, i, "nombre") : undefined}
-                    className={`text-left break-words ${isAdmin && adminEditMode ? "cursor-text hover:bg-[#B78B5A]/10 px-1 -ml-1 rounded" : ""}`}>
+                ) : adminEditing ? (
+                  <button type="button" onClick={() => startEdit(catIdx, subIdx, grpIdx, i, "nombre")} className={`break-words text-left font-medium leading-snug ${textoEditable}`}>
                     {item.nombre[lang]}
+                  </button>
+                ) : (
+                  <p className="break-words font-medium leading-snug">{item.nombre[lang]}</p>
+                )}
+                {esDestacado && !isEditingName && (
+                  <p className="mt-1 inline-flex items-center gap-1 text-sm font-semibold text-oliva-hondo">
+                    <Star className="size-3.5" fill="currentColor" aria-hidden="true" strokeWidth={2} />{lang === "es" ? "Recomendado" : "Recommended"}
+                  </p>
+                )}
+              </div>
+
+              <div className="flex shrink-0 items-center gap-2">
+                {isEditingPrice ? (
+                  <input className="w-28 rounded border border-tinta/30 px-2 py-1 text-right text-sm" value={editPrecio} onChange={(e) => setEditPrecio(e.target.value)} autoFocus onKeyDown={(e) => { if (e.key === "Enter") saveEdit(); if (e.key === "Escape") setEditingKey(null); }} onBlur={saveEdit} />
+                ) : adminEditing ? (
+                  <button type="button" onClick={() => startEdit(catIdx, subIdx, grpIdx, i, "precio")} className={`cifras whitespace-nowrap font-bold ${textoEditable}`}>{item.precio}</button>
+                ) : (
+                  <span className="cifras whitespace-nowrap font-bold">{item.precio}</span>
+                )}
+                {adminEditing && !isEditingName && !isEditingPrice && (
+                  <button type="button" onClick={() => handleDeleteItem(catIdx, subIdx, grpIdx, i)}
+                    className="rounded-full p-1.5 text-banderilla transition hover:bg-banderilla/10" title={lang === "es" ? "Eliminar" : "Delete"}>
+                    <Trash2 className="size-4" aria-hidden="true" strokeWidth={2} />
                   </button>
                 )}
               </div>
-            </div>
-
-            <div className="flex items-center gap-2 shrink-0 mt-0.5">
-              {isEditingPrice ? (
-                <input className="border border-[#B78B5A] rounded px-2 py-1 text-sm w-28 text-right" value={editPrecio} onChange={(e) => setEditPrecio(e.target.value)} autoFocus onKeyDown={(e) => { if (e.key === "Enter") saveEdit(); if (e.key === "Escape") setEditingKey(null); }} onBlur={saveEdit} />
-              ) : (
-                <button onClick={isAdmin && adminEditMode ? () => startEdit(catIdx, subIdx, grpIdx, i, "precio") : undefined}
-                  className={`font-semibold whitespace-nowrap ${isAdmin && adminEditMode ? "cursor-text hover:bg-[#B78B5A]/10 px-1 -ml-1 rounded" : ""}`}>
-                  {item.precio}
-                </button>
-              )}
-              {isAdmin && adminEditMode && !isEditingName && !isEditingPrice && (
-                <button onClick={() => handleDeleteItem(catIdx, subIdx, grpIdx, i)}
-                  className="p-1 text-red-400 hover:text-red-600 hover:bg-red-50 rounded transition" title={lang === "es" ? "Eliminar" : "Delete"}>
-                  <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                  </svg>
-                </button>
-              )}
-            </div>
-          </div>
-        );
-      })}
-      {isAdmin && adminEditMode && (
-        <button onClick={() => handleAddItem(catIdx, subIdx, grpIdx)}
-          className="w-full py-2 rounded-xl border-2 border-dashed border-[#B78B5A]/40 text-[#B78B5A] font-medium text-sm hover:bg-[#B78B5A]/5 transition">
+            </li>
+          );
+        })}
+      </ul>
+      {adminEditing && (
+        <button type="button" onClick={() => handleAddItem(catIdx, subIdx, grpIdx)}
+          className="mt-3 w-full rounded-md border-2 border-dashed border-tinta/25 py-2.5 text-sm font-semibold text-grafito transition hover:border-tinta">
           + {lang === "es" ? "Añadir producto" : "Add product"}
         </button>
       )}
     </div>
   );
 
-  return (
-    <div className="min-h-screen bg-[#F7F3EA] text-[#4E3B2A]">
-      <div className="max-w-5xl mx-auto px-6 py-8">
-        <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
-          <Link to="/" className="inline-block px-5 py-3 rounded-2xl bg-[#B78B5A] text-white font-semibold hover:opacity-90 transition">
-            {lang === "es" ? "Volver" : "Back"}
-          </Link>
+  const renderSubcategoriaPlegable = (categoria, catIdx, subcategoria, subIndex) => {
+    const isSubOpen = openSubsections[subcategoria.id];
+    const subcategoryContainer = `subcategories-${categoria.id}`;
+    const isDraggingSubcategory = dragging?.type === "subcategory"
+      && dragging?.container === subcategoryContainer
+      && dragging?.index === subIndex;
+    const { imagen } = sectionImage(subcategoria, categoria);
+    const panelId = `${subcategoria.id}-panel`;
+    return (
+      <div key={subcategoria.id} id={subcategoria.id} data-reorder-container={subcategoryContainer} data-reorder-index={subIndex}
+        className={`scroll-mt-32 border-b border-tinta/15 transition ${isDraggingSubcategory ? "bg-hoja/20 opacity-60" : ""}`}>
+        <div className="flex items-center gap-2">
+          {adminEditing && dragHandle({
+            type: "subcategory", container: subcategoryContainer, index: subIndex, total: categoria.subcategorias.length, catIdx,
+          }, lang === "es" ? "Arrastrar subsección" : "Drag subsection")}
+          <button type="button" onClick={() => toggleSubsection(subcategoria.id)} aria-expanded={!!isSubOpen} aria-controls={panelId}
+            className="flex min-h-16 flex-1 items-center justify-between gap-4 py-3 text-left">
+            <h3 className="ancho-pared text-2xl font-semibold leading-tight md:text-3xl">{subcategoria.nombre[lang]}</h3>
+            <span className="flex items-center gap-3">
+              {imagen && !isSubOpen && <img src={imagen} alt="" loading="lazy" decoding="async" className="hidden h-12 w-16 rounded object-cover sm:block" />}
+              <ChevronDown className={`size-5 shrink-0 transition-transform duration-300 ${isSubOpen ? "rotate-180" : ""}`} aria-hidden="true" strokeWidth={2} />
+            </span>
+          </button>
         </div>
-        {isAdmin && <Link to="/admin/asistente" className="inline-block mb-5 px-5 py-4 rounded-xl bg-[#4E3B2A] text-white text-lg font-semibold">Pedir cambios con el asistente</Link>}
-        <h1 className="text-4xl md:text-5xl font-bold mb-6">{titulo[lang]}</h1>
-      </div>
-
-      <div className="sticky top-0 z-40 bg-[#F7F3EA]/95 backdrop-blur border-y border-[#B78B5A]/20">
-        <div className="max-w-5xl mx-auto px-6 py-3 flex items-center justify-between gap-4">
-          <div className="min-w-0">
-            <p className="text-xs uppercase tracking-[0.2em] text-[#4E3B2A]/50 mb-1">{lang === "es" ? "Sección actual" : "Current section"}</p>
-            <p className="text-lg font-semibold text-[#7E9F00] truncate">{activeLabel || titulo[lang]}</p>
+        {isSubOpen && (
+          <div id={panelId} className="pb-6">
+            {editMode && renderSectionBanner(subcategoria, categoria)}
+            {subcategoria.grupos ? (
+              <div className="flex flex-col gap-6">
+                {subcategoria.grupos.map((grupo, grupoIndex) => {
+                  const groupContainer = `groups-${catIdx}-${subIndex}`;
+                  const isDraggingGroup = dragging?.type === "group"
+                    && dragging?.container === groupContainer
+                    && dragging?.index === grupoIndex;
+                  return (
+                    <div key={normalizeKey(grupo.nombre.es)} data-reorder-container={groupContainer} data-reorder-index={grupoIndex}
+                      className={`transition ${isDraggingGroup ? "bg-hoja/20 opacity-60" : ""}`}>
+                      <div className="mb-1 flex items-center gap-2">
+                        {adminEditing && dragHandle({
+                          type: "group", container: groupContainer, index: grupoIndex, total: subcategoria.grupos.length, catIdx, subIdx: subIndex,
+                        }, lang === "es" ? "Arrastrar grupo" : "Drag group")}
+                        <h4 className="text-lg font-bold text-oliva-hondo">{grupo.nombre[lang]}</h4>
+                      </div>
+                      {renderItems(grupo.items, catIdx, subIndex, grupoIndex, categoria.noImages)}
+                    </div>
+                  );
+                })}
+              </div>
+            ) : renderItems(subcategoria.items, catIdx, subIndex, null, categoria.noImages)}
           </div>
-          <div className="flex items-center gap-2 shrink-0">
-            {isAdmin && (
-              <>
-                <button onClick={() => setEditMode((v) => !v)} title={editMode ? "Salir de edición" : "Editar fotos"}
-                  className={`p-2 rounded-xl border transition ${editMode ? "bg-[#B78B5A] border-[#B78B5A] text-white" : "bg-white border-[#B78B5A]/30 text-[#B78B5A]"}`}>
-                  <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                </button>
-                <button onClick={() => setAdminEditMode((v) => !v)} title={adminEditMode ? "Salir de edición admin" : "Editar productos"}
-                  className={`p-2 rounded-xl border transition ${adminEditMode ? "bg-[#4E3B2A] border-[#4E3B2A] text-white" : "bg-white border-[#B78B5A]/30 text-[#B78B5A]"}`}>
-                  <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                  </svg>
-                </button>
-              </>
-            )}
-            {isAdmin && (
-              <button onClick={handleExitAdmin} title="Salir de admin"
-                className="p-2 rounded-xl border border-[#B85C38]/30 bg-white text-[#B85C38] transition hover:bg-[#B85C38] hover:text-white">
-                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6A2.25 2.25 0 005.25 5.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15" />
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M18 15l3-3m0 0l-3-3m3 3H9" />
-                </svg>
-              </button>
-            )}
-            <button onClick={() => setLang("es")} className={`p-1 rounded-xl border transition ${lang === "es" ? "bg-[#7E9F00] border-[#7E9F00]" : "bg-white border-[#B78B5A]/30"}`}>
-              <img src={espanaImg} alt="Español" className="w-8 h-5 object-cover rounded-sm" />
-            </button>
-            <button onClick={() => setLang("en")} className={`p-1 rounded-xl border transition ${lang === "en" ? "bg-[#7E9F00] border-[#7E9F00]" : "bg-white border-[#B78B5A]/30"}`}>
-              <img src={inglaterraImg} alt="English" className="w-8 h-5 object-cover rounded-sm" />
-            </button>
-          </div>
-          {isAdmin && (
-            <>
-              <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
-              <input ref={cameraInputRef} type="file" accept="image/*" capture className="hidden" onChange={handleFileChange} />
-            </>
-          )}
-        </div>
-      </div>
-      {isAdmin && (syncError || menuDocument.error || menuDocument.saving) && (
-        <div className="sticky top-[73px] z-40 bg-[#B85C38] text-white px-4 py-3 text-sm font-medium text-center">
-          {syncError || menuDocument.error || "Guardando cambios…"}
-        </div>
-      )}
-
-      <div className="max-w-5xl mx-auto px-6 py-6">
-        {isAdmin && adminEditMode && (
-          <p className="mb-5 rounded-2xl border border-[#B78B5A]/25 bg-white px-4 py-3 text-sm font-medium text-[#4E3B2A]/75">
-            {lang === "es"
-              ? "Mantén pulsado el tirador de puntos y arrastra para cambiar el orden. También puedes enfocarlo y usar las flechas ↑ y ↓."
-              : "Hold the dotted handle and drag to reorder. You can also focus it and use the ↑ and ↓ arrow keys."}
-          </p>
         )}
-        <section className="mb-6">
-          <p className="text-sm md:text-base text-[#4E3B2A]/80 mb-3 leading-6 text-center">
-            {lang === "es" ? "Todos nuestros platos, pinchos y banderillas pueden contener trazas de:" : "All our dishes, pinchos and skewers may contain traces of:"}
-          </p>
-          <img src={alergenosImg} alt={lang === "es" ? "Tabla de alérgenos" : "Allergen chart"} className="w-full max-w-3xl mx-auto" />
-        </section>
+      </div>
+    );
+  };
 
-        <div className="grid gap-8">
-          {menuDataConId.map((categoria, catIdx) => {
-            const isOpen = openSections[categoria.id];
-            const reorderContainer = "categories";
-            const isDraggingCategory = dragging?.type === "category" && dragging?.index === catIdx;
+  const renderSubcategoriaFija = (categoria, catIdx, subcategoria, subIndex) => {
+    const subcategoryContainer = `subcategories-${categoria.id}`;
+    const isDraggingSubcategory = dragging?.type === "subcategory"
+      && dragging?.container === subcategoryContainer
+      && dragging?.index === subIndex;
+    return (
+      <div key={subcategoria.id} id={subcategoria.id} data-reorder-container={subcategoryContainer} data-reorder-index={subIndex}
+        className={`scroll-mt-32 transition ${isDraggingSubcategory ? "bg-hoja/20 opacity-60" : ""}`}>
+        <div className="mb-2 flex items-center gap-2">
+          {adminEditing && dragHandle({
+            type: "subcategory", container: subcategoryContainer, index: subIndex, total: categoria.subcategorias.length, catIdx,
+          }, lang === "es" ? "Arrastrar subsección" : "Drag subsection")}
+          <h3 className="text-xl font-bold text-oliva-hondo md:text-2xl">{subcategoria.nombre[lang]}</h3>
+        </div>
+        {renderItems(subcategoria.items, catIdx, subIndex, null, categoria.noImages)}
+      </div>
+    );
+  };
+
+  const botonesAdmin = isAdmin && (
+    <div className="flex items-center gap-2">
+      <button type="button" onClick={() => setEditMode((v) => !v)} title={editMode ? "Salir de edición de fotos" : "Editar fotos"}
+        className={`inline-flex items-center gap-2 rounded-full border px-3 py-2 text-sm font-semibold transition-colors ${editMode ? "border-tinta bg-tinta text-pared" : "border-tinta/15 hover:border-tinta"}`}>
+        <Camera className="size-4" aria-hidden="true" strokeWidth={2} /><span className="hidden md:inline">Fotos</span>
+      </button>
+      <button type="button" onClick={() => setAdminEditMode((v) => !v)} title={adminEditMode ? "Salir de edición de productos" : "Editar productos"}
+        className={`inline-flex items-center gap-2 rounded-full border px-3 py-2 text-sm font-semibold transition-colors ${adminEditMode ? "border-tinta bg-tinta text-pared" : "border-tinta/15 hover:border-tinta"}`}>
+        <Pencil className="size-4" aria-hidden="true" strokeWidth={2} /><span className="hidden md:inline">Productos</span>
+      </button>
+      <button type="button" onClick={handleExitAdmin} title="Salir de admin"
+        className="inline-flex items-center rounded-full border border-banderilla/30 p-2 text-banderilla transition-colors hover:bg-banderilla hover:text-pared">
+        <LogOut className="size-4" aria-hidden="true" strokeWidth={2} />
+      </button>
+    </div>
+  );
+
+  const selectorIdioma = (
+    <div role="group" aria-label={lang === "es" ? "Idioma" : "Language"} className="inline-flex rounded-full border border-tinta/15 p-0.5 text-sm font-semibold">
+      {["es", "en"].map((codigo) => (
+        <button key={codigo} type="button" onClick={() => setLang(codigo)} aria-pressed={lang === codigo}
+          className={`min-w-11 rounded-full px-3 py-1.5 transition-colors ${lang === codigo ? "bg-tinta text-pared" : "text-grafito hover:text-tinta"}`}>
+          {codigo.toUpperCase()}
+        </button>
+      ))}
+    </div>
+  );
+
+  return (
+    <div className="min-h-screen bg-pared text-tinta">
+      <header className="border-b border-tinta/10">
+        <div className="relative mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4 md:h-20 md:px-8">
+          <Link to="/" className="inline-flex items-center gap-2 rounded-full py-2 pr-3 text-sm font-semibold text-tinta no-underline hover:text-oliva-hondo">
+            <ArrowLeft className="size-5" aria-hidden="true" strokeWidth={2} />{lang === "es" ? "Inicio" : "Home"}
+          </Link>
+          <Link to="/" aria-label="Antequera Encurtidos" className="absolute left-1/2 hidden -translate-x-1/2 sm:block">
+            <img src={logoImg} alt="Antequera Encurtidos" width="900" height="201" className="h-9 w-auto md:h-10" />
+          </Link>
+          <div className="flex items-center gap-2">
+            <div className="hidden md:block">{botonesAdmin}</div>
+            {selectorIdioma}
+          </div>
+        </div>
+        {isAdmin && (
+          <div className="border-t border-tinta/10 bg-cal">
+            <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-3 px-4 py-2 md:px-8">
+              <Link to="/admin/asistente" className="rounded-full bg-tinta px-4 py-2 text-sm font-semibold text-pared no-underline">Pedir cambios con el asistente</Link>
+              <div className="md:hidden">{botonesAdmin}</div>
+              {(syncError || menuDocument.error || menuDocument.saving) && (
+                <p className={`text-sm font-semibold ${syncError || menuDocument.error ? "text-banderilla" : "text-grafito"}`} role="status">
+                  {syncError || menuDocument.error || "Guardando cambios…"}
+                </p>
+              )}
+            </div>
+          </div>
+        )}
+      </header>
+
+      <div className="mx-auto max-w-6xl px-4 pb-6 pt-8 md:px-8 md:pt-12">
+        <h1 className="ancho-titular equilibrado text-[2.6rem] font-extrabold leading-[0.98] tracking-[-0.03em] md:text-7xl">{tituloCarta}</h1>
+        <p className="mt-4 max-w-[60ch] text-grafito">
+          {lang === "es" ? "Todos nuestros platos, pinchos y banderillas pueden contener trazas de alérgenos." : "All our dishes, pinchos and skewers may contain traces of allergens."}{" "}
+          <a href="#alergenos" className="font-semibold text-oliva-hondo underline">{lang === "es" ? "Ver tabla de alérgenos" : "See allergen chart"}</a>
+        </p>
+        {puesto && (
+          <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3">
+            {estadoPuesto && (
+              <p className="flex items-center gap-2.5 font-semibold">
+                <span className={`size-2.5 rounded-full ${estadoPuesto.abierto ? "bg-oliva" : "bg-banderilla"}`} aria-hidden="true"></span>
+                {estadoPuesto.texto}
+              </p>
+            )}
+            <a href={puesto.mapa} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-full border border-tinta/20 px-4 py-2 text-sm font-semibold text-tinta no-underline transition-colors hover:border-tinta">
+              <MapPin className="size-4" aria-hidden="true" strokeWidth={2} />{lang === "es" ? "Cómo llegar" : "Directions"}
+            </a>
+            <Link to={`/#puesto-${puestoIdx}`} className="text-sm font-semibold text-grafito underline decoration-tinta/30 hover:text-tinta">
+              {lang === "es" ? "Horario de la semana" : "Weekly opening hours"}
+            </Link>
+          </div>
+        )}
+      </div>
+
+      <nav aria-label={lang === "es" ? "Secciones de la carta" : "Menu sections"} className="sticky top-0 z-40 border-y border-tinta/10 bg-pared/95 backdrop-blur-sm">
+        <div ref={pestanasRef} className="mx-auto flex max-w-6xl gap-2 overflow-x-auto px-4 py-3 [scrollbar-width:none] md:px-8">
+          {menuDataConId.map((categoria) => {
+            const activa = activeCategoryId === categoria.id;
             return (
-              <section
-                key={categoria.id}
-                id={!categoria.subcategorias ? categoria.id : undefined}
-                data-reorder-container={reorderContainer}
-                data-reorder-index={catIdx}
-                className={`scroll-mt-24 bg-white rounded-3xl border border-[#B78B5A]/20 shadow-sm overflow-hidden transition ${isDraggingCategory ? "opacity-55 ring-2 ring-[#B78B5A]/40" : ""}`}
-              >
-                <div className="flex items-center px-4 md:px-6">
-                  {isAdmin && adminEditMode && dragHandle({
-                    type: "category",
-                    container: reorderContainer,
-                    index: catIdx,
-                    total: menuDataConId.length,
-                  }, lang === "es" ? "Arrastrar sección" : "Drag section")}
-                  <button type="button" onClick={() => toggleSection(categoria.id)} className="flex-1 flex items-center justify-between gap-4 py-6 pl-2 text-left">
-                    <h2 className="text-2xl font-bold text-[#7E9F00]">{categoria.nombre[lang]}</h2>
-                    <span className="text-2xl font-semibold text-[#B78B5A] leading-none">{isOpen ? "−" : "+"}</span>
-                  </button>
-                </div>
-                {!isOpen && (
-                  <div className="px-6 pb-6">
-                    {renderSectionImage(categoria)}
-                  </div>
-                )}
-                {isOpen && (
-                  <div className="px-6 pb-6">
-                    {categoria.subcategorias ? (
-                      categoria.subcategoriasPlegables ? (
-                        <div className="space-y-6">
-                          {categoria.subcategorias.map((subcategoria, subIndex) => {
-                            const isSubOpen = openSubsections[subcategoria.id];
-                            const subcategoryContainer = `subcategories-${categoria.id}`;
-                            const isDraggingSubcategory = dragging?.type === "subcategory"
-                              && dragging?.container === subcategoryContainer
-                              && dragging?.index === subIndex;
-                            return (
-                              <div
-                                key={subcategoria.id}
-                                id={subcategoria.id}
-                                data-reorder-container={subcategoryContainer}
-                                data-reorder-index={subIndex}
-                                className={`scroll-mt-24 rounded-2xl border border-[#B78B5A]/15 bg-[#FCFAF6] overflow-hidden transition ${isDraggingSubcategory ? "opacity-55 ring-2 ring-[#B78B5A]/30" : ""}`}
-                              >
-                                <div className="flex items-center px-3 md:px-5">
-                                  {isAdmin && adminEditMode && dragHandle({
-                                    type: "subcategory",
-                                    container: subcategoryContainer,
-                                    index: subIndex,
-                                    total: categoria.subcategorias.length,
-                                    catIdx,
-                                  }, lang === "es" ? "Arrastrar subsección" : "Drag subsection")}
-                                  <button type="button" onClick={() => toggleSubsection(subcategoria.id)} className="flex-1 flex items-center justify-between gap-4 py-5 pl-2 text-left">
-                                    <h3 className="text-xl md:text-2xl font-bold text-[#7E9F00]">{subcategoria.nombre[lang]}</h3>
-                                    <span className="text-2xl font-semibold text-[#B78B5A] leading-none">{isSubOpen ? "−" : "+"}</span>
-                                  </button>
-                                </div>
-                                {!isSubOpen && normalizeKey(categoria.nombre.es) !== "bebidas" && (
-                                  <div className="px-5 pb-5">
-                                    {renderSectionImage(subcategoria, categoria)}
-                                  </div>
-                                )}
-                                {isSubOpen && (
-                                  <div className="px-5 pb-5">
-                                    {subcategoria.grupos ? (
-                                      <div className="space-y-8">
-                                        {subcategoria.grupos.map((grupo, grupoIndex) => {
-                                          const groupContainer = `groups-${catIdx}-${subIndex}`;
-                                          const isDraggingGroup = dragging?.type === "group"
-                                            && dragging?.container === groupContainer
-                                            && dragging?.index === grupoIndex;
-                                          return (
-                                            <div
-                                              key={normalizeKey(grupo.nombre.es)}
-                                              data-reorder-container={groupContainer}
-                                              data-reorder-index={grupoIndex}
-                                              className={`rounded-xl transition ${isDraggingGroup ? "opacity-55 bg-[#B78B5A]/10" : ""}`}
-                                            >
-                                              <div className="flex items-center gap-2 mb-4">
-                                                {isAdmin && adminEditMode && dragHandle({
-                                                  type: "group",
-                                                  container: groupContainer,
-                                                  index: grupoIndex,
-                                                  total: subcategoria.grupos.length,
-                                                  catIdx,
-                                                  subIdx: subIndex,
-                                                }, lang === "es" ? "Arrastrar grupo" : "Drag group")}
-                                                <h4 className="text-lg md:text-xl font-bold text-[#7E9F00]">{grupo.nombre[lang]}</h4>
-                                              </div>
-                                              {renderItems(grupo.items, catIdx, subIndex, grupoIndex, categoria.noImages)}
-                                            </div>
-                                          );
-                                        })}
-                                      </div>
-                                    ) : renderItems(subcategoria.items, catIdx, subIndex, null, categoria.noImages)}
-                                  </div>
-                                )}
-                              </div>
-                            );
-                          })}
-                        </div>
-                      ) : (
-                        <div className="space-y-8">
-                          {categoria.subcategorias.map((subcategoria, subIndex) => {
-                            const subcategoryContainer = `subcategories-${categoria.id}`;
-                            const isDraggingSubcategory = dragging?.type === "subcategory"
-                              && dragging?.container === subcategoryContainer
-                              && dragging?.index === subIndex;
-                            return (
-                              <div
-                                key={subcategoria.id}
-                                id={subcategoria.id}
-                                data-reorder-container={subcategoryContainer}
-                                data-reorder-index={subIndex}
-                                className={`scroll-mt-24 rounded-xl transition ${isDraggingSubcategory ? "opacity-55 bg-[#B78B5A]/10" : ""}`}
-                              >
-                                <div className="flex items-center gap-2 mb-4">
-                                  {isAdmin && adminEditMode && dragHandle({
-                                    type: "subcategory",
-                                    container: subcategoryContainer,
-                                    index: subIndex,
-                                    total: categoria.subcategorias.length,
-                                    catIdx,
-                                  }, lang === "es" ? "Arrastrar subsección" : "Drag subsection")}
-                                  <h3 className="text-xl md:text-2xl font-bold text-[#7E9F00]">{subcategoria.nombre[lang]}</h3>
-                                </div>
-                                {renderItems(subcategoria.items, catIdx, subIndex, null, categoria.noImages)}
-                              </div>
-                            );
-                          })}
-                        </div>
-                      )
-                    ) : renderItems(categoria.items, catIdx, null, null, categoria.noImages)}
-                  </div>
-                )}
-              </section>
+              <a key={categoria.id} href={`#${categoria.id}`} data-pestana={categoria.id} aria-current={activa ? "true" : undefined}
+                className={`shrink-0 whitespace-nowrap rounded-full px-4 py-2 text-[0.95rem] font-semibold no-underline transition-colors ${activa ? "bg-tinta text-pared" : "bg-cal text-tinta hover:bg-tinta/10"}`}>
+                {categoria.nombre[lang]}
+              </a>
             );
           })}
         </div>
-      </div>
+      </nav>
+
+      <main className="mx-auto max-w-6xl px-4 pb-20 md:px-8">
+        {adminEditing && (
+          <p className="mt-6 rounded-md border border-tinta/15 bg-cal px-4 py-3 text-sm font-medium text-grafito">
+            {lang === "es"
+              ? "Mantén pulsado el tirador y arrastra para cambiar el orden. También puedes enfocarlo y usar las flechas ↑ y ↓."
+              : "Hold the handle and drag to reorder. You can also focus it and use the ↑ and ↓ arrow keys."}
+          </p>
+        )}
+
+        {menuDataConId.map((categoria, catIdx) => {
+          const isDraggingCategory = dragging?.type === "category" && dragging?.index === catIdx;
+          return (
+            <section key={categoria.id} id={categoria.id} data-reorder-container="categories" data-reorder-index={catIdx}
+              aria-labelledby={`${categoria.id}-titulo`}
+              className={`scroll-mt-20 pt-12 transition md:pt-16 ${isDraggingCategory ? "opacity-60" : ""}`}>
+              <div className="mb-5 flex items-center gap-2 border-b-2 border-tinta pb-3">
+                {adminEditing && dragHandle({
+                  type: "category", container: "categories", index: catIdx, total: menuDataConId.length,
+                }, lang === "es" ? "Arrastrar sección" : "Drag section")}
+                <h2 id={`${categoria.id}-titulo`} className="ancho-pared text-4xl font-semibold leading-none tracking-[-0.01em] md:text-6xl">{categoria.nombre[lang]}</h2>
+              </div>
+              {!categoria.subcategoriasPlegables && renderSectionBanner(categoria)}
+              {categoria.subcategorias ? (
+                categoria.subcategoriasPlegables ? (
+                  <div className="border-t border-tinta/15">
+                    {categoria.subcategorias.map((subcategoria, subIndex) => renderSubcategoriaPlegable(categoria, catIdx, subcategoria, subIndex))}
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-8">
+                    {categoria.subcategorias.map((subcategoria, subIndex) => renderSubcategoriaFija(categoria, catIdx, subcategoria, subIndex))}
+                  </div>
+                )
+              ) : renderItems(categoria.items, catIdx, null, null, categoria.noImages)}
+            </section>
+          );
+        })}
+
+        <section id="alergenos" className="scroll-mt-20 pt-16" aria-labelledby="alergenos-titulo">
+          <h2 id="alergenos-titulo" className="ancho-pared border-b-2 border-tinta pb-3 text-3xl font-semibold md:text-4xl">{lang === "es" ? "Alérgenos" : "Allergens"}</h2>
+          <p className="mt-4 max-w-[60ch] text-grafito">
+            {lang === "es" ? "Todos nuestros platos, pinchos y banderillas pueden contener trazas de:" : "All our dishes, pinchos and skewers may contain traces of:"}
+          </p>
+          <img src={alergenosImg} alt={lang === "es" ? "Tabla de alérgenos" : "Allergen chart"} loading="lazy" decoding="async" className="mt-4 w-full max-w-3xl" />
+        </section>
+      </main>
+
+      <footer className="bg-tinta text-pared">
+        <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-10 md:flex-row md:items-center md:justify-between md:px-8">
+          <img src={logoImg} alt="Antequera Encurtidos" width="900" height="201" className="h-8 w-auto brightness-0 invert" />
+          <Link to="/#puestos" className="font-semibold text-pared underline decoration-pared/30 hover:decoration-pared">
+            {lang === "es" ? "Horarios y cómo llegar" : "Opening hours and directions"}
+          </Link>
+        </div>
+      </footer>
+
+      {isAdmin && (
+        <>
+          <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
+          <input ref={cameraInputRef} type="file" accept="image/*" capture className="hidden" onChange={handleFileChange} />
+        </>
+      )}
 
       {uploadMenu && (
-        <div className="fixed inset-0 z-[100] bg-black/50 flex items-end justify-center p-4" onClick={() => setUploadMenu(null)}>
-          <div className="bg-white rounded-3xl w-full max-w-sm pb-2 overflow-hidden" onClick={(e) => e.stopPropagation()}>
-            <p className="text-center text-sm font-semibold text-[#4E3B2A] py-4 border-b border-[#B78B5A]/15">{lang === "es" ? "Añadir o cambiar foto" : "Add or change photo"}</p>
-            <button type="button" onClick={() => handleMenuOption("camera")} className="w-full flex items-center gap-4 px-6 py-4 text-[#4E3B2A] font-medium border-b border-[#B78B5A]/15 active:bg-[#F7F3EA]">
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 text-[#B78B5A] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-              {lang === "es" ? "Cámara" : "Camera"}
+        <div className="fixed inset-0 z-[100] flex items-end justify-center bg-tinta/50 p-4" onClick={() => setUploadMenu(null)}>
+          <div className="w-full max-w-sm overflow-hidden rounded-xl bg-pared pb-2" onClick={(e) => e.stopPropagation()}>
+            <p className="border-b border-tinta/10 py-4 text-center text-sm font-semibold">{lang === "es" ? "Añadir o cambiar foto" : "Add or change photo"}</p>
+            <button type="button" onClick={() => handleMenuOption("camera")} className="flex w-full items-center gap-4 border-b border-tinta/10 px-6 py-4 font-medium active:bg-cal">
+              <Camera className="size-5" aria-hidden="true" strokeWidth={2} />{lang === "es" ? "Cámara" : "Camera"}
             </button>
-            <button type="button" onClick={() => handleMenuOption("gallery")} className="w-full flex items-center gap-4 px-6 py-4 text-[#4E3B2A] font-medium border-b border-[#B78B5A]/15 active:bg-[#F7F3EA]">
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 text-[#B78B5A] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-              {lang === "es" ? "Galería / Archivos" : "Gallery / Files"}
+            <button type="button" onClick={() => handleMenuOption("gallery")} className="flex w-full items-center gap-4 border-b border-tinta/10 px-6 py-4 font-medium active:bg-cal">
+              <ImageIcon className="size-5" aria-hidden="true" strokeWidth={2} />{lang === "es" ? "Galería / Archivos" : "Gallery / Files"}
             </button>
-            <button type="button" onClick={() => setUploadMenu(null)} className="w-full py-4 text-sm text-[#4E3B2A]/50 active:bg-[#F7F3EA]">{lang === "es" ? "Cancelar" : "Cancel"}</button>
+            <button type="button" onClick={() => setUploadMenu(null)} className="w-full py-4 text-sm text-grafito active:bg-cal">{lang === "es" ? "Cancelar" : "Cancel"}</button>
           </div>
         </div>
       )}
 
-      {selectedImage && (
-        <div className="fixed inset-0 z-[100] bg-black/80 flex items-center justify-center p-4" onClick={() => setSelectedImage(null)}>
-          <button type="button" onClick={() => setSelectedImage(null)} className="absolute top-4 right-4 w-11 h-11 rounded-full bg-white/15 text-white text-2xl font-bold hover:bg-white/25 transition">×</button>
-          <img src={selectedImage.src} alt={selectedImage.alt} className="max-w-full max-h-[85vh] rounded-2xl shadow-2xl" onClick={(e) => e.stopPropagation()} />
-        </div>
-      )}
+      <Lightbox open={!!selectedImage} close={() => setSelectedImage(null)}
+        slides={selectedImage ? [{ src: selectedImage.src, alt: selectedImage.alt }] : []}
+        render={{ buttonPrev: () => null, buttonNext: () => null }} carousel={{ finite: true }}
+        labels={{ Close: lang === "es" ? "Cerrar" : "Close" }} />
     </div>
   );
 }

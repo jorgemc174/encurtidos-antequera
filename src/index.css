@@ -1,12 +1,107 @@
+@import "@fontsource-variable/archivo/standard.css";
 @import "tailwindcss";
+
+/*
+  Mundo visual: la pared de la barra de Antequera (palabras negras en minúscula
+  sobre pared blanca), la pizarra negra del escaparate de Gáldar y la hoja de
+  olivo del logo. Archivo variable: ancho estrecho para la pared, ancho
+  expandido para los titulares.
+*/
+@theme {
+  --font-sans: "Archivo Variable", "Archivo", "Helvetica Neue", Arial, sans-serif;
+
+  --color-pared: #FFFFFF;
+  --color-cal: #F3F2EE;
+  --color-tinta: #000000;
+  --color-grafito: #3D3D3A;
+  --color-oliva: #7E9F00;
+  --color-oliva-hondo: #4A5E0A;
+  --color-hoja: #A8C66C;
+  --color-banderilla: #D3271F;
+}
 
 html {
   scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+  scrollbar-color: #4A5E0A #F3F2EE;
 }
 
 body {
   margin: 0;
-  font-family: Arial, sans-serif;
-  background: #F7F3EA;
-  color: #4E3B2A;
+  font-family: var(--font-sans);
+  font-size: 1.0625rem;
+  line-height: 1.6;
+  background: #FFFFFF;
+  color: #000000;
+  caret-color: #7E9F00;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::selection {
+  background: #7E9F00;
+  color: #FFFFFF;
+}
+
+:focus-visible {
+  outline: 3px solid #7E9F00;
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+a {
+  text-underline-offset: 0.2em;
+  text-decoration-thickness: 0.08em;
+}
+
+.ancho-pared { font-stretch: 72%; }
+.ancho-titular { font-stretch: 118%; }
+.cifras { font-variant-numeric: tabular-nums; }
+.equilibrado { text-wrap: balance; }
+p { text-wrap: pretty; }
+
+/* Foto que aparece junto a la palabra tocada en la pared. */
+@keyframes plato-entra {
+  from { clip-path: inset(0 0 100% 0); filter: blur(6px); }
+  to { clip-path: inset(0 0 0 0); filter: blur(0); }
+}
+
+.plato-entra {
+  animation: plato-entra 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* La pared se va «escribiendo» una sola vez al cargar. */
+@keyframes palabra-entra {
+  from { opacity: 0; transform: translateY(0.3em); }
+  to { opacity: 1; transform: none; }
+}
+
+.palabra-entra {
+  animation: palabra-entra 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: calc(var(--i, 0) * 35ms);
+}
+
+.tira-fotos {
+  /* Alinea la primera foto con el borde del contenido y deja sangrar el resto. */
+  --margen-tira: max(1rem, calc((100vw - 80rem) / 2 + 1rem));
+  padding-inline: var(--margen-tira);
+  scroll-padding-inline: var(--margen-tira);
+  scrollbar-width: thin;
+  scroll-snap-type: x mandatory;
+  overscroll-behavior-x: contain;
+}
+
+.yarl__root {
+  --yarl__color_backdrop: rgba(0, 0, 0, 0.94);
+  --yarl__color_button: rgba(255, 255, 255, 0.85);
+  --yarl__color_button_active: #A8C66C;
+}
+
+@media (min-width: 768px) {
+  .tira-fotos { --margen-tira: max(2rem, calc((100vw - 80rem) / 2 + 2rem)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .plato-entra, .palabra-entra { animation: none; }
 }

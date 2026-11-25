@@ -1,5 +1,5 @@
 {
-  "name": "Encurtidos Antequera",
+  "name": "Antequera Encurtidos",
   "short_name": "Antequera",
   "icons": [
     {
@@ -13,7 +13,9 @@
       "type": "image/png"
     }
   ],
-  "theme_color": "#D9C3A3",
-  "background_color": "#F7F3EA",
-  "display": "standalone"
+  "theme_color": "#FFFFFF",
+  "background_color": "#FFFFFF",
+  "display": "standalone",
+  "lang": "es",
+  "start_url": "/"
 }
