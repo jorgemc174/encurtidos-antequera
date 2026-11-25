@@ -7,11 +7,4 @@ export const supabase = createClient(
 
 export const BUCKET = "fotos-carta";
 
-export function normalizeKey(name) {
-  return name
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
-}
+export { normalizeKey } from "./normalizeKey";

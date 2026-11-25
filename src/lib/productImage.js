@@ -1,4 +1,4 @@
-import { normalizeKey } from "./supabase";
+import { normalizeKey } from "./normalizeKey";
 
 const IMAGE_ALIASES = {
   "anchoas-y-boquerones": "boquerones-y-anchoas",
