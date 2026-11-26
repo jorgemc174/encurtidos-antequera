@@ -80,7 +80,7 @@ const textosBase = {
 const productosBase = [
   { nombre: { es: "Aceitunas variadas", en: "Mixed olives" }, items: [{ nombre: { es: "Aceitunas variadas", en: "Mixed olives" }, imagenKey: "cuenco-de-aceituna" }] },
   { nombre: { es: "Encurtidos", en: "Pickles" }, items: [{ nombre: { es: "Encurtidos", en: "Pickles" }, imagenKey: "__vasitos" }] },
-  { nombre: { es: "Banderillas", en: "Skewers" }, items: [{ nombre: { es: "Banderillas", en: "Skewers" }, imagenKey: "piparra-con-anchoa" }] },
+  { nombre: { es: "Banderillas", en: "Skewers" }, items: [{ nombre: { es: "Banderillas", en: "Skewers" }, imagenKey: "banderillas" }] },
   { nombre: { es: "Tortilla", en: "Spanish omelette" }, items: [{ nombre: { es: "Tortilla", en: "Spanish omelette" }, imagenKey: "tortilla" }] },
   { nombre: { es: "Pollo Kentucky", en: "Kentucky chicken" }, items: [{ nombre: { es: "Pollo Kentucky", en: "Kentucky chicken" }, imagenKey: "pollo-kentucky" }] },
   { nombre: { es: "Papas bravas", en: "Patatas bravas" }, items: [{ nombre: { es: "Papas bravas", en: "Patatas bravas" }, imagenKey: "papas-bravas" }] },
@@ -95,7 +95,7 @@ const puestosBase = puestosDatos.map((puesto, idx) => ({
 // pueden tocar; las bebidas quedan como texto, igual que en la pared del bar.
 const paredPalabras = [
   { es: "aceitunas aliñadas", en: "dressed olives", foto: ["cuenco-de-aceituna", "cuenco-de-aceitunas"] },
-  { es: "banderillas", en: "pickle skewers", foto: ["atun-anchoas", "piparra-con-anchoa"] },
+  { es: "banderillas", en: "pickle skewers", foto: ["banderillas", "piparra-con-anchoa"] },
   { es: "cañas", en: "draught beer", foto: ["cana"] },
   { es: "boquerones", en: "anchovies", foto: ["boquerones", "boquerones-y-anchoas"] },
   { es: "pollo kentucky", en: "kentucky chicken", foto: ["pollo-kentucky"] },
@@ -427,7 +427,9 @@ export default function Home() {
                 {fotoPlato && platoPos && (
                   <figure id="plato-pared" key={palabraActiva} className="plato-entra absolute z-10 m-0 overflow-hidden rounded-md bg-pared shadow-[0_18px_40px_-12px_rgba(0,0,0,0.45)]"
                     style={{ left: platoPos.left, top: platoPos.top, width: platoPos.ancho }}>
-                    <img src={platoPos.ancho < 260 ? miniaturaDeImagen(fotoPlato) : fotoPlato} alt={palabras[palabraActiva][lang]} className="aspect-[4/3] w-full object-cover" decoding="async" />
+                    <img src={fotoPlato} alt={palabras[palabraActiva][lang]} className="aspect-[4/3] w-full object-cover" decoding="async"
+                      srcSet={miniaturaDeImagen(fotoPlato) !== fotoPlato ? `${miniaturaDeImagen(fotoPlato)} 216w, ${fotoPlato} 1200w` : undefined}
+                      sizes={`${Math.round(platoPos.ancho)}px`} />
                     <figcaption className="flex items-center justify-between gap-2 py-1 pl-3 pr-1 text-sm font-semibold">
                       {palabras[palabraActiva][lang]}
                       <button type="button" onClick={() => cerrarPlato(true)} className="inline-flex size-9 shrink-0 items-center justify-center rounded-full hover:bg-cal" aria-label={t.cerrarFoto}>
