@@ -96,7 +96,7 @@ const puestosBase = puestosDatos.map((puesto, idx) => ({
 const paredPalabras = [
   { es: "aceitunas aliñadas", en: "dressed olives", foto: ["cuenco-de-aceituna", "cuenco-de-aceitunas"] },
   { es: "banderillas", en: "pickle skewers", foto: ["atun-anchoas", "piparra-con-anchoa"] },
-  { es: "cañas", en: "draught beer" },
+  { es: "cañas", en: "draught beer", foto: ["cana"] },
   { es: "boquerones", en: "anchovies", foto: ["boquerones", "boquerones-y-anchoas"] },
   { es: "pollo kentucky", en: "kentucky chicken", foto: ["pollo-kentucky"] },
   { es: "papas antequera", en: "antequera potatoes", foto: ["papas-antequera"] },

@@ -4,6 +4,8 @@ export const IMAGENES_SUPABASE_SNAPSHOT_AT = Date.parse("2026-07-23T18:20:19.565
 
 export const imagenesSupabase = {
   "alcachofa-braseada": `${base}/alcachofa-braseada.jpg`,
+  cana: `${base}/cana.jpg`,
+  "copa-de-cerveza": `${base}/copa-de-cerveza.jpg`,
   "alitas-de-pollo-a-la-barbacoa": `${base}/alitas-de-pollo-a-la-barbacoa.jpg`,
   "anchoas-y-boquerones": `${base}/anchoas-y-boquerones.jpg`,
   "boqueron-con-relleno": `${base}/boqueron-con-relleno.jpg`,

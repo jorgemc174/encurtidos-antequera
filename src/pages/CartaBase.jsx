@@ -202,11 +202,11 @@ export default function CartaBase({ titulo, categorias }) {
 
         return (
           <li key={normalized} className={`flex items-center gap-3 border-b border-tinta/10 ${noImages ? "py-2.5" : "py-3"}`}>
-            {!noImages && imagen && (
+            {(noImages ? legacyImage : imagen) && (
               <div className="relative size-[4.5rem] shrink-0 overflow-hidden rounded-md bg-cal">
-                <button type="button" onClick={() => setSelectedImage({ src: imagen, alt: item.nombre[lang] })}
+                <button type="button" onClick={() => setSelectedImage({ src: noImages ? legacyImage : imagen, alt: item.nombre[lang] })}
                   className="block size-full cursor-zoom-in focus-visible:outline-offset-[-3px]" aria-label={`${lang === "es" ? "Ver foto" : "View photo"}: ${item.nombre[lang]}`}>
-                  <img src={miniaturaDeImagen(imagen)} alt="" loading="lazy" decoding="async" width="216" height="216" className="size-full object-cover" />
+                  <img src={miniaturaDeImagen(noImages ? legacyImage : imagen)} alt="" loading="lazy" decoding="async" width="216" height="216" className="size-full object-cover" />
                 </button>
               </div>
             )}
