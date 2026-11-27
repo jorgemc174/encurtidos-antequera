@@ -28,8 +28,8 @@ export const puestosDatos = [
     lugar: { es: "", en: "" },
     mapa: "https://maps.app.goo.gl/iRxEPQPSHbNWSf5L6", rutaCarta: "/carta-telde",
     horario: {
-      es: [{ dia: "Lunes", hora: "11:00 - 01:00" }, { dia: "Martes", hora: "11:00 - 01:00" }, { dia: "Miércoles", hora: "12:00 - 02:00" }, { dia: "Jueves", hora: "12:00 - 02:00" }, { dia: "Viernes", hora: "12:00 - 02:00" }, { dia: "Sábado", hora: "12:00 - 02:00" }, { dia: "Domingo", hora: "11:00 - 01:00" }],
-      en: [{ dia: "Monday", hora: "11:00 - 01:00" }, { dia: "Tuesday", hora: "11:00 - 01:00" }, { dia: "Wednesday", hora: "12:00 - 02:00" }, { dia: "Thursday", hora: "12:00 - 02:00" }, { dia: "Friday", hora: "12:00 - 02:00" }, { dia: "Saturday", hora: "12:00 - 02:00" }, { dia: "Sunday", hora: "11:00 - 01:00" }],
+      es: [{ dia: "Lunes", hora: "11:00 - 01:00" }, { dia: "Martes", hora: "11:00 - 01:00" }, { dia: "Miércoles", hora: "12:00 - 01:00" }, { dia: "Jueves", hora: "12:00 - 02:00" }, { dia: "Viernes", hora: "12:00 - 02:00" }, { dia: "Sábado", hora: "12:00 - 02:00" }, { dia: "Domingo", hora: "11:00 - 01:00" }],
+      en: [{ dia: "Monday", hora: "11:00 - 01:00" }, { dia: "Tuesday", hora: "11:00 - 01:00" }, { dia: "Wednesday", hora: "12:00 - 01:00" }, { dia: "Thursday", hora: "12:00 - 02:00" }, { dia: "Friday", hora: "12:00 - 02:00" }, { dia: "Saturday", hora: "12:00 - 02:00" }, { dia: "Sunday", hora: "11:00 - 01:00" }],
     },
   },
 ];

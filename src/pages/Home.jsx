@@ -5,6 +5,7 @@ import "yet-another-react-lightbox/styles.css";
 import { ChevronLeft, ChevronRight, Mail, MapPin, Menu, Phone, Plus, X } from "lucide-react";
 import logoImg from "../assets/logo-web.webp";
 import logoClaroImg from "../assets/logo-claro.webp";
+import banderillasPortada from "../assets/banderillas-portada.webp";
 import encurtidosVasitos from "../assets/eventos/encurtidos-vasitos.webp";
 import lasPalmasImg from "../assets/laspalmas.webp";
 import galdarImg from "../assets/galdar.webp";
@@ -78,9 +79,10 @@ const textosBase = {
 };
 
 const productosBase = [
+  { nombre: { es: "Caña", en: "Draught beer" }, fotoCompleta: true, items: [{ nombre: { es: "Caña", en: "Draught beer" }, imagenKey: "cana" }] },
   { nombre: { es: "Aceitunas variadas", en: "Mixed olives" }, items: [{ nombre: { es: "Aceitunas variadas", en: "Mixed olives" }, imagenKey: "cuenco-de-aceituna" }] },
   { nombre: { es: "Encurtidos", en: "Pickles" }, items: [{ nombre: { es: "Encurtidos", en: "Pickles" }, imagenKey: "__vasitos" }] },
-  { nombre: { es: "Banderillas", en: "Skewers" }, items: [{ nombre: { es: "Banderillas", en: "Skewers" }, imagenKey: "banderillas" }] },
+  { nombre: { es: "Banderillas", en: "Skewers" }, fotoCompleta: true, items: [{ nombre: { es: "Banderillas", en: "Skewers" }, imagenKey: "banderillas" }] },
   { nombre: { es: "Tortilla", en: "Spanish omelette" }, items: [{ nombre: { es: "Tortilla", en: "Spanish omelette" }, imagenKey: "tortilla" }] },
   { nombre: { es: "Pollo Kentucky", en: "Kentucky chicken" }, items: [{ nombre: { es: "Pollo Kentucky", en: "Kentucky chicken" }, imagenKey: "pollo-kentucky" }] },
   { nombre: { es: "Papas bravas", en: "Patatas bravas" }, items: [{ nombre: { es: "Papas bravas", en: "Patatas bravas" }, imagenKey: "papas-bravas" }] },
@@ -92,11 +94,11 @@ const puestosBase = puestosDatos.map((puesto, idx) => ({
 }));
 
 // Palabras de la pared: platos reales de las cartas. Las que tienen foto se
-// pueden tocar; las bebidas quedan como texto, igual que en la pared del bar.
+// pueden tocar para ampliar la foto.
 const paredPalabras = [
   { es: "aceitunas aliñadas", en: "dressed olives", foto: ["cuenco-de-aceituna", "cuenco-de-aceitunas"] },
-  { es: "banderillas", en: "pickle skewers", foto: ["banderillas", "piparra-con-anchoa"] },
-  { es: "cañas", en: "draught beer", foto: ["cana"] },
+  { es: "banderillas", en: "pickle skewers", foto: ["banderillas"], fotoCompleta: true },
+  { es: "cañas", en: "draught beer", foto: ["cana"], fotoCompleta: true },
   { es: "boquerones", en: "anchovies", foto: ["boquerones", "boquerones-y-anchoas"] },
   { es: "pollo kentucky", en: "kentucky chicken", foto: ["pollo-kentucky"] },
   { es: "papas antequera", en: "antequera potatoes", foto: ["papas-antequera"] },
@@ -141,6 +143,7 @@ const availableProductImages = {
   __vasitos: encurtidosVasitos,
   ...imagenesProductos,
   ...imagenesSupabase,
+  banderillas: banderillasPortada,
 };
 
 function LogoAntequera({ className = "", claro = false }) {
@@ -237,12 +240,17 @@ export default function Home() {
     };
   }, [palabraActiva, cerrarPlato]);
 
-  const tocarPalabra = (idx) => {
-    if (palabraActiva === idx) { cerrarPlato(); return; }
+  const tocarPalabra = (idx, clicConRaton) => {
+    if (palabraActiva === idx) {
+      if (!clicConRaton) cerrarPlato();
+      return;
+    }
     mostrarPalabra(idx);
   };
 
-  const fotoPlato = palabraActiva !== null ? palabras[palabraActiva]?.imagen : null;
+  const platoActivo = palabras[palabraActiva];
+  const fotoPlato = platoActivo?.imagen;
+  const miniaturaPlato = platoActivo?.fotoCompleta ? fotoPlato : miniaturaDeImagen(fotoPlato);
 
   // ----- Menú del móvil: <dialog> modal con showModal() --------------------
   const botonMenuRef = useRef(null);
@@ -416,7 +424,7 @@ export default function Home() {
                       <span key={palabra.es} className={`palabra-entra ${idx >= PALABRAS_MOVIL ? "hidden sm:inline" : ""}`} style={{ "--i": idx }}>
                         <button type="button" ref={(nodo) => { palabraRefs.current[idx] = nodo; }}
                           onMouseEnter={() => { if (puedePasarRaton) mostrarPalabra(idx); }}
-                          onClick={() => tocarPalabra(idx)} aria-pressed={activa} aria-controls={activa ? "plato-pared" : undefined}
+                          onClick={(event) => tocarPalabra(idx, puedePasarRaton && event.detail > 0)} aria-pressed={activa} aria-controls={activa ? "plato-pared" : undefined}
                           className={`cursor-pointer rounded-sm text-left decoration-[0.06em] underline-offset-[0.14em] transition-colors ${activa ? "text-oliva-hondo underline" : "hover:text-oliva-hondo"}`}>
                           {palabra[lang]}
                         </button>{final}
@@ -427,11 +435,11 @@ export default function Home() {
                 {fotoPlato && platoPos && (
                   <figure id="plato-pared" key={palabraActiva} className="plato-entra absolute z-10 m-0 overflow-hidden rounded-md bg-pared shadow-[0_18px_40px_-12px_rgba(0,0,0,0.45)]"
                     style={{ left: platoPos.left, top: platoPos.top, width: platoPos.ancho }}>
-                    <img src={fotoPlato} alt={palabras[palabraActiva][lang]} className="aspect-[4/3] w-full object-cover" decoding="async"
-                      srcSet={miniaturaDeImagen(fotoPlato) !== fotoPlato ? `${miniaturaDeImagen(fotoPlato)} 216w, ${fotoPlato} 1200w` : undefined}
+                    <img src={fotoPlato} alt={platoActivo[lang]} className={`aspect-[4/3] w-full ${platoActivo.fotoCompleta ? "bg-cal object-contain" : "object-cover"}`} decoding="async"
+                      srcSet={miniaturaPlato !== fotoPlato ? `${miniaturaPlato} 216w, ${fotoPlato} 1200w` : undefined}
                       sizes={`${Math.round(platoPos.ancho)}px`} />
                     <figcaption className="flex items-center justify-between gap-2 py-1 pl-3 pr-1 text-sm font-semibold">
-                      {palabras[palabraActiva][lang]}
+                      {platoActivo[lang]}
                       <button type="button" onClick={() => cerrarPlato(true)} className="inline-flex size-9 shrink-0 items-center justify-center rounded-full hover:bg-cal" aria-label={t.cerrarFoto}>
                         <X className="size-4" aria-hidden="true" strokeWidth={2} />
                       </button>
@@ -548,7 +556,8 @@ export default function Home() {
                       </div>
                       {portada && unico && (
                         <button type="button" onClick={() => setFotoAmpliada({ src: portada, alt: producto.items[0].nombre[lang] })} className="shrink-0 cursor-zoom-in overflow-hidden rounded-md focus-visible:outline-offset-[-3px]" aria-label={`${t.ampliarFoto}: ${producto.items[0].nombre[lang]}`}>
-                          <img src={miniaturaDeImagen(portada)} alt="" loading="lazy" decoding="async" className="h-16 w-24 object-cover transition-transform duration-500 hover:scale-105 md:h-20 md:w-28" />
+                          <img src={producto.fotoCompleta ? portada : miniaturaDeImagen(portada)} alt="" loading="lazy" decoding="async"
+                            className={`h-16 w-24 transition-transform duration-500 hover:scale-105 md:h-20 md:w-28 ${producto.fotoCompleta ? "object-contain" : "object-cover"}`} />
                         </button>
                       )}
                       {portada && !unico && !isOpen && (
